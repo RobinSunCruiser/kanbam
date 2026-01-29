@@ -26,7 +26,10 @@ export default function Column({
   });
 
   return (
-    <div className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 flex flex-col h-full">
+    <div
+      ref={setNodeRef}
+      className="bg-gray-100 dark:bg-gray-800 rounded-lg p-4 flex flex-col h-full"
+    >
       <div className="flex justify-between items-center mb-4">
         <h3 className="font-semibold text-gray-900 dark:text-gray-100">
           {column.title}
@@ -49,11 +52,7 @@ export default function Column({
         items={cards.map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div
-          ref={setNodeRef}
-          className="space-y-3 flex-1 overflow-y-auto min-h-[200px] rounded-md transition-colors"
-          style={{ minHeight: cards.length === 0 ? '200px' : '100px' }}
-        >
+        <div className="space-y-3 flex-1 overflow-y-auto rounded-md transition-colors">
           {cards.map((card) => (
             <Card
               key={card.id}

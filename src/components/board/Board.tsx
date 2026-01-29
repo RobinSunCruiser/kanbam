@@ -172,17 +172,10 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
     setActiveCard(card);
   };
 
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event;
-    setActiveCard(null);
+  // Helper: Calculate drop target from drag event
+  const calculateDropTarget = (over: DragEndEvent['over']) => {
+    if (!over) return null;
 
-    if (!over) return;
-
-    const cardId = active.id as string;
-    const card = board.cards[cardId];
-    if (!card) return;
-
-    // Determine target column
     let targetColumnId: ColumnType;
     let targetIndex: number;
 
@@ -198,6 +191,110 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
       const targetColumn = board.columns.find((c) => c.id === targetColumnId);
       targetIndex = targetColumn?.cardIds.length || 0;
     }
+
+    return { targetColumnId, targetIndex };
+  };
+
+  // Helper: Perform optimistic card move update
+  const performOptimisticMove = (
+    cardId: string,
+    originalColumnId: ColumnType,
+    targetColumnId: ColumnType,
+    targetIndex: number
+  ) => {
+    setBoard((prevBoard) => {
+      const newColumns = prevBoard.columns.map((col) => {
+        // Handle moving within the same column
+        if (col.id === originalColumnId && originalColumnId === targetColumnId) {
+          const newCardIds = [...col.cardIds];
+          const currentIndex = newCardIds.indexOf(cardId);
+          newCardIds.splice(currentIndex, 1); // Remove from current position
+          newCardIds.splice(targetIndex, 0, cardId); // Insert at new position
+          return { ...col, cardIds: newCardIds };
+        }
+
+        // Handle moving to different column - remove from source
+        if (col.id === originalColumnId) {
+          return {
+            ...col,
+            cardIds: col.cardIds.filter((id) => id !== cardId),
+          };
+        }
+
+        // Handle moving to different column - add to target
+        if (col.id === targetColumnId) {
+          const newCardIds = [...col.cardIds];
+          newCardIds.splice(targetIndex, 0, cardId);
+          return { ...col, cardIds: newCardIds };
+        }
+
+        return col;
+      });
+
+      return {
+        ...prevBoard,
+        columns: newColumns,
+        cards: {
+          ...prevBoard.cards,
+          [cardId]: {
+            ...prevBoard.cards[cardId],
+            columnId: targetColumnId,
+            updatedAt: new Date().toISOString(),
+          },
+        },
+        updatedAt: new Date().toISOString(),
+      };
+    });
+  };
+
+  // Helper: Rollback failed drag operation
+  const performRollback = (
+    cardId: string,
+    originalColumnId: ColumnType,
+    targetColumnId: ColumnType,
+    sourceCardIds: string[],
+    targetCardIds: string[]
+  ) => {
+    setBoard((prevBoard) => {
+      const newColumns = prevBoard.columns.map((col) => {
+        if (col.id === originalColumnId) {
+          return { ...col, cardIds: sourceCardIds };
+        }
+        if (col.id === targetColumnId) {
+          return { ...col, cardIds: targetCardIds };
+        }
+        return col;
+      });
+
+      return {
+        ...prevBoard,
+        columns: newColumns,
+        cards: {
+          ...prevBoard.cards,
+          [cardId]: {
+            ...prevBoard.cards[cardId],
+            columnId: originalColumnId,
+          },
+        },
+      };
+    });
+  };
+
+  const handleDragEnd = async (event: DragEndEvent) => {
+    const { active, over } = event;
+    setActiveCard(null);
+
+    if (!over) return;
+
+    const cardId = active.id as string;
+    const card = board.cards[cardId];
+    if (!card) return;
+
+    // Calculate drop target
+    const dropTarget = calculateDropTarget(over);
+    if (!dropTarget) return;
+
+    const { targetColumnId, targetIndex } = dropTarget;
 
     // Don't do anything if dropped in same position
     if (card.columnId === targetColumnId) {
@@ -220,57 +317,7 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
     };
 
     // Optimistic update: Update UI immediately for better UX
-    setBoard((prevBoard) => {
-      const newColumns = prevBoard.columns.map((col) => {
-        // Handle moving within the same column
-        if (col.id === originalColumnId && originalColumnId === targetColumnId) {
-          const newCardIds = [...col.cardIds];
-          const currentIndex = newCardIds.indexOf(cardId);
-          // Remove from current position
-          newCardIds.splice(currentIndex, 1);
-          // Insert at new position
-          newCardIds.splice(targetIndex, 0, cardId);
-          return {
-            ...col,
-            cardIds: newCardIds,
-          };
-        }
-
-        // Handle moving to different column - remove from source
-        if (col.id === originalColumnId) {
-          return {
-            ...col,
-            cardIds: col.cardIds.filter((id) => id !== cardId),
-          };
-        }
-
-        // Handle moving to different column - add to target
-        if (col.id === targetColumnId) {
-          const newCardIds = [...col.cardIds];
-          newCardIds.splice(targetIndex, 0, cardId);
-          return {
-            ...col,
-            cardIds: newCardIds,
-          };
-        }
-
-        return col;
-      });
-
-      return {
-        ...prevBoard,
-        columns: newColumns,
-        cards: {
-          ...prevBoard.cards,
-          [cardId]: {
-            ...prevBoard.cards[cardId],
-            columnId: targetColumnId,
-            updatedAt: new Date().toISOString(),
-          },
-        },
-        updatedAt: new Date().toISOString(),
-      };
-    });
+    performOptimisticMove(cardId, originalColumnId, targetColumnId, targetIndex);
 
     // Send update to backend in background
     try {
@@ -280,30 +327,13 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
       });
 
       if (result?.error) {
-        // Rollback on error
-        setBoard((prevBoard) => {
-          const newColumns = prevBoard.columns.map((col) => {
-            if (col.id === rollbackData.originalColumnId) {
-              return { ...col, cardIds: rollbackData.sourceCardIds };
-            }
-            if (col.id === rollbackData.targetColumnId) {
-              return { ...col, cardIds: rollbackData.targetCardIds };
-            }
-            return col;
-          });
-
-          return {
-            ...prevBoard,
-            columns: newColumns,
-            cards: {
-              ...prevBoard.cards,
-              [cardId]: {
-                ...prevBoard.cards[cardId],
-                columnId: rollbackData.originalColumnId,
-              },
-            },
-          };
-        });
+        performRollback(
+          rollbackData.cardId,
+          rollbackData.originalColumnId,
+          rollbackData.targetColumnId,
+          rollbackData.sourceCardIds,
+          rollbackData.targetCardIds
+        );
 
         setErrorAlert({
           title: 'Move Failed',
@@ -313,30 +343,13 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
     } catch (error) {
       console.error('Failed to move card:', error);
 
-      // Rollback on error
-      setBoard((prevBoard) => {
-        const newColumns = prevBoard.columns.map((col) => {
-          if (col.id === rollbackData.originalColumnId) {
-            return { ...col, cardIds: rollbackData.sourceCardIds };
-          }
-          if (col.id === rollbackData.targetColumnId) {
-            return { ...col, cardIds: rollbackData.targetCardIds };
-          }
-          return col;
-        });
-
-        return {
-          ...prevBoard,
-          columns: newColumns,
-          cards: {
-            ...prevBoard.cards,
-            [cardId]: {
-              ...prevBoard.cards[cardId],
-              columnId: rollbackData.originalColumnId,
-            },
-          },
-        };
-      });
+      performRollback(
+        rollbackData.cardId,
+        rollbackData.originalColumnId,
+        rollbackData.targetColumnId,
+        rollbackData.sourceCardIds,
+        rollbackData.targetCardIds
+      );
 
       setErrorAlert({
         title: 'Move Failed',
