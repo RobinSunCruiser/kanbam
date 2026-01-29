@@ -1,5 +1,5 @@
 import { requireAuth } from '@/lib/auth/middleware';
-import { loadBoard } from '@/lib/storage/boards';
+import { listBoardsByEmail } from '@/lib/storage/boards';
 import { BoardMetadata } from '@/types/board';
 import BoardList from '@/components/dashboard/BoardList';
 import CreateBoardButton from '@/components/dashboard/CreateBoardButton';
@@ -7,23 +7,25 @@ import CreateBoardButton from '@/components/dashboard/CreateBoardButton';
 export default async function DashboardPage() {
   const user = await requireAuth();
 
-  // Load all boards the user has access to
-  const boards: BoardMetadata[] = [];
+  // Load all boards where user is a member
+  const userBoards = await listBoardsByEmail(user.email);
 
-  for (const access of user.boardAccess) {
-    const board = await loadBoard(access.boardUid);
-    if (board) {
-      boards.push({
-        uid: board.uid,
-        title: board.title,
-        description: board.description,
-        createdAt: board.createdAt,
-        updatedAt: board.updatedAt,
-        cardCount: Object.keys(board.cards).length,
-        privilege: access.privilege,
-      });
-    }
-  }
+  // Convert to BoardMetadata format
+  const boards: BoardMetadata[] = userBoards.map(board => {
+    const member = board.members.find(
+      m => m.email.toLowerCase() === user.email.toLowerCase()
+    );
+
+    return {
+      uid: board.uid,
+      title: board.title,
+      description: board.description,
+      createdAt: board.createdAt,
+      updatedAt: board.updatedAt,
+      cardCount: Object.keys(board.cards).length,
+      privilege: member?.privilege || 'read',
+    };
+  });
 
   // Sort boards by last updated
   boards.sort((a, b) =>

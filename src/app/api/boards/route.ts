@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth } from '@/lib/auth/middleware';
-import { createBoard, loadBoard } from '@/lib/storage/boards';
-import { addBoardAccess } from '@/lib/storage/users';
+import { createBoard, listBoardsByEmail, getBoardMemberPrivilege } from '@/lib/storage/boards';
 import { ApiResponse } from '@/types/api';
 import { BoardMetadata } from '@/types/board';
 import { UnauthorizedError } from '@/lib/utils/errors';
@@ -11,23 +10,24 @@ export async function GET() {
   try {
     const user = await requireAuth();
 
-    const boards: BoardMetadata[] = [];
+    // Get all boards where user is a member
+    const userBoards = await listBoardsByEmail(user.email);
 
-    // Load each board the user has access to
-    for (const access of user.boardAccess) {
-      const board = await loadBoard(access.boardUid);
-      if (board) {
-        boards.push({
-          uid: board.uid,
-          title: board.title,
-          description: board.description,
-          createdAt: board.createdAt,
-          updatedAt: board.updatedAt,
-          cardCount: Object.keys(board.cards).length,
-          privilege: access.privilege,
-        });
-      }
-    }
+    const boards: BoardMetadata[] = userBoards.map(board => {
+      const member = board.members.find(
+        m => m.email.toLowerCase() === user.email.toLowerCase()
+      );
+
+      return {
+        uid: board.uid,
+        title: board.title,
+        description: board.description,
+        createdAt: board.createdAt,
+        updatedAt: board.updatedAt,
+        cardCount: Object.keys(board.cards).length,
+        privilege: member?.privilege || 'read',
+      };
+    });
 
     return NextResponse.json<ApiResponse<{ boards: BoardMetadata[] }>>({
       success: true,
@@ -63,15 +63,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create board
+    // Create board with owner as first member
     const board = await createBoard({
       title: title.trim(),
       description: description?.trim(),
       ownerId: user.id,
-    });
-
-    // Grant owner write access
-    await addBoardAccess(user.id, board.uid, 'write');
+    }, user.email);
 
     return NextResponse.json<ApiResponse<{ board: typeof board }>>(
       { success: true, data: { board } },

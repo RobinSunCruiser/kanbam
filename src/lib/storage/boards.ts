@@ -1,62 +1,36 @@
-import fs from 'fs/promises';
-import lockfile from 'proper-lockfile';
 import { Board, Card, ColumnType } from '@/types/board';
-import { getBoardFilePath, BOARDS_DIR } from './paths';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateBoardUid, generateCardId, isValidUid } from '../utils/uid';
-
-async function ensureBoardsDir() {
-  try {
-    await fs.mkdir(BOARDS_DIR, { recursive: true });
-  } catch (error) {
-    // Directory might already exist, ignore error
-  }
-}
+import { getUserByEmail } from './users';
+import { sql } from './db';
 
 export async function loadBoard(uid: string): Promise<Board | null> {
   if (!isValidUid(uid)) {
     throw new ValidationError('Invalid board UID format');
   }
 
-  const filePath = getBoardFilePath(uid);
+  const result = await sql`
+    SELECT uid, title, owner_id as "ownerId", data, created_at as "createdAt", updated_at as "updatedAt"
+    FROM boards
+    WHERE uid = ${uid}
+  `;
 
-  try {
-    const data = await fs.readFile(filePath, 'utf-8');
-    return JSON.parse(data);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      return null;
-    }
-    throw error;
-  }
-}
+  if (result.length === 0) return null;
 
-async function retryRename(source: string, dest: string, maxRetries = 5): Promise<void> {
-  for (let i = 0; i < maxRetries; i++) {
-    try {
-      // On Windows, try to delete the destination first
-      if (process.platform === 'win32') {
-        try {
-          await fs.unlink(dest);
-        } catch (error: any) {
-          // File might not exist yet, that's okay
-          if (error.code !== 'ENOENT') {
-            // Wait a bit and retry
-            await new Promise(resolve => setTimeout(resolve, 50 * (i + 1)));
-          }
-        }
-      }
-      await fs.rename(source, dest);
-      return; // Success!
-    } catch (error: any) {
-      if (error.code === 'EPERM' && i < maxRetries - 1) {
-        // Wait with exponential backoff
-        await new Promise(resolve => setTimeout(resolve, 100 * Math.pow(2, i)));
-        continue;
-      }
-      throw error;
-    }
-  }
+  const row = result[0];
+  const boardData = row.data;
+
+  return {
+    uid: row.uid,
+    title: row.title,
+    ownerId: row.ownerId,
+    description: boardData.description,
+    members: boardData.members || [],
+    columns: boardData.columns || [],
+    cards: boardData.cards || {},
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
 }
 
 export async function saveBoard(board: Board): Promise<void> {
@@ -64,42 +38,22 @@ export async function saveBoard(board: Board): Promise<void> {
     throw new ValidationError('Invalid board UID format');
   }
 
-  await ensureBoardsDir();
+  const data = {
+    description: board.description,
+    members: board.members,
+    columns: board.columns,
+    cards: board.cards,
+  };
 
-  const filePath = getBoardFilePath(board.uid);
-  const tempFile = `${filePath}.tmp`;
-  const data = JSON.stringify(board, null, 2);
-
-  let release: (() => Promise<void>) | null = null;
-
-  try {
-    // Create file if it doesn't exist
-    try {
-      await fs.access(filePath);
-    } catch {
-      await fs.writeFile(filePath, '{}');
-    }
-
-    release = await lockfile.lock(filePath, { retries: 10 });
-
-    // Write to temp file
-    await fs.writeFile(tempFile, data, 'utf-8');
-
-    // Atomic rename with retry logic for Windows
-    await retryRename(tempFile, filePath);
-  } catch (error) {
-    // Clean up temp file on error
-    try {
-      await fs.unlink(tempFile);
-    } catch {
-      // Ignore cleanup errors
-    }
-    throw error;
-  } finally {
-    if (release) {
-      await release();
-    }
-  }
+  await sql`
+    INSERT INTO boards (uid, title, owner_id, data, created_at, updated_at)
+    VALUES (${board.uid}, ${board.title}, ${board.ownerId}, ${JSON.stringify(data)}, ${board.createdAt}, ${board.updatedAt})
+    ON CONFLICT (uid)
+    DO UPDATE SET
+      title = EXCLUDED.title,
+      data = EXCLUDED.data,
+      updated_at = EXCLUDED.updated_at
+  `;
 }
 
 export async function deleteBoard(uid: string): Promise<void> {
@@ -107,15 +61,14 @@ export async function deleteBoard(uid: string): Promise<void> {
     throw new ValidationError('Invalid board UID format');
   }
 
-  const filePath = getBoardFilePath(uid);
+  const result = await sql`
+    DELETE FROM boards
+    WHERE uid = ${uid}
+    RETURNING uid
+  `;
 
-  try {
-    await fs.unlink(filePath);
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
-      throw new NotFoundError('Board not found');
-    }
-    throw error;
+  if (result.length === 0) {
+    throw new NotFoundError('Board not found');
   }
 }
 
@@ -124,18 +77,16 @@ export async function boardExists(uid: string): Promise<boolean> {
     return false;
   }
 
-  const filePath = getBoardFilePath(uid);
+  const result = await sql`
+    SELECT 1 FROM boards WHERE uid = ${uid}
+  `;
 
-  try {
-    await fs.access(filePath);
-    return true;
-  } catch {
-    return false;
-  }
+  return result.length > 0;
 }
 
 export async function createBoard(
-  data: Omit<Board, 'uid' | 'createdAt' | 'updatedAt' | 'columns' | 'cards'>
+  data: Omit<Board, 'uid' | 'createdAt' | 'updatedAt' | 'columns' | 'cards' | 'members'>,
+  ownerEmail: string
 ): Promise<Board> {
   const uid = generateBoardUid();
   const now = new Date().toISOString();
@@ -145,6 +96,12 @@ export async function createBoard(
     uid,
     createdAt: now,
     updatedAt: now,
+    members: [
+      {
+        email: ownerEmail,
+        privilege: 'write',
+      },
+    ],
     columns: [
       {
         id: 'todo',
@@ -295,4 +252,97 @@ export async function deleteCard(boardUid: string, cardId: string): Promise<void
   board.updatedAt = new Date().toISOString();
 
   await saveBoard(board);
+}
+
+export async function addBoardMember(
+  boardUid: string,
+  email: string,
+  privilege: 'read' | 'write'
+): Promise<void> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  // Check if email is registered
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new ValidationError('User with this email does not exist');
+  }
+
+  // Check if member already exists
+  const existingMember = board.members.find(
+    m => m.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (existingMember) {
+    // Update privilege
+    existingMember.privilege = privilege;
+  } else {
+    // Add new member
+    board.members.push({ email: email.toLowerCase(), privilege });
+  }
+
+  board.updatedAt = new Date().toISOString();
+  await saveBoard(board);
+}
+
+export async function removeBoardMember(
+  boardUid: string,
+  email: string
+): Promise<void> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  // Remove member
+  board.members = board.members.filter(
+    m => m.email.toLowerCase() !== email.toLowerCase()
+  );
+
+  // If no members left, delete the board
+  if (board.members.length === 0) {
+    await deleteBoard(boardUid);
+    return;
+  }
+
+  board.updatedAt = new Date().toISOString();
+  await saveBoard(board);
+}
+
+export async function listBoardsByEmail(email: string): Promise<Board[]> {
+  const result = await sql`
+    SELECT uid, title, owner_id as "ownerId", data, created_at as "createdAt", updated_at as "updatedAt"
+    FROM boards
+    WHERE data->'members' @> ${JSON.stringify([{ email: email.toLowerCase() }])}::jsonb
+  `;
+
+  return result.map(row => ({
+    uid: row.uid,
+    title: row.title,
+    ownerId: row.ownerId,
+    description: row.data.description,
+    members: row.data.members || [],
+    columns: row.data.columns || [],
+    cards: row.data.cards || {},
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
+}
+
+export async function getBoardMemberPrivilege(
+  boardUid: string,
+  email: string
+): Promise<'read' | 'write' | null> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    return null;
+  }
+
+  const member = board.members?.find(
+    m => m.email.toLowerCase() === email.toLowerCase()
+  );
+
+  return member?.privilege || null;
 }

@@ -44,7 +44,6 @@ export async function POST(request: NextRequest) {
       id: user.id,
       email: user.email,
       name: user.name,
-      boardAccess: user.boardAccess,
     };
 
     return NextResponse.json<ApiResponse<{ user: UserAuth }>>({

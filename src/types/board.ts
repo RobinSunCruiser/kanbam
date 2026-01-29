@@ -15,6 +15,11 @@ export interface Column {
   cardIds: string[];
 }
 
+export interface BoardMember {
+  email: string;
+  privilege: 'read' | 'write';
+}
+
 export interface Board {
   uid: string;
   title: string;
@@ -22,6 +27,7 @@ export interface Board {
   createdAt: string;
   updatedAt: string;
   ownerId: string;
+  members: BoardMember[];
   columns: Column[];
   cards: Record<string, Card>;
 }

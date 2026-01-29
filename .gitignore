@@ -39,9 +39,3 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-
-# data files (ignore JSON but keep directory structure)
-data/*.json
-data/boards/*.json
-!data/.gitkeep
-!data/boards/.gitkeep

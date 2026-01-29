@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { requireAuth, requireBoardAccess } from '@/lib/auth/middleware';
 import { loadBoard, updateBoardMetadata, deleteBoard } from '@/lib/storage/boards';
-import { removeAllBoardAccess } from '@/lib/storage/users';
 import { ApiResponse } from '@/types/api';
 import { Board } from '@/types/board';
 import { UnauthorizedError, ForbiddenError, NotFoundError } from '@/lib/utils/errors';
@@ -137,9 +136,8 @@ export async function DELETE(
       );
     }
 
-    // Delete board and remove access from all users
+    // Delete board (members are stored on board, so they're automatically removed)
     await deleteBoard(uid);
-    await removeAllBoardAccess(uid);
 
     return NextResponse.json<ApiResponse>({
       success: true,

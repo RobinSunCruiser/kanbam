@@ -1,6 +1,7 @@
 import { UserAuth } from '@/types/user';
 import { getTokenFromCookie, verifyToken } from './session';
 import { getUserById } from '../storage/users';
+import { getBoardMemberPrivilege } from '../storage/boards';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors';
 
 export async function requireAuth(): Promise<UserAuth> {
@@ -27,7 +28,6 @@ export async function requireAuth(): Promise<UserAuth> {
     id: user.id,
     email: user.email,
     name: user.name,
-    boardAccess: user.boardAccess,
   };
 
   return userAuth;
@@ -38,21 +38,20 @@ export async function requireBoardAccess(
   boardUid: string,
   requiredPrivilege: 'read' | 'write'
 ): Promise<void> {
-  const access = user.boardAccess.find(ba => ba.boardUid === boardUid);
+  const privilege = await getBoardMemberPrivilege(boardUid, user.email);
 
-  if (!access) {
+  if (!privilege) {
     throw new ForbiddenError('No access to this board');
   }
 
-  if (requiredPrivilege === 'write' && access.privilege === 'read') {
+  if (requiredPrivilege === 'write' && privilege === 'read') {
     throw new ForbiddenError('Read-only access');
   }
 }
 
-export function getUserBoardPrivilege(
+export async function getUserBoardPrivilege(
   user: UserAuth,
   boardUid: string
-): 'read' | 'write' | null {
-  const access = user.boardAccess.find(ba => ba.boardUid === boardUid);
-  return access?.privilege || null;
+): Promise<'read' | 'write' | null> {
+  return await getBoardMemberPrivilege(boardUid, user.email);
 }
