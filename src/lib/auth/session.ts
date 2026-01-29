@@ -7,7 +7,7 @@ const JWT_SECRET = new TextEncoder().encode(
 const TOKEN_NAME = 'session';
 const TOKEN_EXPIRY = '7d';
 
-interface JWTPayload {
+interface SessionPayload {
   userId: string;
   exp?: number;
 }
@@ -22,10 +22,16 @@ export async function createToken(userId: string): Promise<string> {
   return token;
 }
 
-export async function verifyToken(token: string): Promise<JWTPayload | null> {
+export async function verifyToken(token: string): Promise<SessionPayload | null> {
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
-    return payload as JWTPayload;
+
+    // Validate that userId exists
+    if (!payload.userId || typeof payload.userId !== 'string') {
+      return null;
+    }
+
+    return payload as unknown as SessionPayload;
   } catch (error) {
     return null;
   }
