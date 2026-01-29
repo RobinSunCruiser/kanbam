@@ -10,11 +10,13 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  closestCorners,
+  closestCenter,
 } from '@dnd-kit/core';
 import { Board as BoardType, Card as CardType, ColumnType } from '@/types/board';
+import { createCardAction, updateCardAction, deleteCardAction } from '@/lib/actions/cards';
 import Column from './Column';
 import CardModal from './CardModal';
+import AlertDialog from '../ui/AlertDialog';
 
 interface BoardProps {
   initialBoard: BoardType;
@@ -28,6 +30,7 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createColumnId, setCreateColumnId] = useState<ColumnType | null>(null);
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
+  const [errorAlert, setErrorAlert] = useState<{ title: string; message: string } | null>(null);
 
   const isReadOnly = userPrivilege === 'read';
 
@@ -63,42 +66,41 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
     description: string;
     columnId: ColumnType;
   }) => {
-    const response = await fetch(`/api/boards/${board.uid}/cards`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
+    const formData = new FormData();
+    formData.append('title', data.title);
+    formData.append('description', data.description);
+    formData.append('columnId', data.columnId);
 
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.error || 'Failed to create card');
+    const result = await createCardAction(board.uid, formData);
+
+    if (result?.error) {
+      throw new Error(result.error);
     }
 
-    const result = await response.json();
-    const newCard = result.data.card;
+    if (result?.card) {
+      // Update local state with new card
+      setBoard((prevBoard) => {
+        const newColumns = prevBoard.columns.map((col) => {
+          if (col.id === data.columnId) {
+            return {
+              ...col,
+              cardIds: [...col.cardIds, result.card.id],
+            };
+          }
+          return col;
+        });
 
-    // Update local state with new card
-    setBoard((prevBoard) => {
-      const newColumns = prevBoard.columns.map((col) => {
-        if (col.id === data.columnId) {
-          return {
-            ...col,
-            cardIds: [...col.cardIds, newCard.id],
-          };
-        }
-        return col;
+        return {
+          ...prevBoard,
+          columns: newColumns,
+          cards: {
+            ...prevBoard.cards,
+            [result.card.id]: result.card,
+          },
+          updatedAt: new Date().toISOString(),
+        };
       });
-
-      return {
-        ...prevBoard,
-        columns: newColumns,
-        cards: {
-          ...prevBoard.cards,
-          [newCard.id]: newCard,
-        },
-        updatedAt: new Date().toISOString(),
-      };
-    });
+    }
   };
 
   const handleUpdateCard = async (
@@ -119,17 +121,12 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
       updatedAt: new Date().toISOString(),
     }));
 
-    const response = await fetch(`/api/boards/${board.uid}/cards/${cardId}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(updates),
-    });
+    const result = await updateCardAction(board.uid, cardId, updates);
 
-    if (!response.ok) {
-      const error = await response.json();
+    if (result?.error) {
       // Rollback on error - refresh from server
       router.refresh();
-      throw new Error(error.error || 'Failed to update card');
+      throw new Error(result.error);
     }
   };
 
@@ -160,15 +157,12 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
       };
     });
 
-    const response = await fetch(`/api/boards/${board.uid}/cards/${cardId}`, {
-      method: 'DELETE',
-    });
+    const result = await deleteCardAction(board.uid, cardId);
 
-    if (!response.ok) {
-      const error = await response.json();
+    if (result?.error) {
       // Rollback on error
       router.refresh();
-      throw new Error(error.error || 'Failed to delete card');
+      throw new Error(result.error);
     }
   };
 
@@ -212,71 +206,142 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
       if (currentIndex === targetIndex) return;
     }
 
-    // Store previous state for rollback
-    const previousBoard = { ...board };
+    // Store rollback data (deep copy of affected state)
+    const originalColumnId = card.columnId;
+    const sourceColumn = board.columns.find((c) => c.id === originalColumnId);
+    const targetColumn = board.columns.find((c) => c.id === targetColumnId);
 
-    // Optimistic update: Update local state immediately
+    const rollbackData = {
+      cardId,
+      originalColumnId,
+      targetColumnId,
+      sourceCardIds: [...(sourceColumn?.cardIds || [])],
+      targetCardIds: [...(targetColumn?.cardIds || [])],
+    };
+
+    // Optimistic update: Update UI immediately for better UX
     setBoard((prevBoard) => {
-      const newBoard = { ...prevBoard };
-      const newColumns = [...newBoard.columns];
-      const newCards = { ...newBoard.cards };
+      const newColumns = prevBoard.columns.map((col) => {
+        // Handle moving within the same column
+        if (col.id === originalColumnId && originalColumnId === targetColumnId) {
+          const newCardIds = [...col.cardIds];
+          const currentIndex = newCardIds.indexOf(cardId);
+          // Remove from current position
+          newCardIds.splice(currentIndex, 1);
+          // Insert at new position
+          newCardIds.splice(targetIndex, 0, cardId);
+          return {
+            ...col,
+            cardIds: newCardIds,
+          };
+        }
 
-      // Remove card from old column
-      const oldColumnIndex = newColumns.findIndex((c) => c.id === card.columnId);
-      if (oldColumnIndex !== -1) {
-        newColumns[oldColumnIndex] = {
-          ...newColumns[oldColumnIndex],
-          cardIds: newColumns[oldColumnIndex].cardIds.filter((id) => id !== cardId),
-        };
-      }
+        // Handle moving to different column - remove from source
+        if (col.id === originalColumnId) {
+          return {
+            ...col,
+            cardIds: col.cardIds.filter((id) => id !== cardId),
+          };
+        }
 
-      // Add card to new column at target index
-      const newColumnIndex = newColumns.findIndex((c) => c.id === targetColumnId);
-      if (newColumnIndex !== -1) {
-        const newCardIds = [...newColumns[newColumnIndex].cardIds];
-        newCardIds.splice(targetIndex, 0, cardId);
-        newColumns[newColumnIndex] = {
-          ...newColumns[newColumnIndex],
-          cardIds: newCardIds,
-        };
-      }
+        // Handle moving to different column - add to target
+        if (col.id === targetColumnId) {
+          const newCardIds = [...col.cardIds];
+          newCardIds.splice(targetIndex, 0, cardId);
+          return {
+            ...col,
+            cardIds: newCardIds,
+          };
+        }
 
-      // Update card's columnId
-      newCards[cardId] = {
-        ...newCards[cardId],
-        columnId: targetColumnId,
-        updatedAt: new Date().toISOString(),
-      };
+        return col;
+      });
 
       return {
-        ...newBoard,
+        ...prevBoard,
         columns: newColumns,
-        cards: newCards,
+        cards: {
+          ...prevBoard.cards,
+          [cardId]: {
+            ...prevBoard.cards[cardId],
+            columnId: targetColumnId,
+            updatedAt: new Date().toISOString(),
+          },
+        },
         updatedAt: new Date().toISOString(),
       };
     });
 
-    // Send update to backend
+    // Send update to backend in background
     try {
-      const response = await fetch(`/api/boards/${board.uid}/cards/${cardId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          columnId: targetColumnId,
-          order: targetIndex,
-        }),
+      const result = await updateCardAction(board.uid, cardId, {
+        columnId: targetColumnId,
+        order: targetIndex,
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to move card');
-      }
+      if (result?.error) {
+        // Rollback on error
+        setBoard((prevBoard) => {
+          const newColumns = prevBoard.columns.map((col) => {
+            if (col.id === rollbackData.originalColumnId) {
+              return { ...col, cardIds: rollbackData.sourceCardIds };
+            }
+            if (col.id === rollbackData.targetColumnId) {
+              return { ...col, cardIds: rollbackData.targetCardIds };
+            }
+            return col;
+          });
 
-      // Success - backend is in sync
+          return {
+            ...prevBoard,
+            columns: newColumns,
+            cards: {
+              ...prevBoard.cards,
+              [cardId]: {
+                ...prevBoard.cards[cardId],
+                columnId: rollbackData.originalColumnId,
+              },
+            },
+          };
+        });
+
+        setErrorAlert({
+          title: 'Move Failed',
+          message: result.error || 'Failed to move card.',
+        });
+      }
     } catch (error) {
       console.error('Failed to move card:', error);
-      // Rollback to previous state
-      setBoard(previousBoard);
-      alert('Failed to move card. Please try again.');
+
+      // Rollback on error
+      setBoard((prevBoard) => {
+        const newColumns = prevBoard.columns.map((col) => {
+          if (col.id === rollbackData.originalColumnId) {
+            return { ...col, cardIds: rollbackData.sourceCardIds };
+          }
+          if (col.id === rollbackData.targetColumnId) {
+            return { ...col, cardIds: rollbackData.targetCardIds };
+          }
+          return col;
+        });
+
+        return {
+          ...prevBoard,
+          columns: newColumns,
+          cards: {
+            ...prevBoard.cards,
+            [cardId]: {
+              ...prevBoard.cards[cardId],
+              columnId: rollbackData.originalColumnId,
+            },
+          },
+        };
+      });
+
+      setErrorAlert({
+        title: 'Move Failed',
+        message: 'Failed to move card. Please try again.',
+      });
     }
   };
 
@@ -293,7 +358,7 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
     <div className="h-full flex flex-col" suppressHydrationWarning>
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
@@ -336,6 +401,16 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
         onCreate={createColumnId ? handleCreateCard : undefined}
         columnId={createColumnId || undefined}
       />
+
+      {errorAlert && (
+        <AlertDialog
+          isOpen={true}
+          title={errorAlert.title}
+          message={errorAlert.message}
+          type="error"
+          onClose={() => setErrorAlert(null)}
+        />
+      )}
     </div>
   );
 }

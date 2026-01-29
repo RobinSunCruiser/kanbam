@@ -1,3 +1,5 @@
+'use client';
+
 import { BoardMetadata } from '@/types/board';
 import BoardCard from './BoardCard';
 

@@ -1,68 +1,36 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useState, useTransition } from 'react';
+import { createBoardAction } from '@/lib/actions/boards';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Textarea from '../ui/Textarea';
 import Modal from '../ui/Modal';
 
 export default function CreateBoardButton() {
-  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setError('');
 
-    if (!title.trim()) {
-      setError('Title is required');
-      return;
-    }
+    startTransition(async () => {
+      const result = await createBoardAction(formData);
 
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/boards', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          title: title.trim(),
-          description: description.trim() || undefined,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Failed to create board');
-        setLoading(false);
-        return;
+      if (result?.error) {
+        setError(result.error);
+      } else if (result?.success) {
+        // Reset and close modal on success
+        setIsOpen(false);
+        setError('');
       }
-
-      // Reset form
-      setTitle('');
-      setDescription('');
-      setIsOpen(false);
-      setLoading(false);
-
-      // Refresh the page to show new board
-      router.refresh();
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      setLoading(false);
-    }
+    });
   };
 
   const handleClose = () => {
-    if (!loading) {
+    if (!isPending) {
       setIsOpen(false);
-      setTitle('');
-      setDescription('');
       setError('');
     }
   };
@@ -74,11 +42,10 @@ export default function CreateBoardButton() {
       </Button>
 
       <Modal isOpen={isOpen} onClose={handleClose} title="Create New Board">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action={handleSubmit} className="space-y-4">
           <Input
             label="Board Title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            name="title"
             placeholder="My Project Board"
             required
             autoFocus
@@ -86,8 +53,7 @@ export default function CreateBoardButton() {
 
           <Textarea
             label="Description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            name="description"
             placeholder="What is this board for?"
             rows={3}
           />
@@ -103,12 +69,12 @@ export default function CreateBoardButton() {
               type="button"
               variant="secondary"
               onClick={handleClose}
-              disabled={loading}
+              disabled={isPending}
             >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? 'Creating...' : 'Create Board'}
+            <Button type="submit" disabled={isPending}>
+              {isPending ? 'Creating...' : 'Create Board'}
             </Button>
           </div>
         </form>

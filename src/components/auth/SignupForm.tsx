@@ -1,59 +1,33 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransition, useState } from 'react';
+import { signupAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 export default function SignupForm() {
-  const router = useRouter();
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setError('');
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
+    startTransition(async () => {
+      const result = await signupAction(formData);
 
-    setLoading(true);
-
-    try {
-      const response = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Signup failed');
-        setLoading(false);
-        return;
+      // If there's an error, display it (redirect happens on success)
+      if (result?.error) {
+        setError(result.error);
       }
-
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      setLoading(false);
-    }
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <Input
         type="text"
         label="Name"
-        value={name}
-        onChange={(e) => setName(e.target.value)}
+        name="name"
         placeholder="John Doe"
         required
         autoComplete="name"
@@ -62,8 +36,7 @@ export default function SignupForm() {
       <Input
         type="email"
         label="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        name="email"
         placeholder="you@example.com"
         required
         autoComplete="email"
@@ -72,12 +45,10 @@ export default function SignupForm() {
       <Input
         type="password"
         label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        name="password"
         placeholder="••••••••"
         required
         autoComplete="new-password"
-        error={password.length > 0 && password.length < 6 ? 'Minimum 6 characters' : undefined}
       />
 
       {error && (
@@ -86,8 +57,8 @@ export default function SignupForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Creating account...' : 'Sign up'}
+      <Button type="submit" className="w-full" disabled={isPending}>
+        {isPending ? 'Creating account...' : 'Sign up'}
       </Button>
     </form>
   );

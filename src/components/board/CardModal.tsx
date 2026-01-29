@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Card, ColumnType } from '@/types/board';
 import Modal from '../ui/Modal';
 import Input from '../ui/Input';
 import Textarea from '../ui/Textarea';
 import Button from '../ui/Button';
+import ConfirmDialog from '../ui/ConfirmDialog';
 
 interface CardModalProps {
   card: Card | null;
@@ -34,9 +35,10 @@ export default function CardModal({
   const [description, setDescription] = useState(card?.description || '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   // Reset form when card changes
-  useState(() => {
+  useEffect(() => {
     if (card) {
       setTitle(card.title);
       setDescription(card.description);
@@ -45,7 +47,7 @@ export default function CardModal({
       setDescription('');
     }
     setError('');
-  });
+  }, [card]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -80,11 +82,15 @@ export default function CardModal({
     }
   };
 
-  const handleDelete = async () => {
-    if (!card || !confirm('Are you sure you want to delete this card?')) {
-      return;
-    }
+  const handleDeleteClick = () => {
+    if (!card) return;
+    setShowDeleteConfirm(true);
+  };
 
+  const handleDeleteConfirm = async () => {
+    if (!card) return;
+
+    setShowDeleteConfirm(false);
     setLoading(true);
 
     try {
@@ -140,7 +146,7 @@ export default function CardModal({
               <Button
                 type="button"
                 variant="danger"
-                onClick={handleDelete}
+                onClick={handleDeleteClick}
                 disabled={loading}
               >
                 Delete
@@ -164,6 +170,19 @@ export default function CardModal({
           </div>
         </div>
       </form>
+
+      {showDeleteConfirm && (
+        <ConfirmDialog
+          isOpen={true}
+          title="Delete Card"
+          message="Are you sure you want to delete this card? This action cannot be undone."
+          variant="danger"
+          confirmText="Delete"
+          cancelText="Cancel"
+          onConfirm={handleDeleteConfirm}
+          onCancel={() => setShowDeleteConfirm(false)}
+        />
+      )}
     </Modal>
   );
 }

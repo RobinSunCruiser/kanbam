@@ -1,52 +1,33 @@
 'use client';
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { useTransition, useState } from 'react';
+import { loginAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 export default function LoginForm() {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+  const handleSubmit = async (formData: FormData) => {
     setError('');
-    setLoading(true);
 
-    try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+    startTransition(async () => {
+      const result = await loginAction(formData);
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Login failed');
-        setLoading(false);
-        return;
+      // If there's an error, display it (redirect happens on success)
+      if (result?.error) {
+        setError(result.error);
       }
-
-      router.push('/dashboard');
-      router.refresh();
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-      setLoading(false);
-    }
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form action={handleSubmit} className="space-y-4">
       <Input
         type="email"
         label="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        name="email"
         placeholder="you@example.com"
         required
         autoComplete="email"
@@ -55,8 +36,7 @@ export default function LoginForm() {
       <Input
         type="password"
         label="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
+        name="password"
         placeholder="••••••••"
         required
         autoComplete="current-password"
@@ -68,8 +48,8 @@ export default function LoginForm() {
         </div>
       )}
 
-      <Button type="submit" className="w-full" disabled={loading}>
-        {loading ? 'Logging in...' : 'Log in'}
+      <Button type="submit" className="w-full" disabled={isPending}>
+        {isPending ? 'Logging in...' : 'Log in'}
       </Button>
     </form>
   );

@@ -1,11 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { Board } from '@/types/board';
+import { addBoardMemberAction, removeBoardMemberAction } from '@/lib/actions/boards';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Modal from '../ui/Modal';
+import ConfirmDialog from '../ui/ConfirmDialog';
+import AlertDialog from '../ui/AlertDialog';
 
 interface BoardMembersProps {
   board: Board;
@@ -25,22 +28,29 @@ export default function BoardMembers({
   const [invitePrivilege, setInvitePrivilege] = useState<'read' | 'write'>('read');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState<{
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
+  const [alertDialog, setAlertDialog] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
 
   const handleInvite = async () => {
     setError('');
     setLoading(true);
 
     try {
-      const response = await fetch(`/api/boards/${board.uid}/members`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, privilege: invitePrivilege }),
-      });
+      const formData = new FormData();
+      formData.append('email', inviteEmail);
+      formData.append('privilege', invitePrivilege);
 
-      const data = await response.json();
+      const result = await addBoardMemberAction(board.uid, formData);
 
-      if (!response.ok) {
-        setError(data.error || 'Failed to invite member');
+      if (result?.error) {
+        setError(result.error);
         setLoading(false);
         return;
       }
@@ -56,61 +66,69 @@ export default function BoardMembers({
     }
   };
 
-  const handleLeaveBoard = async () => {
-    if (!confirm('Are you sure you want to leave this board?')) {
-      return;
-    }
+  const handleLeaveBoard = () => {
+    setConfirmDialog({
+      title: 'Leave Board',
+      message: 'Are you sure you want to leave this board?',
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setLoading(true);
 
-    setLoading(true);
+        try {
+          const result = await removeBoardMemberAction(board.uid, userEmail);
 
-    try {
-      const response = await fetch(
-        `/api/boards/${board.uid}/members?email=${encodeURIComponent(userEmail)}`,
-        { method: 'DELETE' }
-      );
+          if (result?.error) {
+            setAlertDialog({
+              title: 'Error',
+              message: result.error,
+            });
+            setLoading(false);
+            return;
+          }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.error || 'Failed to leave board');
-        setLoading(false);
-        return;
-      }
-
-      window.location.href = '/dashboard';
-    } catch (err) {
-      alert('An error occurred. Please try again.');
-      setLoading(false);
-    }
+          router.push('/dashboard');
+        } catch (err) {
+          setAlertDialog({
+            title: 'Error',
+            message: 'An error occurred. Please try again.',
+          });
+          setLoading(false);
+        }
+      },
+    });
   };
 
-  const handleRemoveMember = async (email: string) => {
-    if (!confirm(`Remove ${email} from this board?`)) {
-      return;
-    }
+  const handleRemoveMember = (email: string) => {
+    setConfirmDialog({
+      title: 'Remove Member',
+      message: `Remove ${email} from this board?`,
+      onConfirm: async () => {
+        setConfirmDialog(null);
+        setLoading(true);
 
-    setLoading(true);
+        try {
+          const result = await removeBoardMemberAction(board.uid, email);
 
-    try {
-      const response = await fetch(
-        `/api/boards/${board.uid}/members?email=${encodeURIComponent(email)}`,
-        { method: 'DELETE' }
-      );
+          if (result?.error) {
+            setAlertDialog({
+              title: 'Error',
+              message: result.error,
+            });
+            setLoading(false);
+            return;
+          }
 
-      const data = await response.json();
-
-      if (!response.ok) {
-        alert(data.error || 'Failed to remove member');
-        setLoading(false);
-        return;
-      }
-
-      router.refresh();
-    } catch (err) {
-      alert('An error occurred. Please try again.');
-    } finally {
-      setLoading(false);
-    }
+          router.refresh();
+        } catch (err) {
+          setAlertDialog({
+            title: 'Error',
+            message: 'An error occurred. Please try again.',
+          });
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   return (
@@ -283,6 +301,29 @@ export default function BoardMembers({
           </div>
         </div>
       </Modal>
+
+      {confirmDialog && (
+        <ConfirmDialog
+          isOpen={true}
+          title={confirmDialog.title}
+          message={confirmDialog.message}
+          variant="danger"
+          confirmText="Confirm"
+          cancelText="Cancel"
+          onConfirm={confirmDialog.onConfirm}
+          onCancel={() => setConfirmDialog(null)}
+        />
+      )}
+
+      {alertDialog && (
+        <AlertDialog
+          isOpen={true}
+          title={alertDialog.title}
+          message={alertDialog.message}
+          type="error"
+          onClose={() => setAlertDialog(null)}
+        />
+      )}
     </>
   );
 }

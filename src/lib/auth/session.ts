@@ -1,9 +1,8 @@
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
+import { env } from '../env';
 
-const JWT_SECRET = new TextEncoder().encode(
-  process.env.JWT_SECRET || 'canbam-secret-key-change-in-production'
-);
+const JWT_SECRET = new TextEncoder().encode(env.JWT_SECRET);
 const TOKEN_NAME = 'session';
 const TOKEN_EXPIRY = '7d';
 
@@ -43,7 +42,7 @@ export async function setTokenCookie(userId: string): Promise<void> {
 
   cookieStore.set(TOKEN_NAME, token, {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: env.NODE_ENV === 'production',
     sameSite: 'strict',
     maxAge: 60 * 60 * 24 * 7, // 7 days
     path: '/',

@@ -1,5 +1,7 @@
-export type Privilege = 'read' | 'write';
-
+/**
+ * User model representing a database user record
+ * Contains full user data including password hash
+ */
 export interface User {
   id: string;
   email: string;
@@ -8,12 +10,12 @@ export interface User {
   createdAt: string;
 }
 
+/**
+ * Authenticated user data (without sensitive fields)
+ * Used for session and client-side user representation
+ */
 export interface UserAuth {
   id: string;
   email: string;
   name: string;
-}
-
-export interface UsersDatabase {
-  users: User[];
 }

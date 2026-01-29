@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
+import { logoutAction } from '@/lib/actions/auth';
 import Button from './Button';
 
 interface NavbarProps {
@@ -9,21 +10,12 @@ interface NavbarProps {
 }
 
 export default function Navbar({ user }: NavbarProps) {
-  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
 
-  const handleLogout = async () => {
-    try {
-      const response = await fetch('/api/auth/logout', {
-        method: 'POST',
-      });
-
-      if (response.ok) {
-        router.push('/login');
-        router.refresh();
-      }
-    } catch (error) {
-      console.error('Logout error:', error);
-    }
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutAction();
+    });
   };
 
   return (
@@ -45,8 +37,8 @@ export default function Navbar({ user }: NavbarProps) {
                 <span className="text-sm text-gray-700 dark:text-gray-300">
                   {user.name}
                 </span>
-                <Button onClick={handleLogout} variant="secondary" className="text-sm">
-                  Logout
+                <Button onClick={handleLogout} variant="secondary" className="text-sm" disabled={isPending}>
+                  {isPending ? 'Logging out...' : 'Logout'}
                 </Button>
               </>
             ) : (

@@ -1,11 +1,8 @@
 import { neon } from '@neondatabase/serverless';
+import { env } from '../env';
 
-// Get database connection string from environment
-const DATABASE_URL = process.env.DATABASE_URL;
-
-if (!DATABASE_URL) {
-  throw new Error('DATABASE_URL environment variable is not set');
-}
+// Get database connection string from validated environment
+const DATABASE_URL = env.DATABASE_URL;
 
 // Create base database client
 const baseSql = neon(DATABASE_URL);

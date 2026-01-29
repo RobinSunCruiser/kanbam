@@ -49,7 +49,11 @@ export default function Column({
         items={cards.map((c) => c.id)}
         strategy={verticalListSortingStrategy}
       >
-        <div ref={setNodeRef} className="space-y-3 flex-1 overflow-y-auto min-h-[100px]">
+        <div
+          ref={setNodeRef}
+          className="space-y-3 flex-1 overflow-y-auto min-h-[200px] rounded-md transition-colors"
+          style={{ minHeight: cards.length === 0 ? '200px' : '100px' }}
+        >
           {cards.map((card) => (
             <Card
               key={card.id}
@@ -60,9 +64,11 @@ export default function Column({
           ))}
 
           {cards.length === 0 && (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-              No cards
-            </p>
+            <div className="h-full flex items-center justify-center">
+              <p className="text-sm text-gray-400 dark:text-gray-500 text-center">
+                Drop cards here
+              </p>
+            </div>
           )}
         </div>
       </SortableContext>
