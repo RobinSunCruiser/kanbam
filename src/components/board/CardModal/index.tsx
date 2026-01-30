@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, FormEvent } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, ColumnType, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -55,7 +55,7 @@ export default function CardModal({
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [links, setLinks] = useState<CardLink[]>([]);
   const [activity, setActivity] = useState<ActivityNote[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -79,55 +79,82 @@ export default function CardModal({
       setActivity([]);
     }
     setError('');
-    setLoading(false);
+    setIsSaving(false);
   }, [card]);
 
   // Reset states when modal opens/closes
   useEffect(() => {
     if (!isOpen) {
       setError('');
-      setLoading(false);
+      setIsSaving(false);
       setShowDeleteConfirm(false);
     }
   }, [isOpen]);
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    setError('');
+  // Auto-save function (silent background save)
+  const saveCard = async () => {
+    if (!card || !title.trim() || isReadOnly) return;
 
+    try {
+      await onUpdate(card.id, {
+        title: title.trim(),
+        description: description.trim(),
+        assignee: assignee || undefined,
+        deadline: deadline || null,
+        checklist,
+        links,
+        activity,
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
+      setError(errorMessage);
+    }
+  };
+
+  // Debounced auto-save for text fields (title, description)
+  useEffect(() => {
+    if (!card || isCreateMode || isReadOnly || !title.trim()) return;
+
+    const timeout = setTimeout(() => {
+      saveCard();
+    }, 1000);
+
+    return () => clearTimeout(timeout);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, description]);
+
+  // Immediate save for non-text fields (assignee, deadline, checklist, links, activity)
+  useEffect(() => {
+    if (!card || isCreateMode || isReadOnly || !title.trim()) return;
+
+    saveCard();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [assignee, deadline, checklist, links, activity]);
+
+  // Handle create mode submission
+  const handleCreate = async () => {
     if (!title.trim()) {
       setError('Title is required');
       return;
     }
 
-    setLoading(true);
+    setIsSaving(true);
+    setError('');
 
     try {
-      if (isCreateMode && onCreate && columnId) {
+      if (onCreate && columnId) {
         await onCreate({
           title: title.trim(),
           description: description.trim(),
           columnId,
         });
-      } else if (card) {
-        // Save all fields at once
-        await onUpdate(card.id, {
-          title: title.trim(),
-          description: description.trim(),
-          assignee: assignee || undefined,
-          deadline: deadline || null,
-          checklist,
-          links,
-          activity,
-        });
+        onClose();
       }
-
-      onClose();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create card';
       setError(errorMessage);
     } finally {
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -140,7 +167,7 @@ export default function CardModal({
     if (!card) return;
 
     setShowDeleteConfirm(false);
-    setLoading(true);
+    setIsSaving(true);
 
     try {
       await onDelete(card.id);
@@ -148,7 +175,7 @@ export default function CardModal({
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to delete card';
       setError(errorMessage);
-      setLoading(false);
+      setIsSaving(false);
     }
   };
 
@@ -158,7 +185,7 @@ export default function CardModal({
       onClose={onClose}
       title={isCreateMode ? 'Create Card' : isReadOnly ? 'View Card' : 'Edit Card'}
     >
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         <Input
           label="Title"
           value={title}
@@ -242,7 +269,7 @@ export default function CardModal({
                 type="button"
                 variant="danger"
                 onClick={handleDeleteClick}
-                disabled={loading}
+                disabled={isSaving}
               >
                 Delete
               </Button>
@@ -253,18 +280,22 @@ export default function CardModal({
               type="button"
               variant="secondary"
               onClick={onClose}
-              disabled={loading}
+              disabled={isSaving}
             >
-              {isReadOnly ? 'Close' : 'Cancel'}
+              Close
             </Button>
-            {!isReadOnly && (
-              <Button type="submit" disabled={loading}>
-                {loading ? 'Saving...' : isCreateMode ? 'Create' : 'Save'}
+            {isCreateMode && (
+              <Button
+                type="button"
+                onClick={handleCreate}
+                disabled={isSaving || !title.trim()}
+              >
+                {isSaving ? 'Creating...' : 'Create'}
               </Button>
             )}
           </div>
         </div>
-      </form>
+      </div>
 
       {showDeleteConfirm && (
         <ConfirmDialog
