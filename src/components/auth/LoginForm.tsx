@@ -9,13 +9,17 @@ export default function LoginForm() {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
 
+  /**
+   * Calls imported server action (new pattern replaces fetch etc.)
+   * @param formData 
+   */
   const handleSubmit = async (formData: FormData) => {
     setError('');
 
     startTransition(async () => {
       const result = await loginAction(formData);
 
-      // If there's an error, display it (redirect happens on success)
+      // If there's an error, display it (redirect happens on success). no onSubmit in form
       if (result?.error) {
         setError(result.error);
       }

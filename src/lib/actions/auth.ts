@@ -17,7 +17,7 @@ export async function loginAction(formData: FormData) {
     password: formData.get('password'),
   };
 
-  // Validate input
+  // Validate input using zod schema
   const validation = loginSchema.safeParse(rawData);
   if (!validation.success) {
     return {
