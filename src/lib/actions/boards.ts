@@ -9,7 +9,9 @@ import {
   deleteBoard,
   addBoardMember,
   removeBoardMember,
+  loadBoard,
 } from '../storage/boards';
+import { getUserById } from '../storage/users';
 
 /**
  * Server Action: Create Board
@@ -167,15 +169,29 @@ export async function addBoardMemberAction(boardUid: string, formData: FormData)
 /**
  * Server Action: Remove Board Member
  * Removes a member from the board
+ * Authorization: Users can remove themselves, or users with write access can remove others (except the owner)
  */
 export async function removeBoardMemberAction(boardUid: string, email: string) {
   try {
     const user = await requireAuth();
+    const isSelfRemoval = user.email.toLowerCase() === email.toLowerCase();
 
-    // Allow users to remove themselves, or require write access
-    if (user.email !== email) {
+    if (!isSelfRemoval) {
+      // Removing someone else - require write access
       await requireBoardAccess(user, boardUid, 'write');
+
+      // Prevent removing the board owner
+      const board = await loadBoard(boardUid);
+      if (!board) {
+        throw new Error('Board not found');
+      }
+
+      const owner = await getUserById(board.ownerId);
+      if (owner && owner.email.toLowerCase() === email.toLowerCase()) {
+        throw new Error('Cannot remove board owner. The owner must leave the board themselves.');
+      }
     }
+    // Self-removal always allowed (users can leave any board they're a member of)
 
     await removeBoardMember(boardUid, email);
 
