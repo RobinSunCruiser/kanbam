@@ -1,6 +1,6 @@
 import { User } from '@/types/user';
 import { NotFoundError } from '../utils/errors';
-import { generateUserId } from '../utils/uid';
+import { generateUid } from '../utils/uid';
 import { queryUserById, queryUserByEmail, insertUser, updateUserField } from './db';
 
 /** Retrieve user by ID - returns User object or null if not found */
@@ -41,7 +41,7 @@ export async function createUser(
     throw new Error('Email already exists');
   }
 
-  const id = generateUserId();
+  const id = generateUid();
   const createdAt = new Date().toISOString();
 
   await insertUser(id, userData.email, userData.name, userData.passwordHash, createdAt);

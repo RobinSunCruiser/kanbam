@@ -1,14 +1,6 @@
 import { nanoid } from 'nanoid';
 
-export function generateBoardUid(): string {
-  return nanoid(12);
-}
-
-export function generateCardId(): string {
-  return nanoid(16);
-}
-
-export function generateUserId(): string {
+export function generateUid(): string {
   return nanoid(16);
 }
 

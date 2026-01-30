@@ -1,6 +1,6 @@
 import { Board, Card, ColumnType } from '@/types/board';
 import { NotFoundError, ValidationError } from '../utils/errors';
-import { generateBoardUid, generateCardId, isValidUid } from '../utils/uid';
+import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
 import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid, boardExists as dbBoardExists } from './db';
 
@@ -95,7 +95,7 @@ export async function createBoard(
   data: Omit<Board, 'uid' | 'createdAt' | 'updatedAt' | 'columns' | 'cards' | 'members'>,
   ownerEmail: string
 ): Promise<Board> {
-  const uid = generateBoardUid();
+  const uid = generateUid();
   const now = new Date().toISOString();
 
   const board: Board = {
@@ -231,7 +231,7 @@ export async function addCard(
 
   const now = new Date().toISOString();
   const card: Card = {
-    id: generateCardId(),
+    id: generateUid(),
     title: cardData.title,
     description: cardData.description || '',
     createdAt: now,
