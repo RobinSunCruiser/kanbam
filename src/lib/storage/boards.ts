@@ -1,4 +1,4 @@
-import { Board, Card, ColumnType } from '@/types/board';
+import { Board, Card, ColumnType, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
@@ -217,7 +217,8 @@ export async function removeBoardMember(
 /** Add new card to specified column */
 export async function addCard(
   boardUid: string,
-  cardData: { title: string; description?: string; columnId: ColumnType }
+  cardData: { title: string; description?: string; columnId: ColumnType },
+  creatorEmail: string
 ): Promise<Card> {
   const board = await loadBoard(boardUid);
   if (!board) {
@@ -237,6 +238,11 @@ export async function addCard(
     createdAt: now,
     updatedAt: now,
     columnId: cardData.columnId,
+    assignee: creatorEmail,
+    checklist: [],
+    links: [],
+    activity: [],
+    deadline: null,
   };
 
   board.cards[card.id] = card;
@@ -251,7 +257,17 @@ export async function addCard(
 export async function updateCard(
   boardUid: string,
   cardId: string,
-  updates: { title?: string; description?: string; columnId?: ColumnType; order?: number }
+  updates: {
+    title?: string;
+    description?: string;
+    columnId?: ColumnType;
+    order?: number;
+    assignee?: string;
+    checklist?: ChecklistItem[];
+    links?: CardLink[];
+    deadline?: string | null;
+    activity?: ActivityNote[];
+  }
 ): Promise<Card> {
   const board = await loadBoard(boardUid);
   if (!board) {
@@ -293,6 +309,13 @@ export async function updateCard(
   // Update text fields
   if (updates.title !== undefined) card.title = updates.title;
   if (updates.description !== undefined) card.description = updates.description;
+
+  // Update new fields
+  if (updates.assignee !== undefined) card.assignee = updates.assignee;
+  if (updates.checklist !== undefined) card.checklist = updates.checklist;
+  if (updates.links !== undefined) card.links = updates.links;
+  if (updates.deadline !== undefined) card.deadline = updates.deadline;
+  if (updates.activity !== undefined) card.activity = updates.activity;
 
   card.updatedAt = now;
   board.updatedAt = now;

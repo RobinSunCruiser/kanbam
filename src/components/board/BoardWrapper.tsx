@@ -29,8 +29,9 @@ const Board = dynamic(() => import('./Board'), {
 interface BoardWrapperProps {
   initialBoard: BoardType;
   userPrivilege: 'read' | 'write';
+  userEmail: string;
 }
 
-export default function BoardWrapper({ initialBoard, userPrivilege }: BoardWrapperProps) {
-  return <Board initialBoard={initialBoard} userPrivilege={userPrivilege} />;
+export default function BoardWrapper({ initialBoard, userPrivilege, userEmail }: BoardWrapperProps) {
+  return <Board initialBoard={initialBoard} userPrivilege={userPrivilege} userEmail={userEmail} />;
 }

@@ -15,15 +15,16 @@ import {
 import { Board as BoardType, Card as CardType, ColumnType } from '@/types/board';
 import { createCardAction, updateCardAction, deleteCardAction } from '@/lib/actions/cards';
 import Column from './Column';
-import CardModal from './CardModal';
+import CardModal from './CardModal/index';
 import AlertDialog from '../ui/AlertDialog';
 
 interface BoardProps {
   initialBoard: BoardType;
   userPrivilege: 'read' | 'write';
+  userEmail: string;
 }
 
-export default function Board({ initialBoard, userPrivilege }: BoardProps) {
+export default function Board({ initialBoard, userPrivilege, userEmail }: BoardProps) {
   const router = useRouter();
   const [board, setBoard] = useState(initialBoard);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
@@ -105,7 +106,15 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
 
   const handleUpdateCard = async (
     cardId: string,
-    updates: { title?: string; description?: string }
+    updates: {
+      title?: string;
+      description?: string;
+      assignee?: string;
+      deadline?: string | null;
+      checklist?: CardType['checklist'];
+      links?: CardType['links'];
+      activity?: CardType['activity'];
+    }
   ) => {
     // Optimistic update
     setBoard((prevBoard) => ({
@@ -406,8 +415,10 @@ export default function Board({ initialBoard, userPrivilege }: BoardProps) {
 
       <CardModal
         card={selectedCard}
+        boardMembers={board.members}
         isOpen={isModalOpen}
         isReadOnly={isReadOnly}
+        currentUserEmail={userEmail}
         onClose={handleCloseModal}
         onUpdate={handleUpdateCard}
         onDelete={handleDeleteCard}

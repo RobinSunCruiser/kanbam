@@ -51,7 +51,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
       </div>
 
       <div className="flex-1 min-h-0">
-        <BoardWrapper initialBoard={board} userPrivilege={privilege} />
+        <BoardWrapper initialBoard={board} userPrivilege={privilege} userEmail={user.email} />
       </div>
     </div>
   );

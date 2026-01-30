@@ -1,19 +1,33 @@
 'use client';
 
 import { useState, useEffect, FormEvent } from 'react';
-import { Card, ColumnType } from '@/types/board';
-import Modal from '../ui/Modal';
-import Input from '../ui/Input';
-import Textarea from '../ui/Textarea';
-import Button from '../ui/Button';
-import ConfirmDialog from '../ui/ConfirmDialog';
+import { Card, ColumnType, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
+import Modal from '@/components/ui/Modal';
+import Input from '@/components/ui/Input';
+import Textarea from '@/components/ui/Textarea';
+import Select from '@/components/ui/Select';
+import Button from '@/components/ui/Button';
+import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import CardChecklist from './CardChecklist';
+import CardLinks from './CardLinks';
+import CardActivity from './CardActivity';
 
 interface CardModalProps {
   card: Card | null;
+  boardMembers: BoardMember[];
   isOpen: boolean;
   isReadOnly: boolean;
+  currentUserEmail: string;
   onClose: () => void;
-  onUpdate: (cardId: string, updates: { title?: string; description?: string }) => Promise<void>;
+  onUpdate: (cardId: string, updates: {
+    title?: string;
+    description?: string;
+    assignee?: string;
+    deadline?: string | null;
+    checklist?: ChecklistItem[];
+    links?: CardLink[];
+    activity?: ActivityNote[];
+  }) => Promise<void>;
   onDelete: (cardId: string) => Promise<void>;
   onCreate?: (data: { title: string; description: string; columnId: ColumnType }) => Promise<void>;
   columnId?: ColumnType;
@@ -21,8 +35,10 @@ interface CardModalProps {
 
 export default function CardModal({
   card,
+  boardMembers,
   isOpen,
   isReadOnly,
+  currentUserEmail,
   onClose,
   onUpdate,
   onDelete,
@@ -31,23 +47,49 @@ export default function CardModal({
 }: CardModalProps) {
   const isCreateMode = !card && onCreate && columnId;
 
-  const [title, setTitle] = useState(card?.title || '');
-  const [description, setDescription] = useState(card?.description || '');
+  // All fields managed in local state
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [assignee, setAssignee] = useState('');
+  const [deadline, setDeadline] = useState('');
+  const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
+  const [links, setLinks] = useState<CardLink[]>([]);
+  const [activity, setActivity] = useState<ActivityNote[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Reset form when card changes
+  // Initialize from card prop
   useEffect(() => {
     if (card) {
       setTitle(card.title);
       setDescription(card.description);
+      setAssignee(card.assignee || '');
+      setDeadline(card.deadline || '');
+      setChecklist(card.checklist || []);
+      setLinks(card.links || []);
+      setActivity(card.activity || []);
     } else {
       setTitle('');
       setDescription('');
+      setAssignee('');
+      setDeadline('');
+      setChecklist([]);
+      setLinks([]);
+      setActivity([]);
     }
     setError('');
+    setLoading(false);
   }, [card]);
+
+  // Reset states when modal opens/closes
+  useEffect(() => {
+    if (!isOpen) {
+      setError('');
+      setLoading(false);
+      setShowDeleteConfirm(false);
+    }
+  }, [isOpen]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -68,9 +110,15 @@ export default function CardModal({
           columnId,
         });
       } else if (card) {
+        // Save all fields at once
         await onUpdate(card.id, {
           title: title.trim(),
           description: description.trim(),
+          assignee: assignee || undefined,
+          deadline: deadline || null,
+          checklist,
+          links,
+          activity,
         });
       }
 
@@ -129,6 +177,51 @@ export default function CardModal({
           rows={4}
           disabled={isReadOnly}
         />
+
+        {!isCreateMode && (
+          <>
+            <Select
+              label="Assigned to"
+              value={assignee}
+              onChange={(e) => setAssignee(e.target.value)}
+              disabled={isReadOnly}
+            >
+              <option value="">Unassigned</option>
+              {boardMembers.map((member) => (
+                <option key={member.email} value={member.email}>
+                  {member.email}
+                </option>
+              ))}
+            </Select>
+
+            <Input
+              label="Deadline"
+              type="date"
+              value={deadline ? new Date(deadline).toISOString().split('T')[0] : ''}
+              onChange={(e) => setDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
+              disabled={isReadOnly}
+            />
+
+            <CardChecklist
+              items={checklist}
+              isReadOnly={isReadOnly}
+              onChange={setChecklist}
+            />
+
+            <CardLinks
+              links={links}
+              isReadOnly={isReadOnly}
+              onChange={setLinks}
+            />
+
+            <CardActivity
+              notes={activity}
+              isReadOnly={isReadOnly}
+              currentUserEmail={currentUserEmail}
+              onChange={setActivity}
+            />
+          </>
+        )}
 
         {card && (
           <div className="text-xs text-gray-500 dark:text-gray-400">

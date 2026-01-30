@@ -1,5 +1,24 @@
 export type ColumnType = 'todo' | 'in-progress' | 'done';
 
+export interface ChecklistItem {
+  id: string;
+  text: string;
+  checked: boolean;
+}
+
+export interface CardLink {
+  id: string;
+  name: string;
+  url: string;
+}
+
+export interface ActivityNote {
+  id: string;
+  text: string;
+  createdBy: string; // email
+  createdAt: string;
+}
+
 export interface Card {
   id: string;
   title: string;
@@ -7,6 +26,11 @@ export interface Card {
   createdAt: string;
   updatedAt: string;
   columnId: ColumnType;
+  assignee?: string; // email, defaults to creator
+  checklist?: ChecklistItem[];
+  links?: CardLink[];
+  deadline?: string | null;
+  activity?: ActivityNote[];
 }
 
 export interface Column {

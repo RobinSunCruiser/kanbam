@@ -37,12 +37,33 @@ export const updateBoardSchema = z.object({
  * Card validation schemas
  */
 
+export const checklistItemSchema = z.object({
+  id: z.string(),
+  text: z.string().min(1, 'Checklist item cannot be empty').max(200, 'Checklist item is too long'),
+  checked: z.boolean(),
+});
+
+export const cardLinkSchema = z.object({
+  id: z.string(),
+  name: z.string().min(1, 'Link name is required').max(100, 'Link name is too long'),
+  url: z.string().url('Invalid URL'),
+});
+
+export const activityNoteSchema = z.object({
+  id: z.string(),
+  text: z.string().min(1, 'Note cannot be empty').max(1000, 'Note is too long'),
+  createdBy: z.string(),
+  createdAt: z.string(),
+});
+
 export const createCardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(200, 'Title is too long'),
   description: z.string().max(2000, 'Description is too long').optional(),
   columnId: z.string().refine(isValidColumnId, {
     message: 'Invalid column ID',
   }),
+  assignee: z.string().email().optional(),
+  deadline: z.string().nullable().optional(),
 });
 
 export const updateCardSchema = z.object({
@@ -55,6 +76,11 @@ export const updateCardSchema = z.object({
     })
     .optional(),
   order: z.number().int().nonnegative().optional(),
+  assignee: z.union([z.string().email(), z.literal(''), z.undefined()]).optional(),
+  checklist: z.array(checklistItemSchema).optional(),
+  links: z.array(cardLinkSchema).optional(),
+  deadline: z.string().nullable().optional(),
+  activity: z.array(activityNoteSchema).optional(),
 });
 
 /**
