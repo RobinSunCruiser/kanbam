@@ -30,24 +30,11 @@ export default function ConfirmDialog({
 }: ConfirmDialogProps) {
   return (
     <Modal isOpen={isOpen} onClose={onCancel} title={title}>
-      <div className="space-y-4">
-        <p className="text-gray-700 dark:text-gray-300">{message}</p>
-
+      <div className="space-y-5">
+        <p className="text-slate-600 dark:text-slate-400">{message}</p>
         <div className="flex gap-3 justify-end">
-          <Button
-            type="button"
-            variant="secondary"
-            onClick={onCancel}
-          >
-            {cancelText}
-          </Button>
-          <Button
-            type="button"
-            variant={variant}
-            onClick={onConfirm}
-          >
-            {confirmText}
-          </Button>
+          <Button type="button" variant="ghost" onClick={onCancel}>{cancelText}</Button>
+          <Button type="button" variant={variant} onClick={onConfirm}>{confirmText}</Button>
         </div>
       </div>
     </Modal>

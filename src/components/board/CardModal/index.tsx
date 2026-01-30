@@ -179,117 +179,116 @@ export default function CardModal({
     }
   };
 
+  const headerContent = isCreateMode ? undefined : (
+    <input
+      type="text"
+      value={title}
+      onChange={(e) => setTitle(e.target.value)}
+      placeholder="Card title"
+      disabled={isReadOnly}
+      className="w-full text-xl font-semibold bg-transparent border-none outline-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+    />
+  );
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isCreateMode ? 'Create Card' : isReadOnly ? 'View Card' : 'Edit Card'}
+      title={isCreateMode ? 'Create Card' : undefined}
+      header={headerContent}
     >
-      <div className="space-y-4">
-        <Input
-          label="Title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Card title"
-          required
-          disabled={isReadOnly}
-          autoFocus
-        />
+      <div className="space-y-5">
+        {isCreateMode && (
+          <Input
+            label="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Card title"
+            required
+            autoFocus
+          />
+        )}
 
         <Textarea
           label="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add more details..."
-          rows={4}
+          rows={3}
           disabled={isReadOnly}
         />
 
         {!isCreateMode && (
           <>
-            <Select
-              label="Assigned to"
-              value={assignee}
-              onChange={(e) => setAssignee(e.target.value)}
-              disabled={isReadOnly}
-            >
-              <option value="">Unassigned</option>
-              {boardMembers.map((member) => (
-                <option key={member.email} value={member.email}>
-                  {member.email}
-                </option>
-              ))}
-            </Select>
+            {/* Metadata row */}
+            <div className="grid grid-cols-2 gap-3">
+              <Select
+                label="Assignee"
+                value={assignee}
+                onChange={(e) => setAssignee(e.target.value)}
+                disabled={isReadOnly}
+              >
+                <option value="">Unassigned</option>
+                {boardMembers.map((member) => (
+                  <option key={member.email} value={member.email}>
+                    {member.email.split('@')[0]}
+                  </option>
+                ))}
+              </Select>
 
-            <Input
-              label="Deadline"
-              type="date"
-              value={deadline ? new Date(deadline).toISOString().split('T')[0] : ''}
-              onChange={(e) => setDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
-              disabled={isReadOnly}
-            />
+              <Input
+                label="Deadline"
+                type="date"
+                value={deadline ? new Date(deadline).toISOString().split('T')[0] : ''}
+                onChange={(e) => setDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                disabled={isReadOnly}
+              />
+            </div>
 
-            <CardChecklist
-              items={checklist}
-              isReadOnly={isReadOnly}
-              onChange={setChecklist}
-            />
+            {/* Divider */}
+            <div className="border-t border-slate-200 dark:border-slate-700" />
 
-            <CardLinks
-              links={links}
-              isReadOnly={isReadOnly}
-              onChange={setLinks}
-            />
+            <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
 
-            <CardActivity
-              notes={activity}
-              isReadOnly={isReadOnly}
-              currentUserEmail={currentUserEmail}
-              onChange={setActivity}
-            />
+            <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
+
+            {/* Divider */}
+            <div className="border-t border-slate-200 dark:border-slate-700" />
+
+            <CardActivity notes={activity} isReadOnly={isReadOnly} currentUserEmail={currentUserEmail} onChange={setActivity} />
           </>
         )}
 
-        {card && (
-          <div className="text-xs text-gray-500 dark:text-gray-400">
-            Created {new Date(card.createdAt).toLocaleString()}
-          </div>
-        )}
-
         {error && (
-          <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-            <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+          <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+            <p className="text-sm text-red-500">{error}</p>
           </div>
         )}
 
-        <div className="flex gap-3 justify-between">
-          <div>
+        {/* Footer */}
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-3">
             {card && !isReadOnly && (
-              <Button
-                type="button"
-                variant="danger"
+              <button
                 onClick={handleDeleteClick}
                 disabled={isSaving}
+                className="text-sm text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
               >
                 Delete
-              </Button>
+              </button>
+            )}
+            {card && (
+              <span className="text-xs text-slate-400">
+                Created {new Date(card.createdAt).toLocaleDateString()}
+              </span>
             )}
           </div>
-          <div className="flex gap-3">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={onClose}
-              disabled={isSaving}
-            >
+          <div className="flex gap-2">
+            <Button type="button" variant="ghost" onClick={onClose} disabled={isSaving}>
               Close
             </Button>
             {isCreateMode && (
-              <Button
-                type="button"
-                onClick={handleCreate}
-                disabled={isSaving || !title.trim()}
-              >
+              <Button type="button" onClick={handleCreate} disabled={isSaving || !title.trim()}>
                 {isSaving ? 'Creating...' : 'Create'}
               </Button>
             )}

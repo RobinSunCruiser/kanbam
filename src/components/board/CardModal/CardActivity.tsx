@@ -1,9 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ActivityNote } from '@/types/board';
-import Textarea from '@/components/ui/Textarea';
-import Button from '@/components/ui/Button';
 import { nanoid } from 'nanoid';
 
 interface CardActivityProps {
@@ -13,77 +11,77 @@ interface CardActivityProps {
   currentUserEmail: string;
 }
 
-export default function CardActivity({
-  notes,
-  isReadOnly,
-  onChange,
-  currentUserEmail,
-}: CardActivityProps) {
+export default function CardActivity({ notes, isReadOnly, onChange, currentUserEmail }: CardActivityProps) {
+  const [isAdding, setIsAdding] = useState(false);
   const [newNote, setNewNote] = useState('');
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (isAdding && textareaRef.current) textareaRef.current.focus();
+  }, [isAdding]);
 
   const handleAdd = () => {
     if (!newNote.trim()) return;
-
-    const note: ActivityNote = {
+    onChange([...notes, {
       id: nanoid(),
       text: newNote.trim(),
       createdBy: currentUserEmail,
       createdAt: new Date().toISOString(),
-    };
-    onChange([...notes, note]);
+    }]);
     setNewNote('');
+    setIsAdding(false);
   };
 
-  // Sort notes by newest first
-  const sortedNotes = [...notes].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  );
+  const sortedNotes = [...notes].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300">
-        Activity
-      </h3>
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Activity</h3>
+        {!isReadOnly && !isAdding && (
+          <button
+            onClick={() => setIsAdding(true)}
+            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            </svg>
+          </button>
+        )}
+      </div>
 
-      {!isReadOnly && (
+      {isAdding && (
         <div className="space-y-2">
-          <Textarea
+          <textarea
+            ref={textareaRef}
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Escape') { setIsAdding(false); setNewNote(''); } }}
             placeholder="Add a note..."
-            rows={3}
+            rows={2}
+            className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
-          <Button
-            onClick={handleAdd}
-            disabled={!newNote.trim()}
-            className="w-full"
-          >
-            Add Note
-          </Button>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => { setIsAdding(false); setNewNote(''); }} className="px-3 py-1 text-sm text-slate-500">Cancel</button>
+            <button onClick={handleAdd} disabled={!newNote.trim()} className="px-3 py-1 text-sm text-orange-500 font-medium disabled:opacity-50">Add</button>
+          </div>
         </div>
       )}
 
       {sortedNotes.length > 0 ? (
-        <div className="space-y-3 max-h-64 overflow-y-auto">
+        <div className="space-y-2 max-h-48 overflow-y-auto">
           {sortedNotes.map((note) => (
-            <div
-              key={note.id}
-              className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg space-y-1"
-            >
-              <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400">
-                <span className="font-medium">{note.createdBy}</span>
-                <span>{new Date(note.createdAt).toLocaleString()}</span>
+            <div key={note.id} className="p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl">
+              <div className="flex items-center justify-between text-xs text-slate-400 mb-1.5">
+                <span className="font-medium">{note.createdBy.split('@')[0]}</span>
+                <span>{new Date(note.createdAt).toLocaleDateString()}</span>
               </div>
-              <p className="text-sm text-gray-900 dark:text-gray-100 whitespace-pre-wrap">
-                {note.text}
-              </p>
+              <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-wrap">{note.text}</p>
             </div>
           ))}
         </div>
       ) : (
-        <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-4">
-          No activity yet
-        </p>
+        <p className="text-sm text-slate-400 text-center py-3">No activity yet</p>
       )}
     </div>
   );

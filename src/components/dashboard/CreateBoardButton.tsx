@@ -37,45 +37,22 @@ export default function CreateBoardButton() {
 
   return (
     <>
-      <Button onClick={() => setIsOpen(true)}>
-        + Create Board
-      </Button>
+      <Button onClick={() => setIsOpen(true)}>+ New Board</Button>
 
       <Modal isOpen={isOpen} onClose={handleClose} title="Create New Board">
-        <form action={handleSubmit} className="space-y-4">
-          <Input
-            label="Board Title"
-            name="title"
-            placeholder="My Project Board"
-            required
-            autoFocus
-          />
-
-          <Textarea
-            label="Description (optional)"
-            name="description"
-            placeholder="What is this board for?"
-            rows={3}
-          />
+        <form action={handleSubmit} className="space-y-5">
+          <Input label="Title" name="title" placeholder="My Project Board" required autoFocus />
+          <Textarea label="Description (optional)" name="description" placeholder="What is this board for?" rows={2} />
 
           {error && (
-            <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
-              <p className="text-sm text-red-600 dark:text-red-400">{error}</p>
+            <div className="p-3 bg-red-50 dark:bg-red-900/20 rounded-xl">
+              <p className="text-sm text-red-500">{error}</p>
             </div>
           )}
 
-          <div className="flex gap-3 justify-end">
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={handleClose}
-              disabled={isPending}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isPending}>
-              {isPending ? 'Creating...' : 'Create Board'}
-            </Button>
+          <div className="flex gap-3 justify-end pt-2">
+            <Button type="button" variant="ghost" onClick={handleClose} disabled={isPending}>Cancel</Button>
+            <Button type="submit" disabled={isPending}>{isPending ? 'Creating...' : 'Create'}</Button>
           </div>
         </form>
       </Modal>

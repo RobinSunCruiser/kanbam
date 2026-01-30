@@ -16,20 +16,20 @@ export default function Input({
   return (
     <div className="w-full">
       {label && (
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+        <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">
           {label}
         </label>
       )}
       <input
-        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
+        className={`w-full px-3.5 py-2.5 rounded-xl transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-orange-500/50 ${
           error
-            ? 'border-red-500'
-            : 'border-gray-300 dark:border-gray-600'
-        } bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 ${className}`}
+            ? 'bg-red-50 dark:bg-red-900/20 ring-2 ring-red-500/50'
+            : 'bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50'
+        } text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 ${className}`}
         {...props}
       />
       {error && (
-        <p className="mt-1 text-sm text-red-600 dark:text-red-400">{error}</p>
+        <p className="mt-1.5 text-sm text-red-500 dark:text-red-400">{error}</p>
       )}
     </div>
   );

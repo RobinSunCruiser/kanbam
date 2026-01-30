@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useTransition } from 'react';
 import { logoutAction } from '@/lib/actions/auth';
 import Button from './Button';
@@ -19,32 +20,36 @@ export default function Navbar({ user }: NavbarProps) {
   };
 
   return (
-    <nav className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
+    <nav className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200/50 dark:border-slate-700/50 sticky top-0 z-40">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
-          <div className="flex items-center">
-            <Link
-              href={user ? '/dashboard' : '/'}
-              className="text-2xl font-bold text-blue-600 dark:text-blue-400"
-            >
+          <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5 group">
+            <Image
+              src="/favicon.png"
+              alt="CanBam Logo"
+              width={36}
+              height={36}
+              className="transition-transform group-hover:scale-110"
+            />
+            <span className="text-2xl font-bold bg-linear-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
               CanBam
-            </Link>
-          </div>
+            </span>
+          </Link>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             {user ? (
               <>
-                <span className="text-sm text-gray-700 dark:text-gray-300">
+                <span className="text-sm text-slate-600 dark:text-slate-400 hidden sm:block">
                   {user.name}
                 </span>
-                <Button onClick={handleLogout} variant="secondary" className="text-sm" disabled={isPending}>
+                <Button onClick={handleLogout} variant="ghost" className="text-sm" disabled={isPending}>
                   {isPending ? 'Logging out...' : 'Logout'}
                 </Button>
               </>
             ) : (
               <>
                 <Link href="/login">
-                  <Button variant="secondary" className="text-sm">
+                  <Button variant="ghost" className="text-sm">
                     Login
                   </Button>
                 </Link>
