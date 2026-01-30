@@ -4,6 +4,12 @@ import { getUserById } from '../storage/users';
 import { getBoardMemberPrivilege } from '../storage/boards';
 import { UnauthorizedError, ForbiddenError } from '../utils/errors';
 
+/**
+ * Checks authentication token
+ * Throws error when not authenticated
+ * Returns user object if authenticated
+ * @returns
+ */
 export async function requireAuth(): Promise<UserAuth> {
   const token = await getTokenFromCookie();
 
@@ -33,6 +39,12 @@ export async function requireAuth(): Promise<UserAuth> {
   return userAuth;
 }
 
+/**
+ * When board access is needed requests access here from board with given user mail 
+ * @param user 
+ * @param boardUid 
+ * @param requiredPrivilege 
+ */
 export async function requireBoardAccess(
   user: UserAuth,
   boardUid: string,
