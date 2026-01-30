@@ -75,8 +75,9 @@ export default function CardModal({
       }
 
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'An error occurred');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'An error occurred';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -96,8 +97,9 @@ export default function CardModal({
     try {
       await onDelete(card.id);
       onClose();
-    } catch (err: any) {
-      setError(err.message || 'Failed to delete card');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete card';
+      setError(errorMessage);
       setLoading(false);
     }
   };

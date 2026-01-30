@@ -32,7 +32,7 @@ export async function createCardAction(boardUid: string, formData: FormData) {
     const card = await addCard(boardUid, {
       title: validation.data.title.trim(),
       description: validation.data.description?.trim(),
-      columnId: validation.data.columnId as any,
+      columnId: String(validation.data.columnId) as 'todo' | 'in-progress' | 'done',
     });
 
     revalidatePath(`/board/${boardUid}`);
@@ -41,11 +41,12 @@ export async function createCardAction(boardUid: string, formData: FormData) {
       success: true,
       card,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Create card error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create card';
     return {
       success: false,
-      error: error.message || 'Failed to create card',
+      error: errorMessage,
     };
   }
 }
@@ -77,7 +78,10 @@ export async function updateCardAction(
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
 
-    const card = await updateCard(boardUid, cardId, validation.data as any);
+    const card = await updateCard(boardUid, cardId, {
+      ...validation.data,
+      columnId: validation.data.columnId ? String(validation.data.columnId) as 'todo' | 'in-progress' | 'done' : undefined,
+    });
 
     revalidatePath(`/board/${boardUid}`);
 
@@ -85,11 +89,12 @@ export async function updateCardAction(
       success: true,
       card,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Update card error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update card';
     return {
       success: false,
-      error: error.message || 'Failed to update card',
+      error: errorMessage,
     };
   }
 }
@@ -110,11 +115,12 @@ export async function deleteCardAction(boardUid: string, cardId: string) {
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Delete card error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete card';
     return {
       success: false,
-      error: error.message || 'Failed to delete card',
+      error: errorMessage,
     };
   }
 }

@@ -37,7 +37,7 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
     }
 
     return payload as unknown as SessionPayload;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

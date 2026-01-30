@@ -1,8 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
-import { createBoardSchema, updateBoardSchema, addMemberSchema, removeMemberSchema } from '../validation/schemas';
+import { createBoardSchema, updateBoardSchema, addMemberSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import {
   createBoard,
@@ -48,11 +47,12 @@ export async function createBoardAction(formData: FormData) {
       success: true,
       boardUid: board.uid,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Create board error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to create board';
     return {
       success: false,
-      error: error.message || 'Failed to create board',
+      error: errorMessage,
     };
   }
 }
@@ -88,11 +88,12 @@ export async function updateBoardAction(boardUid: string, formData: FormData) {
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Update board error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to update board';
     return {
       success: false,
-      error: error.message || 'Failed to update board',
+      error: errorMessage,
     };
   }
 }
@@ -113,11 +114,12 @@ export async function deleteBoardAction(boardUid: string) {
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Delete board error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to delete board';
     return {
       success: false,
-      error: error.message || 'Failed to delete board',
+      error: errorMessage,
     };
   }
 }
@@ -152,11 +154,12 @@ export async function addBoardMemberAction(boardUid: string, formData: FormData)
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Add member error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to add member';
     return {
       success: false,
-      error: error.message || 'Failed to add member',
+      error: errorMessage,
     };
   }
 }
@@ -182,11 +185,12 @@ export async function removeBoardMemberAction(boardUid: string, email: string) {
     return {
       success: true,
     };
-  } catch (error: any) {
+  } catch (error) {
     console.error('Remove member error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Failed to remove member';
     return {
       success: false,
-      error: error.message || 'Failed to remove member',
+      error: errorMessage,
     };
   }
 }

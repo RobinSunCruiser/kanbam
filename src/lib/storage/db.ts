@@ -62,7 +62,7 @@ async function ensureInitialized(): Promise<void> {
 }
 
 // Wrap the sql client to automatically ensure initialization before queries
-const sql = async (strings: TemplateStringsArray, ...values: any[]) => {
+const sql = async (strings: TemplateStringsArray, ...values: (string | number | boolean | null)[]) => {
   await ensureInitialized();
   return baseSql(strings, ...values);
 };

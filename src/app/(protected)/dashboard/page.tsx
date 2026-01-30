@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   // Convert to BoardMetadata format
   const boards: BoardMetadata[] = userBoards.map(board => {
     const member = board.members.find(
-      m => m.email.toLowerCase() === user.email.toLowerCase()
+      m => m.email.toLowerCase() === user.email.toLowerCase() //find correct member in list
     );
 
     return {

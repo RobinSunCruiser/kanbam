@@ -35,7 +35,7 @@ export default function Card({ card, onClick, isReadOnly }: CardProps) {
       style={style}
       {...attributes}
       {...listeners}
-      onClick={(e) => {
+      onClick={() => {
         // Prevent click during drag
         if (!isDragging) {
           onClick();

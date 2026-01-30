@@ -19,7 +19,7 @@ export default async function ProtectedLayout({
 
   try {
     user = await requireAuth();
-  } catch (error) {
+  } catch {
     redirect('/login');
   }
 

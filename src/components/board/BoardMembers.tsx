@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Board } from '@/types/board';
 import { addBoardMemberAction, removeBoardMemberAction } from '@/lib/actions/boards';
@@ -59,7 +59,7 @@ export default function BoardMembers({
       setInvitePrivilege('read');
       setShowInviteModal(false);
       router.refresh();
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
     } finally {
       setLoading(false);
@@ -87,7 +87,7 @@ export default function BoardMembers({
           }
 
           router.push('/dashboard');
-        } catch (err) {
+        } catch {
           setAlertDialog({
             title: 'Error',
             message: 'An error occurred. Please try again.',
@@ -119,7 +119,7 @@ export default function BoardMembers({
           }
 
           router.refresh();
-        } catch (err) {
+        } catch {
           setAlertDialog({
             title: 'Error',
             message: 'An error occurred. Please try again.',

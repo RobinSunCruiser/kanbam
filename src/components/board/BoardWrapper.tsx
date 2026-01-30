@@ -4,6 +4,19 @@ import dynamic from 'next/dynamic';
 import { Board as BoardType } from '@/types/board';
 
 // Import Board client-side only to avoid hydration issues with @dnd-kit
+/**
+ * Server:
+  Render BoardWrapper (Client Component) ✓
+  Skip rendering Board (dynamic import, ssr: false)
+  Send initial HTML with spinner
+  
+Browser:
+  See spinner
+  Download Board.js code
+  Execute Board component code
+  @dnd-kit initializes
+  Render fully interactive board
+ */
 const Board = dynamic(() => import('./Board'), {
   ssr: false,
   loading: () => (
