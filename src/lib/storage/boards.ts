@@ -2,22 +2,21 @@ import { Board, Card, ColumnType } from '@/types/board';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateBoardUid, generateCardId, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
-import { sql } from './db';
+import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid, boardExists as dbBoardExists } from './db';
 
+// ============================================================================
+// BOARD CRUD OPERATIONS
+// ============================================================================
+
+/** Load board by UID - returns Board object or null if not found */
 export async function loadBoard(uid: string): Promise<Board | null> {
   if (!isValidUid(uid)) {
     throw new ValidationError('Invalid board UID format');
   }
 
-  const result = await sql`
-    SELECT uid, title, owner_id as "ownerId", data, created_at as "createdAt", updated_at as "updatedAt"
-    FROM boards
-    WHERE uid = ${uid}
-  `;
+  const row = await queryBoardByUid(uid);
+  if (!row) return null;
 
-  if (result.length === 0) return null;
-
-  const row = result[0];
   const boardData = row.data;
 
   return {
@@ -33,6 +32,7 @@ export async function loadBoard(uid: string): Promise<Board | null> {
   };
 }
 
+/** Save board to database (upsert) - inserts new or updates existing board */
 export async function saveBoard(board: Board): Promise<void> {
   if (!isValidUid(board.uid)) {
     throw new ValidationError('Invalid board UID format');
@@ -45,45 +45,52 @@ export async function saveBoard(board: Board): Promise<void> {
     cards: board.cards,
   };
 
-  await sql`
-    INSERT INTO boards (uid, title, owner_id, data, created_at, updated_at)
-    VALUES (${board.uid}, ${board.title}, ${board.ownerId}, ${JSON.stringify(data)}, ${board.createdAt}, ${board.updatedAt})
-    ON CONFLICT (uid)
-    DO UPDATE SET
-      title = EXCLUDED.title,
-      data = EXCLUDED.data,
-      updated_at = EXCLUDED.updated_at
-  `;
+  await upsertBoard(board.uid, board.title, board.ownerId, data, board.createdAt, board.updatedAt);
 }
 
+/** Delete board by UID - throws NotFoundError if board doesn't exist */
 export async function deleteBoard(uid: string): Promise<void> {
   if (!isValidUid(uid)) {
     throw new ValidationError('Invalid board UID format');
   }
 
-  const result = await sql`
-    DELETE FROM boards
-    WHERE uid = ${uid}
-    RETURNING uid
-  `;
-
-  if (result.length === 0) {
+  const deleted = await deleteBoardByUid(uid);
+  if (!deleted) {
     throw new NotFoundError('Board not found');
   }
 }
 
+/** Check if board exists by UID */
 export async function boardExists(uid: string): Promise<boolean> {
   if (!isValidUid(uid)) {
     return false;
   }
 
-  const result = await sql`
-    SELECT 1 FROM boards WHERE uid = ${uid}
-  `;
-
-  return result.length > 0;
+  return await dbBoardExists(uid);
 }
 
+/** List all boards where user is a member */
+export async function listBoardsByEmail(email: string): Promise<Board[]> {
+  const rows = await queryBoardsByMemberEmail(email);
+
+  return rows.map(row => ({
+    uid: row.uid,
+    title: row.title,
+    ownerId: row.ownerId,
+    description: row.data.description,
+    members: row.data.members || [],
+    columns: row.data.columns || [],
+    cards: row.data.cards || {},
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
+}
+
+// ============================================================================
+// BOARD BUSINESS LOGIC
+// ============================================================================
+
+/** Create new board with default columns and owner as member */
 export async function createBoard(
   data: Omit<Board, 'uid' | 'createdAt' | 'updatedAt' | 'columns' | 'cards' | 'members'>,
   ownerEmail: string
@@ -96,28 +103,11 @@ export async function createBoard(
     uid,
     createdAt: now,
     updatedAt: now,
-    members: [
-      {
-        email: ownerEmail,
-        privilege: 'write',
-      },
-    ],
+    members: [{ email: ownerEmail, privilege: 'write' }],
     columns: [
-      {
-        id: 'todo',
-        title: 'To Do',
-        cardIds: [],
-      },
-      {
-        id: 'in-progress',
-        title: 'In Progress',
-        cardIds: [],
-      },
-      {
-        id: 'done',
-        title: 'Done',
-        cardIds: [],
-      },
+      { id: 'todo', title: 'To Do', cardIds: [] },
+      { id: 'in-progress', title: 'In Progress', cardIds: [] },
+      { id: 'done', title: 'Done', cardIds: [] },
     ],
     cards: {},
   };
@@ -126,6 +116,7 @@ export async function createBoard(
   return board;
 }
 
+/** Update board title and/or description */
 export async function updateBoardMetadata(
   uid: string,
   updates: { title?: string; description?: string }
@@ -145,6 +136,85 @@ export async function updateBoardMetadata(
   return updatedBoard;
 }
 
+/** Get member's privilege level for a board - returns 'read', 'write', or null */
+export async function getBoardMemberPrivilege(
+  boardUid: string,
+  email: string
+): Promise<'read' | 'write' | null> {
+  const board = await loadBoard(boardUid);
+  if (!board) return null;
+
+  const member = board.members?.find(
+    m => m.email.toLowerCase() === email.toLowerCase()
+  );
+
+  return member?.privilege || null;
+}
+
+// ============================================================================
+// BOARD MEMBER OPERATIONS
+// ============================================================================
+
+/** Add member to board or update their privilege if already member */
+export async function addBoardMember(
+  boardUid: string,
+  email: string,
+  privilege: 'read' | 'write'
+): Promise<void> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  // Validate email belongs to registered user
+  const user = await getUserByEmail(email);
+  if (!user) {
+    throw new ValidationError('User with this email does not exist');
+  }
+
+  const existingMember = board.members.find(
+    m => m.email.toLowerCase() === email.toLowerCase()
+  );
+
+  if (existingMember) {
+    existingMember.privilege = privilege;
+  } else {
+    board.members.push({ email: email.toLowerCase(), privilege });
+  }
+
+  board.updatedAt = new Date().toISOString();
+  await saveBoard(board);
+}
+
+/** Remove member from board - deletes board if no members remain */
+export async function removeBoardMember(
+  boardUid: string,
+  email: string
+): Promise<void> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  board.members = board.members.filter(
+    m => m.email.toLowerCase() !== email.toLowerCase()
+  );
+
+  // Delete board if no members left
+  if (board.members.length === 0) {
+    await deleteBoard(boardUid);
+    return;
+  }
+
+  board.updatedAt = new Date().toISOString();
+  await saveBoard(board);
+}
+
+// ============================================================================
+// CARD OPERATIONS
+// ============================================================================
+
+/** Add new card to specified column */
 export async function addCard(
   boardUid: string,
   cardData: { title: string; description?: string; columnId: ColumnType }
@@ -177,6 +247,7 @@ export async function addCard(
   return card;
 }
 
+/** Update card - handles text edits, column changes, and reordering */
 export async function updateCard(
   boardUid: string,
   cardId: string,
@@ -219,7 +290,7 @@ export async function updateCard(
     }
   }
 
-  // Update other fields
+  // Update text fields
   if (updates.title !== undefined) card.title = updates.title;
   if (updates.description !== undefined) card.description = updates.description;
 
@@ -230,6 +301,7 @@ export async function updateCard(
   return card;
 }
 
+/** Delete card from board */
 export async function deleteCard(boardUid: string, cardId: string): Promise<void> {
   const board = await loadBoard(boardUid);
   if (!board) {
@@ -247,102 +319,8 @@ export async function deleteCard(boardUid: string, cardId: string): Promise<void
     column.cardIds = column.cardIds.filter(id => id !== cardId);
   }
 
-  // Delete card
   delete board.cards[cardId];
   board.updatedAt = new Date().toISOString();
 
   await saveBoard(board);
-}
-
-export async function addBoardMember(
-  boardUid: string,
-  email: string,
-  privilege: 'read' | 'write'
-): Promise<void> {
-  const board = await loadBoard(boardUid);
-  if (!board) {
-    throw new NotFoundError('Board not found');
-  }
-
-  // Check if email is registered
-  const user = await getUserByEmail(email);
-  if (!user) {
-    throw new ValidationError('User with this email does not exist');
-  }
-
-  // Check if member already exists
-  const existingMember = board.members.find(
-    m => m.email.toLowerCase() === email.toLowerCase()
-  );
-
-  if (existingMember) {
-    // Update privilege
-    existingMember.privilege = privilege;
-  } else {
-    // Add new member
-    board.members.push({ email: email.toLowerCase(), privilege });
-  }
-
-  board.updatedAt = new Date().toISOString();
-  await saveBoard(board);
-}
-
-export async function removeBoardMember(
-  boardUid: string,
-  email: string
-): Promise<void> {
-  const board = await loadBoard(boardUid);
-  if (!board) {
-    throw new NotFoundError('Board not found');
-  }
-
-  // Remove member
-  board.members = board.members.filter(
-    m => m.email.toLowerCase() !== email.toLowerCase()
-  );
-
-  // If no members left, delete the board
-  if (board.members.length === 0) {
-    await deleteBoard(boardUid);
-    return;
-  }
-
-  board.updatedAt = new Date().toISOString();
-  await saveBoard(board);
-}
-
-export async function listBoardsByEmail(email: string): Promise<Board[]> {
-  const result = await sql`
-    SELECT uid, title, owner_id as "ownerId", data, created_at as "createdAt", updated_at as "updatedAt"
-    FROM boards
-    WHERE data->'members' @> ${JSON.stringify([{ email: email.toLowerCase() }])}::jsonb
-  `;
-
-  return result.map(row => ({
-    uid: row.uid,
-    title: row.title,
-    ownerId: row.ownerId,
-    description: row.data.description,
-    members: row.data.members || [],
-    columns: row.data.columns || [],
-    cards: row.data.cards || {},
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }));
-}
-
-export async function getBoardMemberPrivilege(
-  boardUid: string,
-  email: string
-): Promise<'read' | 'write' | null> {
-  const board = await loadBoard(boardUid);
-  if (!board) {
-    return null;
-  }
-
-  const member = board.members?.find(
-    m => m.email.toLowerCase() === email.toLowerCase()
-  );
-
-  return member?.privilege || null;
 }

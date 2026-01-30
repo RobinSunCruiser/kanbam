@@ -62,7 +62,122 @@ async function ensureInitialized(): Promise<void> {
 }
 
 // Wrap the sql client to automatically ensure initialization before queries
-export const sql = async (strings: TemplateStringsArray, ...values: any[]) => {
+const sql = async (strings: TemplateStringsArray, ...values: any[]) => {
   await ensureInitialized();
   return baseSql(strings, ...values);
 };
+
+// ============================================================================
+// USER QUERIES - Data access layer for users table
+// ============================================================================
+
+/** Query user by ID - returns raw database row or null */
+export async function queryUserById(id: string) {
+  const result = await sql`
+    SELECT id, email, name, password_hash as "passwordHash", created_at as "createdAt"
+    FROM users
+    WHERE id = ${id}
+  `;
+  return result.length > 0 ? result[0] : null;
+}
+
+/** Query user by email (case-insensitive) - returns raw database row or null */
+export async function queryUserByEmail(email: string) {
+  const result = await sql`
+    SELECT id, email, name, password_hash as "passwordHash", created_at as "createdAt"
+    FROM users
+    WHERE LOWER(email) = LOWER(${email})
+  `;
+  return result.length > 0 ? result[0] : null;
+}
+
+/** Insert new user into database */
+export async function insertUser(
+  id: string,
+  email: string,
+  name: string,
+  passwordHash: string,
+  createdAt: string
+): Promise<void> {
+  await sql`
+    INSERT INTO users (id, email, name, password_hash, created_at)
+    VALUES (${id}, ${email}, ${name}, ${passwordHash}, ${createdAt})
+  `;
+}
+
+/** Update specific user field */
+export async function updateUserField(
+  id: string,
+  field: 'name' | 'email' | 'password_hash',
+  value: string
+): Promise<void> {
+  if (field === 'password_hash') {
+    await sql`UPDATE users SET password_hash = ${value} WHERE id = ${id}`;
+  } else if (field === 'email') {
+    await sql`UPDATE users SET email = ${value} WHERE id = ${id}`;
+  } else if (field === 'name') {
+    await sql`UPDATE users SET name = ${value} WHERE id = ${id}`;
+  }
+}
+
+// ============================================================================
+// BOARD QUERIES - Data access layer for boards table
+// ============================================================================
+
+/** Query board by UID - returns raw database row or null */
+export async function queryBoardByUid(uid: string) {
+  const result = await sql`
+    SELECT uid, title, owner_id as "ownerId", data, created_at as "createdAt", updated_at as "updatedAt"
+    FROM boards
+    WHERE uid = ${uid}
+  `;
+  return result.length > 0 ? result[0] : null;
+}
+
+/** Query all boards where user is a member - returns raw database rows */
+export async function queryBoardsByMemberEmail(email: string) {
+  const result = await sql`
+    SELECT uid, title, owner_id as "ownerId", data, created_at as "createdAt", updated_at as "updatedAt"
+    FROM boards
+    WHERE data->'members' @> ${JSON.stringify([{ email: email.toLowerCase() }])}::jsonb
+  `;
+  return result;
+}
+
+/** Insert or update board (upsert) - stores entire board data as JSONB */
+export async function upsertBoard(
+  uid: string,
+  title: string,
+  ownerId: string,
+  data: object,
+  createdAt: string,
+  updatedAt: string
+): Promise<void> {
+  await sql`
+    INSERT INTO boards (uid, title, owner_id, data, created_at, updated_at)
+    VALUES (${uid}, ${title}, ${ownerId}, ${JSON.stringify(data)}, ${createdAt}, ${updatedAt})
+    ON CONFLICT (uid)
+    DO UPDATE SET
+      title = EXCLUDED.title,
+      data = EXCLUDED.data,
+      updated_at = EXCLUDED.updated_at
+  `;
+}
+
+/** Delete board by UID - returns true if deleted, false if not found */
+export async function deleteBoardByUid(uid: string): Promise<boolean> {
+  const result = await sql`
+    DELETE FROM boards
+    WHERE uid = ${uid}
+    RETURNING uid
+  `;
+  return result.length > 0;
+}
+
+/** Check if board exists by UID */
+export async function boardExists(uid: string): Promise<boolean> {
+  const result = await sql`
+    SELECT 1 FROM boards WHERE uid = ${uid}
+  `;
+  return result.length > 0;
+}

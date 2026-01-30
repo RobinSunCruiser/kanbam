@@ -1,18 +1,13 @@
 import { User } from '@/types/user';
 import { NotFoundError } from '../utils/errors';
 import { generateUserId } from '../utils/uid';
-import { sql } from './db';
+import { queryUserById, queryUserByEmail, insertUser, updateUserField } from './db';
 
+/** Retrieve user by ID - returns User object or null if not found */
 export async function getUserById(id: string): Promise<User | null> {
-  const result = await sql`
-    SELECT id, email, name, password_hash as "passwordHash", created_at as "createdAt"
-    FROM users
-    WHERE id = ${id}
-  `;
+  const row = await queryUserById(id);
+  if (!row) return null;
 
-  if (result.length === 0) return null;
-
-  const row = result[0];
   return {
     id: row.id,
     email: row.email,
@@ -22,16 +17,11 @@ export async function getUserById(id: string): Promise<User | null> {
   };
 }
 
+/** Retrieve user by email (case-insensitive) - returns User object or null */
 export async function getUserByEmail(email: string): Promise<User | null> {
-  const result = await sql`
-    SELECT id, email, name, password_hash as "passwordHash", created_at as "createdAt"
-    FROM users
-    WHERE LOWER(email) = LOWER(${email})
-  `;
+  const row = await queryUserByEmail(email);
+  if (!row) return null;
 
-  if (result.length === 0) return null;
-
-  const row = result[0];
   return {
     id: row.id,
     email: row.email,
@@ -41,10 +31,11 @@ export async function getUserByEmail(email: string): Promise<User | null> {
   };
 }
 
+/** Create new user account - throws error if email already exists */
 export async function createUser(
   userData: Omit<User, 'id' | 'createdAt'>
 ): Promise<User> {
-  // Check if email already exists
+  // Validate email is unique
   const existing = await getUserByEmail(userData.email);
   if (existing) {
     throw new Error('Email already exists');
@@ -53,10 +44,7 @@ export async function createUser(
   const id = generateUserId();
   const createdAt = new Date().toISOString();
 
-  await sql`
-    INSERT INTO users (id, email, name, password_hash, created_at)
-    VALUES (${id}, ${userData.email}, ${userData.name}, ${userData.passwordHash}, ${createdAt})
-  `;
+  await insertUser(id, userData.email, userData.name, userData.passwordHash, createdAt);
 
   return {
     id,
@@ -67,6 +55,7 @@ export async function createUser(
   };
 }
 
+/** Update user fields - throws NotFoundError if user doesn't exist */
 export async function updateUser(
   id: string,
   updates: Partial<Omit<User, 'id' | 'createdAt'>>
@@ -76,16 +65,16 @@ export async function updateUser(
     throw new NotFoundError('User not found');
   }
 
-  // Update fields if provided
+  // Apply updates for each provided field
   if (updates.name) {
-    await sql`UPDATE users SET name = ${updates.name} WHERE id = ${id}`;
+    await updateUserField(id, 'name', updates.name);
   }
   if (updates.email) {
-    await sql`UPDATE users SET email = ${updates.email} WHERE id = ${id}`;
+    await updateUserField(id, 'email', updates.email);
   }
   if (updates.passwordHash) {
-    await sql`UPDATE users SET password_hash = ${updates.passwordHash} WHERE id = ${id}`;
+    await updateUserField(id, 'password_hash', updates.passwordHash);
   }
 
-  return await getUserById(id) as User;
+  return (await getUserById(id)) as User;
 }
