@@ -2,6 +2,7 @@
  * Email sending - transporter config + send functions
  */
 import nodemailer from 'nodemailer';
+import { headers } from 'next/headers';
 import { createEmailToken } from './tokens';
 import { User } from '@/types/user';
 import { updateUserField } from '../storage/db';
@@ -28,8 +29,26 @@ function getTransporter(): nodemailer.Transporter {
   return transporter;
 }
 
-function getAppUrl(): string {
-  return process.env.APP_URL || 'http://localhost:3000';
+async function getAppUrl(): Promise<string> {
+  if (process.env.APP_URL) {
+    return process.env.APP_URL;
+  }
+
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+
+  try {
+    const host = (await headers()).get('host');
+    if (host) {
+      const protocol = host.includes('localhost') ? 'http' : 'https';
+      return `${protocol}://${host}`;
+    }
+  } catch {
+    // headers() throws outside request context
+  }
+
+  return 'http://localhost:3000';
 }
 
 /** Wrap content in email template */
@@ -76,7 +95,7 @@ function canSendVerification(user: User): boolean {
 export async function trySendVerificationEmail(user: User): Promise<boolean> {
   if (!canSendVerification(user)) return false;
 
-  const url = `${getAppUrl()}/verify?token=${await createEmailToken(user.id, 'verify')}`;
+  const url = `${await getAppUrl()}/verify?token=${await createEmailToken(user.id, 'verify')}`;
   await sendEmail(
     user.email,
     'Verify your CanBam account',
@@ -96,7 +115,7 @@ export async function trySendVerificationEmail(user: User): Promise<boolean> {
 
 /** Send password reset email */
 export async function sendPasswordResetEmail(email: string, userId: string, userName: string) {
-  const url = `${getAppUrl()}/reset-password?token=${await createEmailToken(userId, 'reset')}`;
+  const url = `${await getAppUrl()}/reset-password?token=${await createEmailToken(userId, 'reset')}`;
   await sendEmail(
     email,
     'Reset your CanBam password',
