@@ -29,16 +29,6 @@ async function initSchema(): Promise<void> {
 
     await baseSql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`;
 
-    // Add email columns if table already exists (migration)
-    await baseSql`
-      ALTER TABLE users
-      ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false
-    `;
-    await baseSql`
-      ALTER TABLE users
-      ADD COLUMN IF NOT EXISTS last_verification_sent TIMESTAMPTZ
-    `;
-
     // Create boards table
     await baseSql`
       CREATE TABLE IF NOT EXISTS boards (
