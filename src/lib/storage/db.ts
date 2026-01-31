@@ -142,6 +142,12 @@ export async function updateUserField(
   }
 }
 
+/** Delete user by ID - returns true if deleted */
+export async function deleteUserById(id: string): Promise<boolean> {
+  const result = await sql`DELETE FROM users WHERE id = ${id} RETURNING id`;
+  return result.length > 0;
+}
+
 // ============================================================================
 // BOARD QUERIES - Data access layer for boards table
 // ============================================================================

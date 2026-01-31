@@ -1,7 +1,7 @@
 import { User } from '@/types/user';
 import { NotFoundError } from '../utils/errors';
 import { generateUid } from '../utils/uid';
-import { queryUserById, queryUserByEmail, insertUser, updateUserField } from './db';
+import { queryUserById, queryUserByEmail, insertUser, updateUserField, deleteUserById } from './db';
 
 /** Retrieve user by ID - returns User object or null if not found */
 export async function getUserById(id: string): Promise<User | null> {
@@ -89,4 +89,12 @@ export async function updateUser(
   }
 
   return (await getUserById(id)) as User;
+}
+
+/** Delete user by ID - throws NotFoundError if user doesn't exist */
+export async function deleteUser(id: string): Promise<void> {
+  const deleted = await deleteUserById(id);
+  if (!deleted) {
+    throw new NotFoundError('User not found');
+  }
 }

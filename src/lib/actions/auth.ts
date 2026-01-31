@@ -5,7 +5,9 @@ import { revalidatePath } from 'next/cache';
 import { loginSchema, signupSchema, forgotPasswordSchema, resetPasswordSchema } from '../validation/schemas';
 import { verifyPassword, hashPassword } from '../auth/password';
 import { setTokenCookie, clearTokenCookie } from '../auth/session';
-import { getUserByEmail, getUserById, createUser, updateUser } from '../storage/users';
+import { getUserByEmail, getUserById, createUser, updateUser, deleteUser } from '../storage/users';
+import { listBoardsByEmail, removeBoardMember } from '../storage/boards';
+import { requireAuth } from '../auth/middleware';
 import { trySendVerificationEmail, sendPasswordResetEmail } from '../email/send';
 import { verifyEmailToken } from '../email/tokens';
 
@@ -277,4 +279,35 @@ export async function resetPasswordAction(token: string, formData: FormData) {
       error: 'An error occurred. Please try again.',
     };
   }
+}
+
+/**
+ * Server Action: Delete Account
+ * Removes user from all boards and deletes account
+ */
+export async function deleteAccountAction() {
+  try {
+    const user = await requireAuth();
+
+    // Remove user from all boards
+    const boards = await listBoardsByEmail(user.email);
+    for (const board of boards) {
+      await removeBoardMember(board.uid, user.email);
+    }
+
+    // Delete user account
+    await deleteUser(user.id);
+
+    // Clear session
+    await clearTokenCookie();
+    revalidatePath('/');
+  } catch (error) {
+    console.error('Delete account error:', error);
+    return {
+      success: false,
+      error: 'Failed to delete account',
+    };
+  }
+
+  redirect('/');
 }
