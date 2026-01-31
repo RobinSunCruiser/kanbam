@@ -21,11 +21,23 @@ async function initSchema(): Promise<void> {
         email TEXT UNIQUE NOT NULL,
         name TEXT NOT NULL,
         password_hash TEXT NOT NULL,
+        email_verified BOOLEAN NOT NULL DEFAULT false,
+        last_verification_sent TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `;
 
     await baseSql`CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)`;
+
+    // Add email columns if table already exists (migration)
+    await baseSql`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT false
+    `;
+    await baseSql`
+      ALTER TABLE users
+      ADD COLUMN IF NOT EXISTS last_verification_sent TIMESTAMPTZ
+    `;
 
     // Create boards table
     await baseSql`
@@ -74,7 +86,10 @@ const sql = async (strings: TemplateStringsArray, ...values: (string | number | 
 /** Query user by ID - returns raw database row or null */
 export async function queryUserById(id: string) {
   const result = await sql`
-    SELECT id, email, name, password_hash as "passwordHash", created_at as "createdAt"
+    SELECT id, email, name, password_hash as "passwordHash",
+           email_verified as "emailVerified",
+           last_verification_sent as "lastVerificationSent",
+           created_at as "createdAt"
     FROM users
     WHERE id = ${id}
   `;
@@ -84,7 +99,10 @@ export async function queryUserById(id: string) {
 /** Query user by email (case-insensitive) - returns raw database row or null */
 export async function queryUserByEmail(email: string) {
   const result = await sql`
-    SELECT id, email, name, password_hash as "passwordHash", created_at as "createdAt"
+    SELECT id, email, name, password_hash as "passwordHash",
+           email_verified as "emailVerified",
+           last_verification_sent as "lastVerificationSent",
+           created_at as "createdAt"
     FROM users
     WHERE LOWER(email) = LOWER(${email})
   `;
@@ -108,15 +126,19 @@ export async function insertUser(
 /** Update specific user field */
 export async function updateUserField(
   id: string,
-  field: 'name' | 'email' | 'password_hash',
-  value: string
+  field: 'name' | 'email' | 'password_hash' | 'email_verified' | 'last_verification_sent',
+  value: string | boolean
 ): Promise<void> {
   if (field === 'password_hash') {
-    await sql`UPDATE users SET password_hash = ${value} WHERE id = ${id}`;
+    await sql`UPDATE users SET password_hash = ${value as string} WHERE id = ${id}`;
   } else if (field === 'email') {
-    await sql`UPDATE users SET email = ${value} WHERE id = ${id}`;
+    await sql`UPDATE users SET email = ${value as string} WHERE id = ${id}`;
   } else if (field === 'name') {
-    await sql`UPDATE users SET name = ${value} WHERE id = ${id}`;
+    await sql`UPDATE users SET name = ${value as string} WHERE id = ${id}`;
+  } else if (field === 'email_verified') {
+    await sql`UPDATE users SET email_verified = ${value as boolean} WHERE id = ${id}`;
+  } else if (field === 'last_verification_sent') {
+    await sql`UPDATE users SET last_verification_sent = ${value as string} WHERE id = ${id}`;
   }
 }
 

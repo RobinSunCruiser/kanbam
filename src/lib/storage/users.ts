@@ -13,6 +13,8 @@ export async function getUserById(id: string): Promise<User | null> {
     email: row.email,
     name: row.name,
     passwordHash: row.passwordHash,
+    emailVerified: row.emailVerified ?? false,
+    lastVerificationSent: row.lastVerificationSent ?? null,
     createdAt: row.createdAt,
   };
 }
@@ -27,13 +29,15 @@ export async function getUserByEmail(email: string): Promise<User | null> {
     email: row.email,
     name: row.name,
     passwordHash: row.passwordHash,
+    emailVerified: row.emailVerified ?? false,
+    lastVerificationSent: row.lastVerificationSent ?? null,
     createdAt: row.createdAt,
   };
 }
 
 /** Create new user account - throws error if email already exists */
 export async function createUser(
-  userData: Omit<User, 'id' | 'createdAt'>
+  userData: Omit<User, 'id' | 'createdAt' | 'emailVerified' | 'lastVerificationSent'>
 ): Promise<User> {
   // Validate email is unique
   const existing = await getUserByEmail(userData.email);
@@ -51,6 +55,8 @@ export async function createUser(
     email: userData.email,
     name: userData.name,
     passwordHash: userData.passwordHash,
+    emailVerified: false,
+    lastVerificationSent: null,
     createdAt,
   };
 }
@@ -74,6 +80,12 @@ export async function updateUser(
   }
   if (updates.passwordHash) {
     await updateUserField(id, 'password_hash', updates.passwordHash);
+  }
+  if (updates.emailVerified !== undefined) {
+    await updateUserField(id, 'email_verified', updates.emailVerified);
+  }
+  if (updates.lastVerificationSent !== undefined) {
+    await updateUserField(id, 'last_verification_sent', updates.lastVerificationSent || '');
   }
 
   return (await getUserById(id)) as User;

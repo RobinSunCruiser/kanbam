@@ -7,6 +7,8 @@ export interface User {
   email: string;
   name: string;
   passwordHash: string;
+  emailVerified: boolean;
+  lastVerificationSent: string | null;
   createdAt: string;
 }
 

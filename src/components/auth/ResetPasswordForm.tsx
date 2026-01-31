@@ -1,23 +1,30 @@
 'use client';
 
 import { useTransition, useState } from 'react';
-import Link from 'next/link';
-import { loginAction } from '@/lib/actions/auth';
+import { useRouter } from 'next/navigation';
+import { resetPasswordAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
-export default function LoginForm() {
+interface ResetPasswordFormProps {
+  token: string;
+}
+
+export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
+  const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setError('');
 
     startTransition(async () => {
-      const result = await loginAction(formData);
+      const result = await resetPasswordAction(token, formData);
 
       if (result?.error) {
         setError(result.error);
+      } else if (result?.success) {
+        router.push('/login?reset=success');
       }
     });
   };
@@ -25,31 +32,14 @@ export default function LoginForm() {
   return (
     <form action={handleSubmit} className="space-y-4">
       <Input
-        type="email"
-        label="Email"
-        name="email"
-        placeholder="you@example.com"
-        required
-        autoComplete="email"
-      />
-
-      <Input
         type="password"
-        label="Password"
+        label="New Password"
         name="password"
         placeholder="••••••••"
         required
-        autoComplete="current-password"
+        autoComplete="new-password"
+        minLength={8}
       />
-
-      <div className="text-right">
-        <Link
-          href="/forgot-password"
-          className="text-sm text-blue-600 hover:text-blue-500 dark:text-blue-400"
-        >
-          Forgot password?
-        </Link>
-      </div>
 
       {error && (
         <div className="p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
@@ -58,7 +48,7 @@ export default function LoginForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Logging in...' : 'Log in'}
+        {isPending ? 'Resetting...' : 'Reset password'}
       </Button>
     </form>
   );
