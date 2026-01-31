@@ -4,6 +4,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Column as ColumnType, Card as CardType } from '@/types/board';
 import Card from './Card';
+import { PlusIcon } from '../ui/Icons';
 
 interface ColumnProps {
   column: ColumnType;
@@ -35,9 +36,7 @@ export default function Column({ column, cards, isReadOnly, onCardClick, onAddCa
             onClick={() => onAddCard(column.id)}
             className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
           >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon className="w-5 h-5" />
           </button>
         )}
       </div>

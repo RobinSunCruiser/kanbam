@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { CardLink } from '@/types/board';
 import { nanoid } from 'nanoid';
+import { PlusIcon, XIcon, LinkIcon } from '@/components/ui/Icons';
 
 interface CardLinksProps {
   links: CardLink[];
@@ -57,9 +58,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
             onClick={() => setIsAdding(true)}
             className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon />
           </button>
         )}
       </div>
@@ -68,9 +67,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
         <div className="flex flex-wrap gap-2">
           {links.map((link) => (
             <div key={link.id} className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
-              <svg className="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
+              <LinkIcon className="w-3.5 h-3.5 text-slate-400" />
               <a
                 href={link.url}
                 target="_blank"
@@ -84,9 +81,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
                   onClick={() => onChange(links.filter(l => l.id !== link.id))}
                   className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XIcon className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>

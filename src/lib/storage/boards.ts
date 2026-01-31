@@ -238,7 +238,7 @@ export async function addCard(
     createdAt: now,
     updatedAt: now,
     columnId: cardData.columnId,
-    assignee: creatorEmail,
+    assignee: undefined,
     checklist: [],
     links: [],
     activity: [],

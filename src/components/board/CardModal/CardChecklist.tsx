@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ChecklistItem } from '@/types/board';
 import { nanoid } from 'nanoid';
+import { PlusIcon, XIcon, CheckIcon, CircleIcon } from '@/components/ui/Icons';
 
 interface CardChecklistProps {
   items: ChecklistItem[];
@@ -53,9 +54,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
             onClick={() => setIsAdding(true)}
             className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon />
           </button>
         )}
       </div>
@@ -72,20 +71,11 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
               }`}
               onClick={() => !isReadOnly && handleToggle(item.id)}
             >
-              <svg
-                className={`w-3.5 h-3.5 transition-colors ${
-                  item.checked ? 'text-green-500' : 'text-slate-400'
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                {item.checked ? (
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                ) : (
-                  <circle cx="12" cy="12" r="9" strokeWidth={2} />
-                )}
-              </svg>
+              {item.checked ? (
+                <CheckIcon className="w-3.5 h-3.5 text-green-500 transition-colors" />
+              ) : (
+                <CircleIcon className="w-3.5 h-3.5 text-slate-400 transition-colors" />
+              )}
               <span className={`text-sm transition-colors ${
                 item.checked
                   ? 'line-through text-green-600 dark:text-green-400'
@@ -98,9 +88,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
                   onClick={(e) => { e.stopPropagation(); onChange(items.filter(i => i.id !== item.id)); }}
                   className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
                 >
-                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                  </svg>
+                  <XIcon className="w-3.5 h-3.5" />
                 </button>
               )}
             </div>

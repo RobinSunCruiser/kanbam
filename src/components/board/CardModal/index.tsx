@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, ColumnType, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
-import Select from '@/components/ui/Select';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
+import { PlusIcon, XIcon, CalendarIcon, UserIcon } from '@/components/ui/Icons';
 import CardChecklist from './CardChecklist';
 import CardLinks from './CardLinks';
 import CardActivity from './CardActivity';
@@ -58,9 +58,14 @@ export default function CardModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showAssigneeSelect, setShowAssigneeSelect] = useState(false);
+  const deadlineInputRef = useRef<HTMLInputElement>(null);
+  const assigneeSelectRef = useRef<HTMLSelectElement>(null);
+  const isInitialMount = useRef(true);
 
   // Initialize from card prop
   useEffect(() => {
+    isInitialMount.current = true; // Reset on card change
     if (card) {
       setTitle(card.title);
       setDescription(card.description);
@@ -125,6 +130,10 @@ export default function CardModal({
 
   // Immediate save for non-text fields (assignee, deadline, checklist, links, activity)
   useEffect(() => {
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
     if (!card || isCreateMode || isReadOnly || !title.trim()) return;
 
     saveCard();
@@ -186,7 +195,7 @@ export default function CardModal({
       onChange={(e) => setTitle(e.target.value)}
       placeholder="Card title"
       disabled={isReadOnly}
-      className="w-full text-xl font-semibold bg-transparent border-none outline-none text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+      className="w-full text-xl font-semibold bg-transparent text-slate-800 dark:text-slate-100 placeholder:text-slate-400 border-2 border-transparent rounded-lg px-2 py-1 -mx-2 -my-1 outline-none focus:border-orange-400 focus:bg-orange-50/50 dark:focus:bg-orange-900/10 transition-colors"
     />
   );
 
@@ -210,47 +219,114 @@ export default function CardModal({
         )}
 
         <Textarea
-          label="Description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add more details..."
+          placeholder="Add a description..."
           rows={3}
           disabled={isReadOnly}
         />
 
         {!isCreateMode && (
           <>
-            {/* Metadata row */}
-            <div className="grid grid-cols-2 gap-3">
-              <Select
-                label="Assignee"
-                value={assignee}
-                onChange={(e) => setAssignee(e.target.value)}
-                disabled={isReadOnly}
-              >
-                <option value="">Unassigned</option>
-                {boardMembers.map((member) => (
-                  <option key={member.email} value={member.email}>
-                    {member.email.split('@')[0]}
-                  </option>
-                ))}
-              </Select>
-
-              <Input
-                label="Deadline"
-                type="date"
-                value={deadline ? new Date(deadline).toISOString().split('T')[0] : ''}
-                onChange={(e) => setDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
-                disabled={isReadOnly}
-              />
-            </div>
-
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />
 
             <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
 
             <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
+
+            {/* Deadline */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Deadline</h3>
+                {!isReadOnly && !deadline && (
+                  <button
+                    onClick={() => deadlineInputRef.current?.showPicker()}
+                    className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+                  >
+                    <PlusIcon />
+                  </button>
+                )}
+                <input
+                  ref={deadlineInputRef}
+                  type="date"
+                  className="sr-only"
+                  onChange={(e) => setDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
+                />
+              </div>
+              {deadline && (
+                <div className="flex flex-wrap gap-2">
+                  <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
+                    <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      {new Date(deadline).toLocaleDateString()}
+                    </span>
+                    {!isReadOnly && (
+                      <button
+                        onClick={() => setDeadline('')}
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
+                      >
+                        <XIcon className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Assignee */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Assignee</h3>
+                {!isReadOnly && !assignee && (
+                  <button
+                    onClick={() => {
+                      setShowAssigneeSelect(true);
+                      setTimeout(() => assigneeSelectRef.current?.focus(), 0);
+                    }}
+                    className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+                  >
+                    <PlusIcon />
+                  </button>
+                )}
+              </div>
+              {assignee ? (
+                <div className="flex flex-wrap gap-2">
+                  <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
+                    <UserIcon className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="text-sm text-slate-700 dark:text-slate-300">
+                      {assignee}
+                    </span>
+                    {!isReadOnly && (
+                      <button
+                        onClick={() => setAssignee('')}
+                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
+                      >
+                        <XIcon className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : showAssigneeSelect && (
+                <select
+                  ref={assigneeSelectRef}
+                  value=""
+                  onChange={(e) => {
+                    setAssignee(e.target.value);
+                    setShowAssigneeSelect(false);
+                  }}
+                  onBlur={() => setShowAssigneeSelect(false)}
+                  className="px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl outline-none focus:ring-2 focus:ring-orange-500/50 text-slate-900 dark:text-slate-100 transition-all"
+                >
+                  <option value="">Select...</option>
+                  {boardMembers.map((member) => (
+                    <option key={member.email} value={member.email}>
+                      {member.email}
+                    </option>
+                  ))}
+                </select>
+              )}
+            </div>
 
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />
@@ -284,9 +360,14 @@ export default function CardModal({
             )}
           </div>
           <div className="flex gap-2">
-            <Button type="button" variant="ghost" onClick={onClose} disabled={isSaving}>
+            <button
+              type="button"
+              onClick={onClose}
+              disabled={isSaving}
+              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
+            >
               Close
-            </Button>
+            </button>
             {isCreateMode && (
               <Button type="button" onClick={handleCreate} disabled={isSaving || !title.trim()}>
                 {isSaving ? 'Creating...' : 'Create'}

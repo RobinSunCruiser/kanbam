@@ -4,6 +4,7 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card as CardType } from '@/types/board';
 import { getDeadlineText, isOverdue } from '@/lib/utils/dates';
+import { CheckIcon, UserIcon, ClockIcon } from '../ui/Icons';
 
 interface CardProps {
   card: CardType;
@@ -55,18 +56,14 @@ export default function Card({ card, onClick, isReadOnly }: CardProps) {
                 ? 'bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400'
                 : 'bg-slate-100 dark:bg-slate-700/50 text-slate-500'
             }`}>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-              </svg>
+              <CheckIcon className="w-3 h-3" />
               {checkedItems}/{totalItems}
             </span>
           )}
 
           {card.assignee && (
             <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-slate-100 dark:bg-slate-700/50 text-slate-500" title={card.assignee}>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
+              <UserIcon className="w-3 h-3" />
               {card.assignee.split('@')[0]}
             </span>
           )}
@@ -77,9 +74,7 @@ export default function Card({ card, onClick, isReadOnly }: CardProps) {
                 ? 'bg-red-50 dark:bg-red-900/20 text-red-500'
                 : 'bg-slate-100 dark:bg-slate-700/50 text-slate-500'
             }`}>
-              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
+              <ClockIcon className="w-3 h-3" />
               {getDeadlineText(card.deadline)}
             </span>
           )}
