@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { ActivityNote } from '@/types/board';
 import { nanoid } from 'nanoid';
+import { PlusIcon } from '@/components/ui/Icons';
 
 interface CardActivityProps {
   notes: ActivityNote[];
@@ -43,9 +44,7 @@ export default function CardActivity({ notes, isReadOnly, onChange, currentUserE
             onClick={() => setIsAdding(true)}
             className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
           >
-            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
+            <PlusIcon />
           </button>
         )}
       </div>

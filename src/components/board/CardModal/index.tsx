@@ -7,9 +7,10 @@ import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
 import Button from '@/components/ui/Button';
 import ConfirmDialog from '@/components/ui/ConfirmDialog';
-import { PlusIcon, XIcon, CalendarIcon, UserIcon } from '@/components/ui/Icons';
 import CardChecklist from './CardChecklist';
 import CardLinks from './CardLinks';
+import CardDeadline from './CardDeadline';
+import CardAssignee from './CardAssignee';
 import CardActivity from './CardActivity';
 
 interface CardModalProps {
@@ -58,9 +59,6 @@ export default function CardModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showAssigneeSelect, setShowAssigneeSelect] = useState(false);
-  const deadlineInputRef = useRef<HTMLInputElement>(null);
-  const assigneeSelectRef = useRef<HTMLSelectElement>(null);
   const isInitialMount = useRef(true);
 
   // Initialize from card prop
@@ -235,98 +233,9 @@ export default function CardModal({
 
             <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
 
-            {/* Deadline */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Deadline</h3>
-                {!isReadOnly && !deadline && (
-                  <button
-                    onClick={() => deadlineInputRef.current?.showPicker()}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-                  >
-                    <PlusIcon />
-                  </button>
-                )}
-                <input
-                  ref={deadlineInputRef}
-                  type="date"
-                  className="sr-only"
-                  onChange={(e) => setDeadline(e.target.value ? new Date(e.target.value).toISOString() : '')}
-                />
-              </div>
-              {deadline && (
-                <div className="flex flex-wrap gap-2">
-                  <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
-                    <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">
-                      {new Date(deadline).toLocaleDateString()}
-                    </span>
-                    {!isReadOnly && (
-                      <button
-                        onClick={() => setDeadline('')}
-                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
-                      >
-                        <XIcon className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
+            <CardDeadline deadline={deadline} isReadOnly={isReadOnly} onChange={setDeadline} />
 
-            {/* Assignee */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Assignee</h3>
-                {!isReadOnly && !assignee && (
-                  <button
-                    onClick={() => {
-                      setShowAssigneeSelect(true);
-                      setTimeout(() => assigneeSelectRef.current?.focus(), 0);
-                    }}
-                    className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-                  >
-                    <PlusIcon />
-                  </button>
-                )}
-              </div>
-              {assignee ? (
-                <div className="flex flex-wrap gap-2">
-                  <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
-                    <UserIcon className="w-3.5 h-3.5 text-slate-400" />
-                    <span className="text-sm text-slate-700 dark:text-slate-300">
-                      {assignee}
-                    </span>
-                    {!isReadOnly && (
-                      <button
-                        onClick={() => setAssignee('')}
-                        className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
-                      >
-                        <XIcon className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-                </div>
-              ) : showAssigneeSelect && (
-                <select
-                  ref={assigneeSelectRef}
-                  value=""
-                  onChange={(e) => {
-                    setAssignee(e.target.value);
-                    setShowAssigneeSelect(false);
-                  }}
-                  onBlur={() => setShowAssigneeSelect(false)}
-                  className="px-3.5 py-2.5 text-sm bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-xl outline-none focus:ring-2 focus:ring-orange-500/50 text-slate-900 dark:text-slate-100 transition-all"
-                >
-                  <option value="">Select...</option>
-                  {boardMembers.map((member) => (
-                    <option key={member.email} value={member.email}>
-                      {member.email}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
+            <CardAssignee assignee={assignee} boardMembers={boardMembers} isReadOnly={isReadOnly} onChange={setAssignee} />
 
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />

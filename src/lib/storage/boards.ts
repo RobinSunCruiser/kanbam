@@ -217,8 +217,7 @@ export async function removeBoardMember(
 /** Add new card to specified column */
 export async function addCard(
   boardUid: string,
-  cardData: { title: string; description?: string; columnId: ColumnType },
-  creatorEmail: string
+  cardData: { title: string; description?: string; columnId: ColumnType }
 ): Promise<Card> {
   const board = await loadBoard(boardUid);
   if (!board) {

@@ -1,0 +1,54 @@
+'use client';
+
+import { useRef } from 'react';
+import { PlusIcon, XIcon, CalendarIcon } from '@/components/ui/Icons';
+
+interface CardDeadlineProps {
+  deadline: string;
+  isReadOnly: boolean;
+  onChange: (deadline: string) => void;
+}
+
+export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDeadlineProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Deadline</h3>
+        {!isReadOnly && !deadline && (
+          <button
+            onClick={() => inputRef.current?.showPicker()}
+            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+          >
+            <PlusIcon />
+          </button>
+        )}
+        <input
+          ref={inputRef}
+          type="date"
+          className="sr-only"
+          onChange={(e) => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
+        />
+      </div>
+      {deadline && (
+        <div className="flex flex-wrap gap-2">
+          <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
+            <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+            <span className="text-sm text-slate-700 dark:text-slate-300">
+              {new Date(deadline).toLocaleDateString()}
+            </span>
+            {!isReadOnly && (
+              <button
+                onClick={() => onChange('')}
+                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
+              >
+                <XIcon className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

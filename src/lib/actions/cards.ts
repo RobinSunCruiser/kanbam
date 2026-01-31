@@ -29,15 +29,11 @@ export async function createCardAction(boardUid: string, formData: FormData) {
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
 
-    const card = await addCard(
-      boardUid,
-      {
-        title: validation.data.title.trim(),
-        description: validation.data.description?.trim(),
-        columnId: String(validation.data.columnId) as 'todo' | 'in-progress' | 'done',
-      },
-      user.email
-    );
+    const card = await addCard(boardUid, {
+      title: validation.data.title.trim(),
+      description: validation.data.description?.trim(),
+      columnId: String(validation.data.columnId) as 'todo' | 'in-progress' | 'done',
+    });
 
     revalidatePath(`/board/${boardUid}`);
 
