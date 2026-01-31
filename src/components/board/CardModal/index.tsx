@@ -207,7 +207,6 @@ export default function CardModal({
       <div className="space-y-5">
         {isCreateMode && (
           <Input
-            label="Title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Card title"
