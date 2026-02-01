@@ -416,6 +416,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       <CardModal
         card={selectedCard}
         boardMembers={board.members}
+        boardUid={board.uid}
         isOpen={isModalOpen}
         isReadOnly={isReadOnly}
         currentUserEmail={userEmail}

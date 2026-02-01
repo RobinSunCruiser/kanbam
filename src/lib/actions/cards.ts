@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { createCardSchema, updateCardSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
-import { addCard, updateCard, deleteCard } from '../storage/boards';
+import { addCard, updateCard, deleteCard, loadBoard } from '../storage/boards';
+import { sendCardAssignmentEmail } from '../email/send';
 
 /**
  * Server Action: Create Card
@@ -127,5 +128,33 @@ export async function deleteCardAction(boardUid: string, cardId: string) {
       success: false,
       error: errorMessage,
     };
+  }
+}
+
+/**
+ * Server Action: Send assignment notification email
+ */
+export async function sendAssignmentEmailAction(
+  boardUid: string,
+  cardTitle: string,
+  assigneeEmail: string
+) {
+  try {
+    const user = await requireAuth();
+    const board = await loadBoard(boardUid);
+    if (!board) return { success: false, error: 'Board not found' };
+
+    await sendCardAssignmentEmail(
+      assigneeEmail,
+      user.name,
+      cardTitle,
+      board.title,
+      boardUid
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error('Send assignment email error:', error);
+    return { success: false, error: 'Failed to send email' };
   }
 }

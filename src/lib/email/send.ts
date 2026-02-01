@@ -151,3 +151,25 @@ export async function sendBoardInviteEmail(
     `)
   );
 }
+
+/** Send card assignment notification email */
+export async function sendCardAssignmentEmail(
+  assigneeEmail: string,
+  assignerName: string,
+  cardTitle: string,
+  boardTitle: string,
+  boardUid: string
+) {
+  const boardUrl = `${await getAppUrl()}/board/${boardUid}`;
+  await sendEmail(
+    assigneeEmail,
+    `You've been assigned to "${cardTitle}" on KanBam`,
+    `${assignerName} assigned you to "${cardTitle}" in board "${boardTitle}". View: ${boardUrl}`,
+    emailHtml("You've been assigned!", `
+      <p><strong>${assignerName}</strong> assigned you to a card:</p>
+      <p style="font-size: 18px; color: #1f2937;">"${cardTitle}"</p>
+      <p style="color: #6b7280;">in board "${boardTitle}"</p>
+      ${button(boardUrl, 'View Board')}
+    `)
+  );
+}

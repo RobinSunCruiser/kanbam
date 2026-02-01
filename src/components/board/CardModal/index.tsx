@@ -12,10 +12,12 @@ import CardLinks from './CardLinks';
 import CardDeadline from './CardDeadline';
 import CardAssignee from './CardAssignee';
 import CardActivity from './CardActivity';
+import { sendAssignmentEmailAction } from '@/lib/actions/cards';
 
 interface CardModalProps {
   card: Card | null;
   boardMembers: BoardMember[];
+  boardUid: string;
   isOpen: boolean;
   isReadOnly: boolean;
   currentUserEmail: string;
@@ -37,6 +39,7 @@ interface CardModalProps {
 export default function CardModal({
   card,
   boardMembers,
+  boardUid,
   isOpen,
   isReadOnly,
   currentUserEmail,
@@ -59,6 +62,7 @@ export default function CardModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [originalAssignee, setOriginalAssignee] = useState('');
   const isInitialMount = useRef(true);
 
   // Initialize from card prop
@@ -68,6 +72,7 @@ export default function CardModal({
       setTitle(card.title);
       setDescription(card.description);
       setAssignee(card.assignee || '');
+      setOriginalAssignee(card.assignee || '');
       setDeadline(card.deadline || '');
       setChecklist(card.checklist || []);
       setLinks(card.links || []);
@@ -76,6 +81,7 @@ export default function CardModal({
       setTitle('');
       setDescription('');
       setAssignee('');
+      setOriginalAssignee('');
       setDeadline('');
       setChecklist([]);
       setLinks([]);
@@ -92,6 +98,14 @@ export default function CardModal({
       setIsSaving(false);
       setShowDeleteConfirm(false);
     }
+  }, [isOpen]);
+
+  // Send assignment email when modal closes and assignee changed
+  useEffect(() => {
+    if (!isOpen && assignee && assignee !== originalAssignee) {
+      sendAssignmentEmailAction(boardUid, title, assignee);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   // Auto-save function (silent background save)
