@@ -1,32 +1,24 @@
 /**
- * Email sending - transporter config + send functions
+ * Email sending with Resend
  */
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import { headers } from 'next/headers';
 import { createEmailToken } from './tokens';
 import { User } from '@/types/user';
 import { updateUserField } from '../storage/db';
 
-const FROM_EMAIL = 'noreply@robinnicolay.de';
-const FROM_NAME = 'KanBam';
+/** Lazily initialized Resend client */
+let resend: Resend | null = null;
 
-/** Lazily initialized transporter */
-let transporter: nodemailer.Transporter | null = null;
-
-function getTransporter(): nodemailer.Transporter {
-  if (!transporter) {
-    const { SMTP_HOST, SMTP_USER, SMTP_PASS } = process.env;
-    if (!SMTP_HOST || !SMTP_USER || !SMTP_PASS) {
-      throw new Error('SMTP configuration missing');
+function getResend(): Resend {
+  if (!resend) {
+    const apiKey = process.env.RESEND_API_KEY;
+    if (!apiKey) {
+      throw new Error('RESEND_API_KEY is not configured');
     }
-    transporter = nodemailer.createTransport({
-      host: SMTP_HOST,
-      port: parseInt(process.env.SMTP_PORT || '465', 10),
-      secure: process.env.SMTP_SECURE === 'true',
-      auth: { user: SMTP_USER, pass: SMTP_PASS },
-    });
+    resend = new Resend(apiKey);
   }
-  return transporter;
+  return resend;
 }
 
 async function getAppUrl(): Promise<string> {
@@ -75,13 +67,24 @@ function muted(text: string): string {
 }
 
 async function sendEmail(to: string, subject: string, text: string, html: string) {
-  await getTransporter().sendMail({
-    from: `"${FROM_NAME}" <${FROM_EMAIL}>`,
+  const fromName = process.env.EMAIL_FROM_NAME;
+  const fromEmail = process.env.EMAIL_FROM_ADDRESS;
+
+  if (!fromName || !fromEmail) {
+    throw new Error('EMAIL_FROM_NAME and EMAIL_FROM_ADDRESS must be configured');
+  }
+
+  const { error } = await getResend().emails.send({
+    from: `${fromName} <${fromEmail}>`,
     to,
     subject,
     text,
     html,
   });
+
+  if (error) {
+    throw new Error(`Failed to send email: ${error.message}`);
+  }
 }
 
 /** Check if verification email can be sent (rate limit: 10 min) */

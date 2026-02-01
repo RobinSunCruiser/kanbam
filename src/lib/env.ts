@@ -20,6 +20,17 @@ const envSchema = z.object({
       'JWT_SECRET must be changed from the default value in production'
     ),
 
+  // Email (Resend)
+  RESEND_API_KEY: z
+    .string()
+    .min(1, 'RESEND_API_KEY is required'),
+  EMAIL_FROM_NAME: z
+    .string()
+    .min(1, 'EMAIL_FROM_NAME is required'),
+  EMAIL_FROM_ADDRESS: z
+    .string()
+    .email('EMAIL_FROM_ADDRESS must be a valid email'),
+
   // Environment
   NODE_ENV: z
     .enum(['development', 'production', 'test'])
@@ -35,6 +46,9 @@ function validateEnv() {
     return envSchema.parse({
       DATABASE_URL: process.env.DATABASE_URL,
       JWT_SECRET: process.env.JWT_SECRET,
+      RESEND_API_KEY: process.env.RESEND_API_KEY,
+      EMAIL_FROM_NAME: process.env.EMAIL_FROM_NAME,
+      EMAIL_FROM_ADDRESS: process.env.EMAIL_FROM_ADDRESS,
       NODE_ENV: process.env.NODE_ENV,
     });
   } catch (error) {
