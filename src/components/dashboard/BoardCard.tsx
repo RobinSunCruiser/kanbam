@@ -17,7 +17,7 @@ export default function BoardCard({ board }: BoardCardProps) {
           </h3>
           <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${
             board.privilege === 'write'
-              ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+              ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400'
               : 'bg-slate-100 text-slate-600 dark:bg-slate-700/50 dark:text-slate-400'
           }`}>
             {board.privilege === 'write' ? 'Edit' : 'View'}
