@@ -13,7 +13,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Log in to CanBam
+            Log in to KanBam
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
             Or{' '}

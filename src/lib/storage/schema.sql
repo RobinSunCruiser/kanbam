@@ -1,4 +1,4 @@
--- CanBam Database Schema
+-- KanBam Database Schema
 -- Run this in your Neon console after creating a database
 
 -- Users table

@@ -8,7 +8,7 @@ import { User } from '@/types/user';
 import { updateUserField } from '../storage/db';
 
 const FROM_EMAIL = 'noreply@robinnicolay.de';
-const FROM_NAME = 'CanBam';
+const FROM_NAME = 'KanBam';
 
 /** Lazily initialized transporter */
 let transporter: nodemailer.Transporter | null = null;
@@ -98,9 +98,9 @@ export async function trySendVerificationEmail(user: User): Promise<boolean> {
   const url = `${await getAppUrl()}/verify?token=${await createEmailToken(user.id, 'verify')}`;
   await sendEmail(
     user.email,
-    'Verify your CanBam account',
+    'Verify your KanBam account',
     `Hi ${user.name},\n\nVerify your email: ${url}\n\nExpires in 24 hours.`,
-    emailHtml('Welcome to CanBam!', `
+    emailHtml('Welcome to KanBam!', `
       <p>Hi ${user.name},</p>
       <p>Please verify your email address:</p>
       ${button(url, 'Verify Email')}
@@ -118,7 +118,7 @@ export async function sendPasswordResetEmail(email: string, userId: string, user
   const url = `${await getAppUrl()}/reset-password?token=${await createEmailToken(userId, 'reset')}`;
   await sendEmail(
     email,
-    'Reset your CanBam password',
+    'Reset your KanBam password',
     `Hi ${userName},\n\nReset your password: ${url}\n\nExpires in 1 hour.`,
     emailHtml('Reset your password', `
       <p>Hi ${userName},</p>
@@ -139,7 +139,7 @@ export async function sendBoardInviteEmail(
 ) {
   await sendEmail(
     email,
-    `You've been invited to "${boardTitle}" on CanBam`,
+    `You've been invited to "${boardTitle}" on KanBam`,
     `${inviterName} invited you to "${boardTitle}". View: ${boardUrl}`,
     emailHtml("You've been invited!", `
       <p><strong>${inviterName}</strong> invited you to:</p>

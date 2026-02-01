@@ -1,4 +1,4 @@
-# CanBam
+# KanBam
 
 A clean and modern Kanban board implementation built with Next.js 15, TypeScript, and Tailwind CSS. Perfect for personal task management and team collaboration.
 
@@ -24,7 +24,7 @@ A clean and modern Kanban board implementation built with Next.js 15, TypeScript
 1. Clone the repository:
 ```bash
 git clone <your-repo-url>
-cd canbam
+cd kanbam
 ```
 
 2. Install dependencies:
@@ -52,7 +52,7 @@ npm run dev
 ## 📁 Project Structure
 
 ```
-canbam/
+kanbam/
 ├── src/
 │   ├── app/
 │   │   ├── (auth)/              # Public auth routes (login, signup)

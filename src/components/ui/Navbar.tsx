@@ -53,13 +53,13 @@ export default function Navbar({ user }: NavbarProps) {
             <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5 group">
               <Image
                 src="/favicon.png"
-                alt="CanBam Logo"
+                alt="KanBam Logo"
                 width={36}
                 height={36}
                 className="transition-transform group-hover:scale-110"
               />
               <span className="text-2xl font-bold bg-linear-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-                CanBam
+                KanBam
               </span>
             </Link>
 

@@ -10,7 +10,7 @@ export default function Home() {
         {/* Hero */}
         <div className="text-center">
           <div className="flex justify-center mb-8">
-            <Image src="/favicon.png" alt="CanBam" width={120} height={120} className="drop-shadow-2xl" />
+            <Image src="/favicon.png" alt="KanBam" width={120} height={120} className="drop-shadow-2xl" />
           </div>
           <h1 className="text-5xl sm:text-6xl font-bold mb-6">
             <span className="bg-linear-to-r from-slate-800 to-slate-600 dark:from-slate-100 dark:to-slate-300 bg-clip-text text-transparent">
@@ -18,7 +18,7 @@ export default function Home() {
             </span>
             <br />
             <span className="bg-linear-to-r from-orange-500 to-orange-600 bg-clip-text text-transparent">
-              CanBam
+              KanBam
             </span>
           </h1>
           <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-xl mx-auto leading-relaxed">

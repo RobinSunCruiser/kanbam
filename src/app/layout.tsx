@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CanBam - Kanban Board",
+  title: "KanBam - Kanban Board",
   description: "A clean and modern Kanban board for task management",
 };
 
