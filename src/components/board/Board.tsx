@@ -12,11 +12,18 @@ import {
   useSensors,
   closestCenter,
 } from '@dnd-kit/core';
-import { Board as BoardType, Card as CardType, ColumnType } from '@/types/board';
+import { Board as BoardType, Card as CardType } from '@/types/board';
 import { createCardAction, updateCardAction, deleteCardAction } from '@/lib/actions/cards';
+import {
+  createColumnAction,
+  updateColumnAction,
+  deleteColumnAction,
+  reorderColumnAction,
+} from '@/lib/actions/columns';
 import Column from './Column';
 import CardModal from './CardModal/index';
 import AlertDialog from '../ui/AlertDialog';
+import { PlusIcon } from '../ui/Icons';
 
 interface BoardProps {
   initialBoard: BoardType;
@@ -29,7 +36,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const [board, setBoard] = useState(initialBoard);
   const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [createColumnId, setCreateColumnId] = useState<ColumnType | null>(null);
+  const [createColumnId, setCreateColumnId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
   const [errorAlert, setErrorAlert] = useState<{ title: string; message: string } | null>(null);
 
@@ -50,7 +57,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     setIsModalOpen(true);
   };
 
-  const handleAddCard = (columnId: ColumnType) => {
+  const handleAddCard = (columnId: string) => {
     setSelectedCard(null);
     setCreateColumnId(columnId);
     setIsModalOpen(true);
@@ -65,7 +72,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const handleCreateCard = async (data: {
     title: string;
     description: string;
-    columnId: ColumnType;
+    columnId: string;
   }) => {
     const formData = new FormData();
     formData.append('title', data.title);
@@ -185,7 +192,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const calculateDropTarget = (over: DragEndEvent['over']) => {
     if (!over) return null;
 
-    let targetColumnId: ColumnType;
+    let targetColumnId: string;
     let targetIndex: number;
 
     // Check if dropped over another card
@@ -196,7 +203,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       targetIndex = targetColumn?.cardIds.indexOf(over.id as string) || 0;
     } else {
       // Dropped over a column
-      targetColumnId = over.id as ColumnType;
+      targetColumnId = over.id as string;
       const targetColumn = board.columns.find((c) => c.id === targetColumnId);
       targetIndex = targetColumn?.cardIds.length || 0;
     }
@@ -207,8 +214,8 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   // Helper: Perform optimistic card move update
   const performOptimisticMove = (
     cardId: string,
-    originalColumnId: ColumnType,
-    targetColumnId: ColumnType,
+    originalColumnId: string,
+    targetColumnId: string,
     targetIndex: number
   ) => {
     setBoard((prevBoard) => {
@@ -259,8 +266,8 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   // Helper: Rollback failed drag operation
   const performRollback = (
     cardId: string,
-    originalColumnId: ColumnType,
-    targetColumnId: ColumnType,
+    originalColumnId: string,
+    targetColumnId: string,
     sourceCardIds: string[],
     targetCardIds: string[]
   ) => {
@@ -367,7 +374,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     }
   };
 
-  const getCardsForColumn = (columnId: ColumnType): CardType[] => {
+  const getCardsForColumn = (columnId: string): CardType[] => {
     const column = board.columns.find((c) => c.id === columnId);
     if (!column) return [];
 
@@ -376,23 +383,169 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       .filter(Boolean);
   };
 
+  // Column operation handlers
+  const handleUpdateColumnTitle = async (columnId: string, title: string) => {
+    // Optimistic update
+    setBoard((prevBoard) => ({
+      ...prevBoard,
+      columns: prevBoard.columns.map((col) =>
+        col.id === columnId ? { ...col, title } : col
+      ),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    const formData = new FormData();
+    formData.append('title', title);
+    const result = await updateColumnAction(board.uid, columnId, formData);
+
+    if (result?.error) {
+      router.refresh();
+      setErrorAlert({
+        title: 'Update Failed',
+        message: result.error,
+      });
+    }
+  };
+
+  const handleDeleteColumn = async (columnId: string) => {
+    const columnToDelete = board.columns.find((c) => c.id === columnId);
+    if (!columnToDelete) return;
+
+    // Optimistic update
+    setBoard((prevBoard) => ({
+      ...prevBoard,
+      columns: prevBoard.columns.filter((col) => col.id !== columnId),
+      updatedAt: new Date().toISOString(),
+    }));
+
+    const result = await deleteColumnAction(board.uid, columnId);
+
+    if (result?.error) {
+      router.refresh();
+      setErrorAlert({
+        title: 'Delete Failed',
+        message: result.error,
+      });
+    }
+  };
+
+  const handleAddColumn = async () => {
+    const formData = new FormData();
+    formData.append('title', 'New Column');
+
+    const result = await createColumnAction(board.uid, formData);
+
+    if (result?.error) {
+      setErrorAlert({
+        title: 'Create Failed',
+        message: result.error,
+      });
+    } else if (result?.column) {
+      setBoard((prevBoard) => ({
+        ...prevBoard,
+        columns: [...prevBoard.columns, result.column],
+        updatedAt: new Date().toISOString(),
+      }));
+    }
+  };
+
+  const handleMoveColumnLeft = async (columnId: string) => {
+    const currentIndex = board.columns.findIndex((c) => c.id === columnId);
+    if (currentIndex <= 0) return;
+
+    // Optimistic update
+    setBoard((prevBoard) => {
+      const newColumns = [...prevBoard.columns];
+      const temp = newColumns[currentIndex];
+      newColumns[currentIndex] = newColumns[currentIndex - 1];
+      newColumns[currentIndex - 1] = temp;
+      return {
+        ...prevBoard,
+        columns: newColumns,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    const result = await reorderColumnAction(board.uid, columnId, 'left');
+
+    if (result?.error) {
+      router.refresh();
+      setErrorAlert({
+        title: 'Reorder Failed',
+        message: result.error,
+      });
+    }
+  };
+
+  const handleMoveColumnRight = async (columnId: string) => {
+    const currentIndex = board.columns.findIndex((c) => c.id === columnId);
+    if (currentIndex >= board.columns.length - 1) return;
+
+    // Optimistic update
+    setBoard((prevBoard) => {
+      const newColumns = [...prevBoard.columns];
+      const temp = newColumns[currentIndex];
+      newColumns[currentIndex] = newColumns[currentIndex + 1];
+      newColumns[currentIndex + 1] = temp;
+      return {
+        ...prevBoard,
+        columns: newColumns,
+        updatedAt: new Date().toISOString(),
+      };
+    });
+
+    const result = await reorderColumnAction(board.uid, columnId, 'right');
+
+    if (result?.error) {
+      router.refresh();
+      setErrorAlert({
+        title: 'Reorder Failed',
+        message: result.error,
+      });
+    }
+  };
+
   return (
     <div className="h-full flex flex-col" suppressHydrationWarning>
+      {!isReadOnly && (
+        <div className="flex justify-end mb-4 shrink-0">
+          <button
+            onClick={handleAddColumn}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
+          >
+            <PlusIcon className="w-4 h-4" />
+            Add Column
+          </button>
+        </div>
+      )}
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 flex-1 min-h-0">
-          {board.columns.map((column) => (
+        <div
+          className="grid gap-6 flex-1 min-h-0"
+          style={{
+            gridTemplateColumns: `repeat(${board.columns.length}, minmax(280px, 1fr))`,
+          }}
+        >
+          {board.columns.map((column, index) => (
             <Column
               key={column.id}
               column={column}
               cards={getCardsForColumn(column.id)}
               isReadOnly={isReadOnly}
+              canDelete={board.columns.length > 1}
+              canMoveLeft={index > 0}
+              canMoveRight={index < board.columns.length - 1}
               onCardClick={handleCardClick}
               onAddCard={handleAddCard}
+              onUpdateTitle={handleUpdateColumnTitle}
+              onDelete={handleDeleteColumn}
+              onMoveLeft={handleMoveColumnLeft}
+              onMoveRight={handleMoveColumnRight}
             />
           ))}
         </div>

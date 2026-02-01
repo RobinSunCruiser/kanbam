@@ -33,7 +33,7 @@ export async function createCardAction(boardUid: string, formData: FormData) {
     const card = await addCard(boardUid, {
       title: validation.data.title.trim(),
       description: validation.data.description?.trim(),
-      columnId: String(validation.data.columnId) as 'todo' | 'in-progress' | 'done',
+      columnId: String(validation.data.columnId),
     });
 
     revalidatePath(`/board/${boardUid}`);
@@ -86,7 +86,7 @@ export async function updateCardAction(
 
     const card = await updateCard(boardUid, cardId, {
       ...validation.data,
-      columnId: validation.data.columnId ? String(validation.data.columnId) as 'todo' | 'in-progress' | 'done' : undefined,
+      columnId: validation.data.columnId ? String(validation.data.columnId) : undefined,
     });
 
     revalidatePath(`/board/${boardUid}`);

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isValidColumnId } from '../constants';
+import { isValidColumnId, COLUMN_TITLE_MAX_LENGTH } from '../constants';
 
 /**
  * Authentication validation schemas
@@ -42,6 +42,24 @@ export const createBoardSchema = z.object({
 export const updateBoardSchema = z.object({
   title: z.string().min(1, 'Title is required').max(100, 'Title is too long').optional(),
   description: z.string().max(500, 'Description is too long').optional(),
+});
+
+/**
+ * Column validation schemas
+ */
+
+export const createColumnSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Column title is required')
+    .max(COLUMN_TITLE_MAX_LENGTH, 'Column title is too long'),
+});
+
+export const updateColumnSchema = z.object({
+  title: z
+    .string()
+    .min(1, 'Column title is required')
+    .max(COLUMN_TITLE_MAX_LENGTH, 'Column title is too long'),
 });
 
 /**
@@ -119,6 +137,8 @@ export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type CreateBoardInput = z.infer<typeof createBoardSchema>;
 export type UpdateBoardInput = z.infer<typeof updateBoardSchema>;
+export type CreateColumnInput = z.infer<typeof createColumnSchema>;
+export type UpdateColumnInput = z.infer<typeof updateColumnSchema>;
 export type CreateCardInput = z.infer<typeof createCardSchema>;
 export type UpdateCardInput = z.infer<typeof updateCardSchema>;
 export type AddMemberInput = z.infer<typeof addMemberSchema>;

@@ -1,4 +1,4 @@
-import { Board, Card, ColumnType, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
+import { Board, Card, Column, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
@@ -105,9 +105,9 @@ export async function createBoard(
     updatedAt: now,
     members: [{ email: ownerEmail, privilege: 'write' }],
     columns: [
-      { id: 'todo', title: 'To Do', cardIds: [] },
-      { id: 'in-progress', title: 'In Progress', cardIds: [] },
-      { id: 'done', title: 'Done', cardIds: [] },
+      { id: generateUid(), title: 'To Do', cardIds: [] },
+      { id: generateUid(), title: 'In Progress', cardIds: [] },
+      { id: generateUid(), title: 'Done', cardIds: [] },
     ],
     cards: {},
   };
@@ -217,7 +217,7 @@ export async function removeBoardMember(
 /** Add new card to specified column */
 export async function addCard(
   boardUid: string,
-  cardData: { title: string; description?: string; columnId: ColumnType }
+  cardData: { title: string; description?: string; columnId: string }
 ): Promise<Card> {
   const board = await loadBoard(boardUid);
   if (!board) {
@@ -259,7 +259,7 @@ export async function updateCard(
   updates: {
     title?: string;
     description?: string;
-    columnId?: ColumnType;
+    columnId?: string;
     order?: number;
     assignee?: string;
     checklist?: ChecklistItem[];
@@ -345,4 +345,110 @@ export async function deleteCard(boardUid: string, cardId: string): Promise<void
   board.updatedAt = new Date().toISOString();
 
   await saveBoard(board);
+}
+
+// ============================================================================
+// COLUMN OPERATIONS
+// ============================================================================
+
+/** Add new column to board */
+export async function addColumn(boardUid: string, title: string): Promise<Column> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  const newColumn: Column = {
+    id: generateUid(),
+    title,
+    cardIds: [],
+  };
+
+  board.columns.push(newColumn);
+  board.updatedAt = new Date().toISOString();
+
+  await saveBoard(board);
+  return newColumn;
+}
+
+/** Update column title */
+export async function updateColumn(
+  boardUid: string,
+  columnId: string,
+  title: string
+): Promise<Column> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  const column = board.columns.find(c => c.id === columnId);
+  if (!column) {
+    throw new NotFoundError('Column not found');
+  }
+
+  column.title = title;
+  board.updatedAt = new Date().toISOString();
+
+  await saveBoard(board);
+  return column;
+}
+
+/** Delete column from board (must be empty) */
+export async function deleteColumn(boardUid: string, columnId: string): Promise<void> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  if (board.columns.length <= 1) {
+    throw new ValidationError('Cannot delete the last column');
+  }
+
+  const column = board.columns.find(c => c.id === columnId);
+  if (!column) {
+    throw new NotFoundError('Column not found');
+  }
+
+  if (column.cardIds.length > 0) {
+    throw new ValidationError('Cannot delete column with cards. Move or delete cards first.');
+  }
+
+  board.columns = board.columns.filter(c => c.id !== columnId);
+  board.updatedAt = new Date().toISOString();
+
+  await saveBoard(board);
+}
+
+/** Reorder column (move left or right) */
+export async function reorderColumn(
+  boardUid: string,
+  columnId: string,
+  direction: 'left' | 'right'
+): Promise<Column[]> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  const currentIndex = board.columns.findIndex(c => c.id === columnId);
+  if (currentIndex === -1) {
+    throw new NotFoundError('Column not found');
+  }
+
+  const newIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
+
+  if (newIndex < 0 || newIndex >= board.columns.length) {
+    throw new ValidationError(`Cannot move column ${direction}`);
+  }
+
+  // Swap columns
+  const temp = board.columns[currentIndex];
+  board.columns[currentIndex] = board.columns[newIndex];
+  board.columns[newIndex] = temp;
+
+  board.updatedAt = new Date().toISOString();
+
+  await saveBoard(board);
+  return board.columns;
 }

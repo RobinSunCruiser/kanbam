@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Card, ColumnType, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
+import { Card, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
@@ -32,8 +32,8 @@ interface CardModalProps {
     activity?: ActivityNote[];
   }) => Promise<void>;
   onDelete: (cardId: string) => Promise<void>;
-  onCreate?: (data: { title: string; description: string; columnId: ColumnType }) => Promise<void>;
-  columnId?: ColumnType;
+  onCreate?: (data: { title: string; description: string; columnId: string }) => Promise<void>;
+  columnId?: string;
 }
 
 export default function CardModal({

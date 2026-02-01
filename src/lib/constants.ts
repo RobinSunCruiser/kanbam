@@ -1,26 +1,15 @@
-import { ColumnType } from '@/types/board';
+import { isValidUid } from './utils/uid';
 
 /**
- * Valid column IDs for the Kanban board
- * These are the only allowed values for card placement
+ * Column title constraints
  */
-export const COLUMN_IDS: readonly ColumnType[] = ['todo', 'in-progress', 'done'] as const;
+export const COLUMN_TITLE_MAX_LENGTH = 50;
 
 /**
- * Column display configuration
- * Maps column IDs to their display titles
+ * Check if a value is a valid column ID (UUID format)
  */
-export const COLUMN_CONFIG: Record<ColumnType, { title: string; order: number }> = {
-  'todo': { title: 'To Do', order: 0 },
-  'in-progress': { title: 'In Progress', order: 1 },
-  'done': { title: 'Done', order: 2 },
-};
-
-/**
- * Check if a value is a valid column ID
- */
-export function isValidColumnId(value: unknown): value is ColumnType {
-  return typeof value === 'string' && COLUMN_IDS.includes(value as ColumnType);
+export function isValidColumnId(value: unknown): value is string {
+  return typeof value === 'string' && isValidUid(value);
 }
 
 /**
