@@ -526,27 +526,26 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
         onDragEnd={handleDragEnd}
       >
         <div
-          className="grid gap-6 flex-1 min-h-0"
-          style={{
-            gridTemplateColumns: `repeat(${board.columns.length}, minmax(280px, 1fr))`,
-          }}
+          className="flex flex-col md:flex-row gap-6 flex-1 min-h-0 overflow-x-auto py-2 -mx-4 px-4"
+          style={{ minWidth: '100%' }}
         >
           {board.columns.map((column, index) => (
-            <Column
-              key={column.id}
-              column={column}
-              cards={getCardsForColumn(column.id)}
-              isReadOnly={isReadOnly}
-              canDelete={board.columns.length > 1}
-              canMoveLeft={index > 0}
-              canMoveRight={index < board.columns.length - 1}
-              onCardClick={handleCardClick}
-              onAddCard={handleAddCard}
-              onUpdateTitle={handleUpdateColumnTitle}
-              onDelete={handleDeleteColumn}
-              onMoveLeft={handleMoveColumnLeft}
-              onMoveRight={handleMoveColumnRight}
-            />
+            <div key={column.id} className="shrink-0 md:w-90">
+              <Column
+                column={column}
+                cards={getCardsForColumn(column.id)}
+                isReadOnly={isReadOnly}
+                canDelete={board.columns.length > 1}
+                canMoveLeft={index > 0}
+                canMoveRight={index < board.columns.length - 1}
+                onCardClick={handleCardClick}
+                onAddCard={handleAddCard}
+                onUpdateTitle={handleUpdateColumnTitle}
+                onDelete={handleDeleteColumn}
+                onMoveLeft={handleMoveColumnLeft}
+                onMoveRight={handleMoveColumnRight}
+              />
+            </div>
           ))}
         </div>
 
