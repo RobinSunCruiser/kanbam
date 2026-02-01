@@ -84,18 +84,18 @@ export default function Navbar({ user }: NavbarProps) {
                   {isOpen && (
                     <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50">
                       <button
-                        onClick={handleLogout}
-                        disabled={isPending}
-                        className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
+                        onClick={handleDeleteAccount}
+                        className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
                       >
-                        {isPending ? 'Logging out...' : 'Logout'}
+                        Delete Account
                       </button>
                       <hr className="my-1 border-slate-200 dark:border-slate-700" />
                       <button
-                        onClick={handleDeleteAccount}
-                        className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                        onClick={handleLogout}
+                        disabled={isPending}
+                        className="w-full px-4 py-2 text-left text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50"
                       >
-                        Delete Account
+                        {isPending ? 'Logging out...' : 'Logout'}
                       </button>
                     </div>
                   )}
