@@ -35,11 +35,11 @@ export default function Card({ card, onClick, isReadOnly }: CardProps) {
       {...attributes}
       {...listeners}
       onClick={() => !isDragging && onClick()}
-      className={`group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-3.5 rounded-xl border-l-[3px] border-l-orange-400/60 border-y border-r border-slate-200/50 dark:border-slate-700/50 ${
+      className={`group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-3.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 ${
         isReadOnly ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
-      } hover:bg-white dark:hover:bg-slate-800 hover:shadow-lg hover:shadow-slate-900/5 transition-all duration-200`}
+      } hover:bg-white dark:hover:bg-slate-800 hover:border-orange-300/50 dark:hover:border-orange-500/30 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300`}
     >
-      <h4 className="font-medium text-slate-800 dark:text-slate-100 mb-1 line-clamp-2">
+      <h4 className="font-medium text-slate-800 dark:text-slate-100 mb-1 line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
         {card.title}
       </h4>
       {card.description && (
