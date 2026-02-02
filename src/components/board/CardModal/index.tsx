@@ -100,6 +100,22 @@ export default function CardModal({
     }
   }, [isOpen]);
 
+  // Ensure create mode always starts with empty fields
+  useEffect(() => {
+    if (!isOpen || !isCreateMode) return;
+
+    setTitle('');
+    setDescription('');
+    setAssignee('');
+    setOriginalAssignee('');
+    setDeadline('');
+    setChecklist([]);
+    setLinks([]);
+    setActivity([]);
+    setError('');
+    setIsSaving(false);
+  }, [isOpen, isCreateMode]);
+
   // Send assignment email when modal closes and assignee changed
   useEffect(() => {
     if (!isOpen && assignee && assignee !== originalAssignee) {
