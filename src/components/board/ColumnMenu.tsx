@@ -54,8 +54,10 @@ export default function ColumnMenu({
     <div className="relative" ref={menuRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-all"
-        title="Column options"
+        className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-all"
+        aria-label="Column options"
+        aria-expanded={isOpen}
+        aria-haspopup="menu"
       >
         <MoreVerticalIcon className="w-4 h-4" />
       </button>

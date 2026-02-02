@@ -8,6 +8,7 @@ import {
   DragOverlay,
   DragStartEvent,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   closestCenter,
@@ -42,11 +43,17 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
   const isReadOnly = userPrivilege === 'read';
 
-  // Configure sensors for drag detection
+  // Configure sensors for drag detection (pointer for desktop, touch for mobile)
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8, // 8px movement required to start drag
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 200, // 200ms hold required before drag starts on touch
+        tolerance: 5, // 5px movement allowed during delay
       },
     })
   );
@@ -508,12 +515,12 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   return (
     <div className="h-full flex flex-col" suppressHydrationWarning>
       {!isReadOnly && (
-        <div className="flex justify-end mb-4 shrink-0">
+        <div className="flex justify-end mb-2 shrink-0">
           <button
             onClick={handleAddColumn}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
           >
-            <PlusIcon className="w-4 h-4" />
+            <PlusIcon className="w-3.5 h-3.5" />
             Add Column
           </button>
         </div>

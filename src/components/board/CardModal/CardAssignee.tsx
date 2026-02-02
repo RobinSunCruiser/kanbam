@@ -22,13 +22,14 @@ export default function CardAssignee({ assignee, boardMembers, isReadOnly, onCha
   }, [showSelect]);
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Assignee</h3>
         {!isReadOnly && !assignee && (
           <button
             onClick={() => setShowSelect(true)}
-            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            aria-label="Assign member"
           >
             <PlusIcon />
           </button>
@@ -44,7 +45,8 @@ export default function CardAssignee({ assignee, boardMembers, isReadOnly, onCha
             {!isReadOnly && (
               <button
                 onClick={() => onChange('')}
-                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
+                className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
+                aria-label="Remove assignee"
               >
                 <XIcon className="w-3.5 h-3.5" />
               </button>

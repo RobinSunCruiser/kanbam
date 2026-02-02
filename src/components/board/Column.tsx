@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { memo, useState, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Column as ColumnType, Card as CardType } from '@/types/board';
+import { useInlineEdit } from '@/lib/hooks/useInlineEdit';
 import Card from './Card';
 import { PlusIcon } from '../ui/Icons';
 import ColumnMenu from './ColumnMenu';
@@ -24,7 +25,12 @@ interface ColumnProps {
   onMoveRight: (columnId: string) => Promise<void>;
 }
 
-export default function Column({
+/**
+ * Kanban column with draggable card container and editable title.
+ *
+ * Memoized to prevent unnecessary re-renders when other columns change.
+ */
+const Column = memo(function Column({
   column,
   cards,
   isReadOnly,
@@ -39,51 +45,20 @@ export default function Column({
   onMoveRight,
 }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
-
-  const [isEditing, setIsEditing] = useState(false);
-  const [editTitle, setEditTitle] = useState(column.title);
   const [isDeleting, setIsDeleting] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
 
-  useEffect(() => {
-    if (isEditing && inputRef.current) {
-      inputRef.current.focus();
-      inputRef.current.select();
-    }
-  }, [isEditing]);
+  // Inline edit for column title
+  const titleEdit = useInlineEdit<HTMLInputElement>({
+    initialValue: column.title,
+    onSave: (newTitle) => onUpdateTitle(column.id, newTitle),
+    disabled: isReadOnly,
+    validate: (value) => value.length > 0 && value.length <= 50,
+  });
 
-  const handleTitleClick = () => {
-    if (!isReadOnly) {
-      setIsEditing(true);
-      setEditTitle(column.title);
-    }
-  };
-
-  const handleTitleSave = async () => {
-    const trimmed = editTitle.trim();
-    if (trimmed && trimmed !== column.title) {
-      await onUpdateTitle(column.id, trimmed);
-    }
-    setIsEditing(false);
-  };
-
-  const handleTitleCancel = () => {
-    setEditTitle(column.title);
-    setIsEditing(false);
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      handleTitleSave();
-    } else if (e.key === 'Escape') {
-      handleTitleCancel();
-    }
-  };
-
-  const handleDeleteConfirm = async () => {
+  const handleDeleteConfirm = useCallback(async () => {
     await onDelete(column.id);
     setIsDeleting(false);
-  };
+  }, [column.id, onDelete]);
 
   return (
     <div
@@ -94,26 +69,27 @@ export default function Column({
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {isEditing ? (
+          {titleEdit.isEditing ? (
             <input
-              ref={inputRef}
+              ref={titleEdit.inputRef}
               type="text"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              onKeyDown={handleKeyDown}
-              onBlur={handleTitleSave}
+              value={titleEdit.value}
+              onChange={(e) => titleEdit.setValue(e.target.value)}
+              onKeyDown={titleEdit.handleKeyDown}
+              onBlur={titleEdit.handleBlur}
               className="flex-1 px-2 py-1 text-sm font-semibold bg-white dark:bg-slate-700 rounded-lg border border-orange-500 focus:outline-none min-w-0"
               maxLength={50}
+              aria-label="Column title"
             />
           ) : (
             <h3
-              onClick={handleTitleClick}
+              onClick={titleEdit.startEditing}
               className={`font-semibold text-slate-700 dark:text-slate-200 truncate ${
                 !isReadOnly ? 'cursor-pointer hover:text-orange-500' : ''
               }`}
               title={isReadOnly ? column.title : 'Click to edit'}
             >
-              {column.title}
+              {titleEdit.value}
             </h3>
           )}
           <span className="text-xs text-slate-400 bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded-full flex-shrink-0">
@@ -125,8 +101,8 @@ export default function Column({
           <div className="flex items-center gap-1">
             <button
               onClick={() => onAddCard(column.id)}
-              className="w-7 h-7 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-              title="Add card"
+              className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+              aria-label={`Add card to ${column.title}`}
             >
               <PlusIcon className="w-5 h-5" />
             </button>
@@ -172,4 +148,6 @@ export default function Column({
       />
     </div>
   );
-}
+});
+
+export default Column;

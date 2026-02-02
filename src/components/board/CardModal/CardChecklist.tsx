@@ -39,7 +39,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
   const checkedCount = items.filter(item => item.checked).length;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Checklist</h3>
@@ -52,7 +52,8 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
         {!isReadOnly && !isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            aria-label="Add checklist item"
           >
             <PlusIcon />
           </button>
@@ -86,7 +87,8 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
               {!isReadOnly && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onChange(items.filter(i => i.id !== item.id)); }}
-                  className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
+                  className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
+                  aria-label={`Remove "${item.text}"`}
                 >
                   <XIcon className="w-3.5 h-3.5" />
                 </button>

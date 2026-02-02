@@ -1,5 +1,6 @@
 'use client';
 
+import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card as CardType } from '@/types/board';
@@ -12,7 +13,13 @@ interface CardProps {
   isReadOnly: boolean;
 }
 
-export default function Card({ card, onClick, isReadOnly }: CardProps) {
+/**
+ * Draggable card component for the Kanban board.
+ *
+ * Memoized to prevent unnecessary re-renders when parent board state changes
+ * but this specific card's data remains the same.
+ */
+const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     disabled: isReadOnly,
@@ -82,4 +89,6 @@ export default function Card({ card, onClick, isReadOnly }: CardProps) {
       )}
     </div>
   );
-}
+});
+
+export default Card;

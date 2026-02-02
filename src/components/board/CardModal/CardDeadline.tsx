@@ -11,18 +11,18 @@ export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDea
   const dateValue = deadline ? new Date(deadline).toISOString().slice(0, 10) : '';
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-1">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Deadline</h3>
         {!isReadOnly && !deadline && (
-          <label className="relative w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all">
+          <label className="relative w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all cursor-pointer">
             <PlusIcon className="w-4 h-4" />
             <input
               type="date"
               value={dateValue}
-              className="absolute inset-0 opacity-0"
+              className="absolute inset-0 opacity-0 cursor-pointer"
               onChange={(e) => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
-              aria-label="Add deadline"
+              aria-label="Set deadline date"
             />
           </label>
         )}
@@ -37,7 +37,8 @@ export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDea
             {!isReadOnly && (
               <button
                 onClick={() => onChange('')}
-                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-500 transition-all ml-1"
+                className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
+                aria-label="Remove deadline"
               >
                 <XIcon className="w-3.5 h-3.5" />
               </button>

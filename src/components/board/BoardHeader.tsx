@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState, useTransition } from 'react';
+import { useState, useTransition, useCallback } from 'react';
 import { updateBoardAction } from '@/lib/actions/boards';
+import { useInlineEdit } from '@/lib/hooks/useInlineEdit';
 
 interface BoardHeaderProps {
   boardUid: string;
@@ -10,213 +11,124 @@ interface BoardHeaderProps {
   isReadOnly: boolean;
 }
 
+/**
+ * Editable board header with title and description.
+ *
+ * Click to edit when not in read-only mode. Changes are saved automatically
+ * on blur or Enter key. Escape cancels the edit.
+ */
 export default function BoardHeader({
   boardUid,
   title,
   description,
   isReadOnly,
 }: BoardHeaderProps) {
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [titleValue, setTitleValue] = useState(title);
-  const [descriptionValue, setDescriptionValue] = useState(description ?? '');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
-  const titleInputRef = useRef<HTMLInputElement>(null);
-  const descriptionRef = useRef<HTMLTextAreaElement>(null);
-  const refs = useRef({
-    skipBlurSave: false,
-    persisted: { title, description: description ?? '' },
-    snapshot: { title, description: description ?? '' },
+
+  // Persist updates to the server
+  const saveToServer = useCallback(
+    (updates: { title?: string; description?: string }) => {
+      startTransition(async () => {
+        setError('');
+        const formData = new FormData();
+        if (updates.title !== undefined) formData.append('title', updates.title);
+        if (updates.description !== undefined) formData.append('description', updates.description);
+
+        const result = await updateBoardAction(boardUid, formData);
+        if (result?.error) {
+          setError(result.error);
+        }
+      });
+    },
+    [boardUid]
+  );
+
+  // Title inline edit
+  const titleEdit = useInlineEdit<HTMLInputElement>({
+    initialValue: title,
+    onSave: (newTitle) => saveToServer({ title: newTitle }),
+    disabled: isReadOnly || isPending,
+    validate: (value) => value.length > 0,
   });
 
-  useEffect(() => {
-    setTitleValue(title);
-    setDescriptionValue(description ?? '');
-    refs.current.persisted = { title, description: description ?? '' };
-  }, [title, description]);
+  // Description inline edit
+  const descriptionEdit = useInlineEdit<HTMLInputElement>({
+    initialValue: description ?? '',
+    onSave: (newDescription) => saveToServer({ description: newDescription }),
+    disabled: isReadOnly || isPending,
+  });
 
-  useEffect(() => {
-    if (isEditingTitle) {
-      titleInputRef.current?.focus();
-      titleInputRef.current?.select();
-      return;
-    }
-    if (isEditingDescription) {
-      descriptionRef.current?.focus();
-      descriptionRef.current?.select();
-    }
-  }, [isEditingTitle, isEditingDescription]);
-
-  const saveUpdates = (updates: { title?: string; description?: string }) => {
-    if (isReadOnly) return;
-
-    startTransition(async () => {
-      setError('');
-      const formData = new FormData();
-      if (updates.title !== undefined) {
-        formData.append('title', updates.title);
-      }
-      if (updates.description !== undefined) {
-        formData.append('description', updates.description);
-      }
-
-      const result = await updateBoardAction(boardUid, formData);
-
-      if (result?.error) {
-        setError(result.error);
-        setTitleValue(refs.current.persisted.title);
-        setDescriptionValue(refs.current.persisted.description);
-        return;
-      }
-
-      if (updates.title !== undefined) {
-        refs.current.persisted.title = updates.title;
-      }
-      if (updates.description !== undefined) {
-        refs.current.persisted.description = updates.description;
-      }
-    });
-  };
-
-  const handleTitleSave = () => {
-    if (refs.current.skipBlurSave) {
-      refs.current.skipBlurSave = false;
-      setIsEditingTitle(false);
-      return;
-    }
-
-    const trimmed = titleValue.trim();
-    setIsEditingTitle(false);
-
-    if (!trimmed) {
-      setTitleValue(refs.current.persisted.title);
-      return;
-    }
-
-    if (trimmed === refs.current.persisted.title) {
-      setTitleValue(trimmed);
-      return;
-    }
-
-    setTitleValue(trimmed);
-    saveUpdates({ title: trimmed });
-  };
-
-  const handleDescriptionSave = () => {
-    if (refs.current.skipBlurSave) {
-      refs.current.skipBlurSave = false;
-      return;
-    }
-
-    setIsEditingDescription(false);
-    const nextValue = descriptionValue.trim();
-
-    if (nextValue === refs.current.persisted.description) {
-      setDescriptionValue(nextValue);
-      return;
-    }
-
-    setDescriptionValue(nextValue);
-    saveUpdates({ description: nextValue });
-  };
-
-  const handleTitleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === 'Enter') {
-      event.preventDefault();
-      handleTitleSave();
-    } else if (event.key === 'Escape') {
-      refs.current.skipBlurSave = true;
-      setTitleValue(refs.current.snapshot.title);
-      setIsEditingTitle(false);
-    }
-  };
-
-  const handleDescriptionKeyDown = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      refs.current.skipBlurSave = true;
-      setDescriptionValue(refs.current.snapshot.description);
-      setIsEditingDescription(false);
+  // Handle keyboard activation for non-editable elements
+  const handleActivationKeyDown = (
+    e: React.KeyboardEvent,
+    startEditing: () => void
+  ) => {
+    if (!isReadOnly && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      startEditing();
     }
   };
 
   return (
     <div className="min-w-0">
-      {isEditingTitle ? (
-        <input
-          ref={titleInputRef}
-          value={titleValue}
-          onChange={(event) => setTitleValue(event.target.value)}
-          onBlur={handleTitleSave}
-          onKeyDown={handleTitleKeyDown}
-          disabled={isReadOnly || isPending}
-          className="w-full text-3xl font-bold bg-transparent text-gray-900 dark:text-gray-100 placeholder:text-slate-400 border-2 border-transparent rounded-lg px-2 py-1 -mx-2 -my-1 outline-none focus:border-orange-400 focus:bg-orange-50/50 dark:focus:bg-orange-900/10 transition-colors"
-          placeholder="Board title"
-        />
-      ) : (
-        <h1
-          onClick={() => {
-            if (isReadOnly) return;
-            refs.current.snapshot = { ...refs.current.snapshot, title: titleValue };
-            setIsEditingTitle(true);
-          }}
-          onKeyDown={(event) => {
-            if (!isReadOnly && (event.key === 'Enter' || event.key === ' ')) {
-              event.preventDefault();
-              refs.current.snapshot = { ...refs.current.snapshot, title: titleValue };
-              setIsEditingTitle(true);
-            }
-          }}
-          tabIndex={isReadOnly ? -1 : 0}
-          className={`text-3xl font-bold text-gray-900 dark:text-gray-100 ${
-            isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
-          }`}
-          title={isReadOnly ? title : 'Click to edit'}
-        >
-          {titleValue}
-        </h1>
-      )}
+      <div className="flex items-baseline gap-3 flex-wrap">
+        {/* Title */}
+        {titleEdit.isEditing ? (
+          <input
+            ref={titleEdit.inputRef}
+            value={titleEdit.value}
+            onChange={(e) => titleEdit.setValue(e.target.value)}
+            onBlur={titleEdit.handleBlur}
+            onKeyDown={titleEdit.handleKeyDown}
+            disabled={isReadOnly || isPending}
+            className="text-xl font-semibold bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border-b-2 border-orange-400 outline-none"
+            placeholder="Board title"
+            aria-label="Board title"
+          />
+        ) : (
+          <h1
+            onClick={titleEdit.startEditing}
+            onKeyDown={(e) => handleActivationKeyDown(e, titleEdit.startEditing)}
+            tabIndex={isReadOnly ? -1 : 0}
+            className={`text-xl font-semibold text-slate-900 dark:text-slate-100 ${
+              isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
+            }`}
+            title={isReadOnly ? title : 'Click to edit'}
+          >
+            {titleEdit.value}
+          </h1>
+        )}
 
-      {isEditingDescription ? (
-        <textarea
-          ref={descriptionRef}
-          value={descriptionValue}
-          onChange={(event) => setDescriptionValue(event.target.value)}
-          onBlur={handleDescriptionSave}
-          onKeyDown={handleDescriptionKeyDown}
-          disabled={isReadOnly || isPending}
-          rows={2}
-          className="mt-2 w-full text-gray-600 dark:text-gray-400 bg-transparent border-2 border-transparent rounded-lg px-2 py-1 -mx-2 outline-none focus:border-orange-400 focus:bg-orange-50/50 dark:focus:bg-orange-900/10 transition-colors resize-none"
-          placeholder="Add a description..."
-        />
-      ) : (
-        <p
-          onClick={() => {
-            if (isReadOnly) return;
-            refs.current.snapshot = { ...refs.current.snapshot, description: descriptionValue };
-            setIsEditingDescription(true);
-          }}
-          onKeyDown={(event) => {
-            if (!isReadOnly && (event.key === 'Enter' || event.key === ' ')) {
-              event.preventDefault();
-              refs.current.snapshot = { ...refs.current.snapshot, description: descriptionValue };
-              setIsEditingDescription(true);
-            }
-          }}
-          tabIndex={isReadOnly ? -1 : 0}
-          className={`mt-1 text-gray-600 dark:text-gray-400 ${
-            isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
-          }`}
-          title={isReadOnly ? (descriptionValue || '') : 'Click to edit'}
-        >
-          {descriptionValue || (!isReadOnly ? 'Add a description...' : '')}
-        </p>
-      )}
+        {/* Description - inline */}
+        {descriptionEdit.isEditing ? (
+          <input
+            ref={descriptionEdit.inputRef}
+            value={descriptionEdit.value}
+            onChange={(e) => descriptionEdit.setValue(e.target.value)}
+            onBlur={descriptionEdit.handleBlur}
+            onKeyDown={descriptionEdit.handleKeyDown}
+            disabled={isReadOnly || isPending}
+            className="flex-1 min-w-32 text-sm text-slate-500 dark:text-slate-400 bg-transparent border-b border-orange-400 outline-none"
+            placeholder="Add a description..."
+            aria-label="Board description"
+          />
+        ) : (
+          <p
+            onClick={descriptionEdit.startEditing}
+            onKeyDown={(e) => handleActivationKeyDown(e, descriptionEdit.startEditing)}
+            tabIndex={isReadOnly ? -1 : 0}
+            className={`text-sm text-slate-500 dark:text-slate-400 ${
+              isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
+            }`}
+            title={isReadOnly ? (descriptionEdit.value || '') : 'Click to edit'}
+          >
+            {descriptionEdit.value || (!isReadOnly ? 'Add description...' : '')}
+          </p>
+        )}
+      </div>
 
-      {error && (
-        <p className="mt-2 text-sm text-red-500">{error}</p>
-      )}
+      {error && <p className="mt-1 text-xs text-red-500">{error}</p>}
     </div>
   );
 }

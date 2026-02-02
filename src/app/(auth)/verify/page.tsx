@@ -10,17 +10,17 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
             Invalid Link
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             This verification link is invalid or has expired.
           </p>
           <Link
             href="/login"
-            className="text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            className="text-orange-600 hover:text-orange-500 dark:text-orange-400"
           >
             Go to login
           </Link>
@@ -32,7 +32,7 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
   const result = await verifyEmailAction(token);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4">
       <div className="max-w-md w-full text-center">
         {result.success ? (
           <>
@@ -51,15 +51,15 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
               Email Verified!
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">
+            <p className="text-slate-600 dark:text-slate-400 mb-6">
               Your email has been verified. You can now log in to your account.
             </p>
             <Link
               href="/login"
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="inline-block bg-orange-500 text-white px-6 py-2 rounded-xl hover:bg-orange-600 transition-colors"
             >
               Log in
             </Link>
@@ -81,13 +81,13 @@ export default async function VerifyPage({ searchParams }: VerifyPageProps) {
                 />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+            <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
               Verification Failed
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{result.error}</p>
+            <p className="text-slate-600 dark:text-slate-400 mb-6">{result.error}</p>
             <Link
               href="/login"
-              className="text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              className="text-orange-600 hover:text-orange-500 dark:text-orange-400"
             >
               Go to login
             </Link>

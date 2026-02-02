@@ -26,9 +26,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] px-4 sm:px-6 lg:px-8 py-6 flex flex-col overflow-auto max-w-7xl mx-auto">
-      <div className="mb-6 shrink-0 flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
+    <div className="h-[calc(100vh-4rem)] px-4 sm:px-6 lg:px-8 py-4 flex flex-col overflow-auto max-w-7xl mx-auto">
+      <div className="mb-3 shrink-0 flex items-center justify-between gap-4">
+        <div className="flex-1 min-w-0 flex items-center gap-4 flex-wrap">
           <BoardHeader
             boardUid={board.uid}
             title={board.title}
@@ -36,9 +36,9 @@ export default async function BoardPage({ params }: BoardPageProps) {
             isReadOnly={privilege === 'read'}
           />
           {privilege === 'read' && (
-            <p className="text-sm text-blue-600 dark:text-blue-400 mt-2">
-              You have read-only access to this board
-            </p>
+            <span className="text-xs text-orange-600 dark:text-orange-400 px-2 py-0.5 bg-orange-50 dark:bg-orange-900/20 rounded-full">
+              Read-only
+            </span>
           )}
         </div>
 

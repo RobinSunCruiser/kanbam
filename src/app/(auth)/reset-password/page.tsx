@@ -10,17 +10,17 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4">
         <div className="max-w-md w-full text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">
+          <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
             Invalid Link
           </h2>
-          <p className="text-gray-600 dark:text-gray-400 mb-6">
+          <p className="text-slate-600 dark:text-slate-400 mb-6">
             This password reset link is invalid or has expired.
           </p>
           <Link
             href="/forgot-password"
-            className="text-blue-600 hover:text-blue-500 dark:text-blue-400"
+            className="text-orange-600 hover:text-orange-500 dark:text-orange-400"
           >
             Request a new link
           </Link>
@@ -30,18 +30,18 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">
             Set new password
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
             Enter your new password below.
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow rounded-lg">
+        <div className="bg-white dark:bg-slate-800 py-8 px-6 shadow rounded-xl">
           <ResetPasswordForm token={token} />
         </div>
       </div>

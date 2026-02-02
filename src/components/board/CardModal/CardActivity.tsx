@@ -42,7 +42,8 @@ export default function CardActivity({ notes, isReadOnly, onChange, currentUserE
         {!isReadOnly && !isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            aria-label="Add activity note"
           >
             <PlusIcon />
           </button>

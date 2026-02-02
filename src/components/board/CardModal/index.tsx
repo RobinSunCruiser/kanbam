@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Card, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
@@ -36,6 +36,14 @@ interface CardModalProps {
   columnId?: string;
 }
 
+/**
+ * Modal for viewing/editing card details or creating new cards.
+ *
+ * Features:
+ * - Auto-saves changes (debounced for text, immediate for other fields)
+ * - Sends email notification when assignee changes
+ * - Supports read-only mode for users with view-only access
+ */
 export default function CardModal({
   card,
   boardMembers,
@@ -51,7 +59,7 @@ export default function CardModal({
 }: CardModalProps) {
   const isCreateMode = !card && onCreate && columnId;
 
-  // All fields managed in local state
+  // Form state
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [assignee, setAssignee] = useState('');
@@ -62,111 +70,115 @@ export default function CardModal({
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [originalAssignee, setOriginalAssignee] = useState('');
-  const isInitialMount = useRef(true);
 
-  // Initialize from card prop
+  // Refs for tracking values without triggering re-renders
+  const isInitialMount = useRef(true);
+  const assigneeOnOpen = useRef('');
+  const pendingEmailRef = useRef<{ boardUid: string; title: string; assignee: string } | null>(null);
+  const cardIdRef = useRef<string | null>(null);
+  const onUpdateRef = useRef(onUpdate);
+
+  // Keep refs in sync without causing re-renders
+  cardIdRef.current = card?.id ?? null;
+  onUpdateRef.current = onUpdate;
+
+  // Ref to hold latest state for save function (avoids stale closures)
+  const stateRef = useRef({ title, description, assignee, deadline, checklist, links, activity });
+  stateRef.current = { title, description, assignee, deadline, checklist, links, activity };
+
+  // Initialize form when card changes or modal opens
   useEffect(() => {
-    isInitialMount.current = true; // Reset on card change
+    if (!isOpen) return;
+
+    isInitialMount.current = true;
+    setError('');
+    setIsSaving(false);
+
     if (card) {
       setTitle(card.title);
       setDescription(card.description);
       setAssignee(card.assignee || '');
-      setOriginalAssignee(card.assignee || '');
+      assigneeOnOpen.current = card.assignee || '';
       setDeadline(card.deadline || '');
       setChecklist(card.checklist || []);
       setLinks(card.links || []);
       setActivity(card.activity || []);
     } else {
+      // Create mode or no card - reset to empty
       setTitle('');
       setDescription('');
       setAssignee('');
-      setOriginalAssignee('');
+      assigneeOnOpen.current = '';
       setDeadline('');
       setChecklist([]);
       setLinks([]);
       setActivity([]);
     }
-    setError('');
-    setIsSaving(false);
-  }, [card]);
+  }, [isOpen, card?.id]);
 
-  // Reset states when modal opens/closes
+  // Cleanup when modal closes
   useEffect(() => {
-    if (!isOpen) {
-      setError('');
-      setIsSaving(false);
-      setShowDeleteConfirm(false);
+    if (isOpen) return;
+
+    setShowDeleteConfirm(false);
+
+    // Send assignment email if assignee changed during this session
+    if (pendingEmailRef.current) {
+      const { boardUid: uid, title: cardTitle, assignee: newAssignee } = pendingEmailRef.current;
+      sendAssignmentEmailAction(uid, cardTitle, newAssignee);
+      pendingEmailRef.current = null;
     }
   }, [isOpen]);
 
-  // Ensure create mode always starts with empty fields
+  // Track assignee changes for email notification
   useEffect(() => {
-    if (!isOpen || !isCreateMode) return;
-
-    setTitle('');
-    setDescription('');
-    setAssignee('');
-    setOriginalAssignee('');
-    setDeadline('');
-    setChecklist([]);
-    setLinks([]);
-    setActivity([]);
-    setError('');
-    setIsSaving(false);
-  }, [isOpen, isCreateMode]);
-
-  // Send assignment email when modal closes and assignee changed
-  useEffect(() => {
-    if (!isOpen && assignee && assignee !== originalAssignee) {
-      sendAssignmentEmailAction(boardUid, title, assignee);
+    if (assignee && assignee !== assigneeOnOpen.current) {
+      pendingEmailRef.current = { boardUid, title, assignee };
+    } else {
+      pendingEmailRef.current = null;
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isOpen]);
+  }, [assignee, boardUid, title]);
 
-  // Auto-save function (silent background save)
-  const saveCard = async () => {
-    if (!card || !title.trim() || isReadOnly) return;
+  // Auto-save function - uses refs to avoid stale closures and prevent re-creation loops
+  const saveCard = useCallback(async () => {
+    const state = stateRef.current;
+    const cardId = cardIdRef.current;
+    if (!cardId || !state.title.trim() || isReadOnly) return;
 
     try {
-      await onUpdate(card.id, {
-        title: title.trim(),
-        description: description.trim(),
-        assignee: assignee || undefined,
-        deadline: deadline || null,
-        checklist,
-        links,
-        activity,
+      await onUpdateRef.current(cardId, {
+        title: state.title.trim(),
+        description: state.description.trim(),
+        assignee: state.assignee || undefined,
+        deadline: state.deadline || null,
+        checklist: state.checklist,
+        links: state.links,
+        activity: state.activity,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
       setError(errorMessage);
     }
-  };
+  }, [isReadOnly]);
 
   // Debounced auto-save for text fields (title, description)
   useEffect(() => {
-    if (!card || isCreateMode || isReadOnly || !title.trim()) return;
+    if (!card?.id || isCreateMode || isReadOnly || !title.trim()) return;
 
-    const timeout = setTimeout(() => {
-      saveCard();
-    }, 1000);
-
+    const timeout = setTimeout(saveCard, 1000);
     return () => clearTimeout(timeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [title, description]);
+  }, [card?.id, isCreateMode, isReadOnly, title, description, saveCard]);
 
-  // Immediate save for non-text fields (assignee, deadline, checklist, links, activity)
+  // Immediate save for non-text fields
   useEffect(() => {
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
     }
-    if (!card || isCreateMode || isReadOnly || !title.trim()) return;
+    if (!cardIdRef.current || isCreateMode || isReadOnly || !stateRef.current.title.trim()) return;
 
     saveCard();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [assignee, deadline, checklist, links, activity]);
+  }, [assignee, deadline, checklist, links, activity, isCreateMode, isReadOnly, saveCard]);
 
   // Handle create mode submission
   const handleCreate = async () => {
@@ -241,7 +253,6 @@ export default function CardModal({
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Card title"
             required
-            autoFocus
           />
         )}
 
@@ -258,13 +269,12 @@ export default function CardModal({
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />
 
-            <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
-
-            <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
-
-            <CardDeadline deadline={deadline} isReadOnly={isReadOnly} onChange={setDeadline} />
-
-            <CardAssignee assignee={assignee} boardMembers={boardMembers} isReadOnly={isReadOnly} onChange={setAssignee} />
+            <div className="space-y-1">
+              <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
+              <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
+              <CardDeadline deadline={deadline} isReadOnly={isReadOnly} onChange={setDeadline} />
+              <CardAssignee assignee={assignee} boardMembers={boardMembers} isReadOnly={isReadOnly} onChange={setAssignee} />
+            </div>
 
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />

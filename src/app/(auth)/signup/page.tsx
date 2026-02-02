@@ -3,24 +3,24 @@ import SignupForm from '@/components/auth/SignupForm';
 
 export default function SignupPage() {
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
         <div>
-          <h2 className="text-center text-3xl font-bold text-gray-900 dark:text-gray-100">
+          <h2 className="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">
             Create your account
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+          <p className="mt-2 text-center text-sm text-slate-600 dark:text-slate-400">
             Or{' '}
             <Link
               href="/login"
-              className="font-medium text-blue-600 hover:text-blue-500 dark:text-blue-400"
+              className="font-medium text-orange-600 hover:text-orange-500 dark:text-orange-400"
             >
               log in to existing account
             </Link>
           </p>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 py-8 px-6 shadow rounded-lg">
+        <div className="bg-white dark:bg-slate-800 py-8 px-6 shadow rounded-xl">
           <SignupForm />
         </div>
       </div>
