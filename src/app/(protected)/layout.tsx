@@ -24,9 +24,11 @@ export default async function ProtectedLayout({
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+    <div className="min-h-screen relative">
       <Navbar user={user} />
-      {children}
+      <main className="relative">
+        {children}
+      </main>
     </div>
   );
 }

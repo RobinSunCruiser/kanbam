@@ -42,9 +42,9 @@ const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
       {...attributes}
       {...listeners}
       onClick={() => !isDragging && onClick()}
-      className={`group bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-3.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50 ${
+      className={`group glass-light p-3.5 rounded-xl border border-white/10 dark:border-slate-700/30 ${
         isReadOnly ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
-      } hover:bg-white dark:hover:bg-slate-800 hover:border-orange-300/50 dark:hover:border-orange-500/30 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300`}
+      } hover:bg-white dark:hover:bg-slate-800 hover:border-orange-300/50 dark:hover:border-orange-500/30 transition-all duration-300 hover:shadow-[0_0_20px_rgba(249,115,22,0.094)]`}
     >
       <h4 className="font-medium text-slate-800 dark:text-slate-100 mb-1 line-clamp-2 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
         {card.title}
@@ -56,7 +56,7 @@ const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
       )}
 
       {hasMetadata && (
-        <div className="flex flex-wrap items-center gap-2 mt-2.5 pt-2.5 border-t border-slate-100 dark:border-slate-700/50">
+        <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100/50 dark:border-slate-700/30">
           {totalItems > 0 && (
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
               checkedItems === totalItems

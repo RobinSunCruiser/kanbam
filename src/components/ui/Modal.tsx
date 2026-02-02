@@ -54,7 +54,7 @@ export default function Modal({ isOpen, onClose, title, header, children }: Moda
 
   return (
     <div
-      className="fixed inset-0 z-50 overflow-y-auto"
+      className="fixed inset-0 z-100 overflow-y-auto"
       role="dialog"
       aria-modal="true"
       aria-labelledby={title ? titleId : undefined}
@@ -62,7 +62,7 @@ export default function Modal({ isOpen, onClose, title, header, children }: Moda
       <div className="flex min-h-full items-center justify-center p-4">
         {/* Backdrop */}
         <div
-          className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity"
+          className="fixed inset-0 bg-slate-900/40 dark:bg-black/60 backdrop-blur-md transition-opacity"
           onClick={onClose}
           aria-hidden="true"
         />
@@ -70,7 +70,7 @@ export default function Modal({ isOpen, onClose, title, header, children }: Moda
         {/* Modal */}
         <div
           ref={modalRef}
-          className="relative bg-white/95 dark:bg-slate-800/95 backdrop-blur-md rounded-2xl shadow-2xl shadow-slate-900/20 max-w-md w-full p-6 border border-slate-200/50 dark:border-slate-700/50"
+          className="relative glass-heavy glass-glow rounded-2xl max-w-md w-full p-6 border border-white/20 dark:border-slate-700/50 shadow-2xl shadow-slate-900/20 dark:shadow-black/40"
         >
           {(header || title) && (
             <div className="mb-5 pb-4 border-b border-slate-200 dark:border-slate-700">

@@ -263,8 +263,11 @@ export default function CardModal({
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Add a description..."
-          rows={3}
+          rows={1}
           disabled={isReadOnly}
+          variant="seamless"
+          autoResize
+          maxRows={10}
         />
 
         {!isCreateMode && (

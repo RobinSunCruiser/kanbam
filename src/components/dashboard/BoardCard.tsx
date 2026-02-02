@@ -10,7 +10,7 @@ interface BoardCardProps {
 export default function BoardCard({ board }: BoardCardProps) {
   return (
     <Link href={`/board/${board.uid}`}>
-      <div className="group bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm rounded-2xl p-5 cursor-pointer border border-slate-200/50 dark:border-slate-700/50 hover:border-orange-300/50 dark:hover:border-orange-500/30 hover:shadow-xl hover:shadow-orange-500/5 transition-all duration-300">
+      <div className="group glass-light rounded-2xl p-5 cursor-pointer border border-white/10 dark:border-slate-700/30 hover:border-orange-300/50 dark:hover:border-orange-500/30 transition-all duration-300 hover:shadow-[0_0_25px_rgba(249,115,22,0.075)]">
         <div className="flex justify-between items-start mb-3">
           <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-100 line-clamp-1 group-hover:text-orange-600 dark:group-hover:text-orange-400 transition-colors">
             {board.title}

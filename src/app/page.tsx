@@ -4,11 +4,14 @@ import Navbar from '@/components/ui/Navbar';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-br from-slate-50 via-orange-50/30 to-slate-50 dark:from-slate-900 dark:via-slate-900 dark:to-slate-900">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
       <Navbar />
-      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
+      <main className="flex-1 max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-20 relative">
+        {/* Hero accent orb */}
+        <div className="absolute top-20 left-1/2 -translate-x-1/2 w-150 h-150 bg-orange-500/10 dark:bg-orange-500/5 rounded-full blur-3xl pointer-events-none" />
+
         {/* Hero */}
-        <div className="text-center">
+        <div className="text-center relative">
           <div className="flex justify-center mb-8">
             <Image src="/favicon.png" alt="KanBam" width={120} height={120} className="drop-shadow-2xl" />
           </div>
@@ -24,16 +27,16 @@ export default function Home() {
           <p className="text-lg text-slate-600 dark:text-slate-400 mb-10 max-w-xl mx-auto leading-relaxed">
             A modern Kanban board that helps you organize tasks, collaborate with your team, and boost productivity.
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex gap-4 justify-center flex-wrap">
             <Link
               href="/signup"
-              className="px-8 py-3.5 bg-linear-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium hover:from-orange-600 hover:to-orange-700 transition-all shadow-lg shadow-orange-500/25 hover:shadow-orange-500/40"
+              className="px-8 py-4 rounded-xl font-medium bg-linear-to-r from-orange-500 to-orange-600 text-white hover:from-orange-600 hover:to-orange-700 shadow-xl shadow-orange-500/30 hover:shadow-2xl hover:shadow-orange-500/50 transform transition-all duration-300 hover:scale-105 active:scale-100 relative overflow-hidden"
             >
               Get Started
             </Link>
             <Link
               href="/login"
-              className="px-8 py-3.5 bg-white/80 dark:bg-slate-800/50 backdrop-blur-sm text-slate-700 dark:text-slate-200 rounded-xl font-medium hover:bg-white dark:hover:bg-slate-800 transition-all border border-slate-200/50 dark:border-slate-700/50"
+              className="px-8 py-4 rounded-xl font-medium glass-medium text-slate-700 dark:text-slate-200 border border-white/20 dark:border-slate-700/40 hover:bg-white/70 dark:hover:bg-slate-700/60 transform transition-all duration-300 hover:scale-105 active:scale-100"
             >
               Log In
             </Link>

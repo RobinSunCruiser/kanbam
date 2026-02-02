@@ -10,8 +10,8 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
 
   if (!token) {
     return (
-      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4">
-        <div className="max-w-md w-full text-center">
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 relative">
+        <div className="max-w-md w-full text-center glass-heavy glass-glow p-8 rounded-2xl border border-white/10 dark:border-slate-700/30">
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
             Invalid Link
           </h2>
@@ -30,7 +30,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 relative">
       <div className="max-w-md w-full space-y-8">
         <div>
           <h2 className="text-center text-3xl font-bold text-slate-900 dark:text-slate-100">
@@ -41,7 +41,7 @@ export default async function ResetPasswordPage({ searchParams }: ResetPasswordP
           </p>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 py-8 px-6 shadow rounded-xl">
+        <div className="glass-heavy glass-glow p-8 rounded-2xl border border-white/10 dark:border-slate-700/30">
           <ResetPasswordForm token={token} />
         </div>
       </div>

@@ -71,8 +71,8 @@ const Column = memo(function Column({
   return (
     <div
       ref={setNodeRef}
-      className={`bg-slate-100/50 dark:bg-slate-800/30 rounded-2xl p-4 flex flex-col h-full transition-colors ${
-        isOver ? 'bg-orange-50/50 dark:bg-orange-900/10' : ''
+      className={`glass-light rounded-2xl p-4 flex flex-col h-full transition-all duration-300 border border-white/10 dark:border-slate-700/20 ${
+        isOver ? 'bg-orange-50/40 dark:bg-orange-900/15 border-orange-300/40 dark:border-orange-500/30 shadow-lg shadow-orange-500/10' : ''
       }`}
     >
       <div className="flex justify-between items-center mb-4">
@@ -134,7 +134,7 @@ const Column = memo(function Column({
           ))}
 
           {cards.length === 0 && (
-            <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl">
+            <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200/50 dark:border-slate-700/40 rounded-xl glass-light opacity-60">
               <p className="text-sm text-slate-400">Drop cards here</p>
             </div>
           )}
