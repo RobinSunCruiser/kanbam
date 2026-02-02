@@ -45,15 +45,30 @@ export default function BoardHeader({
   );
 
   // Title inline edit
-  const titleEdit = useInlineEdit<HTMLInputElement>({
+  const {
+    isEditing: isTitleEditing,
+    value: titleValue,
+    setValue: setTitleValue,
+    inputRef: titleInputRef,
+    startEditing: startTitleEditing,
+    handleBlur: handleTitleBlur,
+    handleKeyDown: handleTitleKeyDown,
+  } = useInlineEdit<HTMLInputElement>({
     initialValue: title,
     onSave: (newTitle) => saveToServer({ title: newTitle }),
     disabled: isReadOnly || isPending,
     validate: (value) => value.length > 0,
   });
 
-  // Description inline edit
-  const descriptionEdit = useInlineEdit<HTMLInputElement>({
+  const {
+    isEditing: isDescriptionEditing,
+    value: descriptionValue,
+    setValue: setDescriptionValue,
+    inputRef: descriptionInputRef,
+    startEditing: startDescriptionEditing,
+    handleBlur: handleDescriptionBlur,
+    handleKeyDown: handleDescriptionKeyDown,
+  } = useInlineEdit<HTMLInputElement>({
     initialValue: description ?? '',
     onSave: (newDescription) => saveToServer({ description: newDescription }),
     disabled: isReadOnly || isPending,
@@ -74,13 +89,13 @@ export default function BoardHeader({
     <div className="min-w-0">
       <div className="flex items-baseline gap-3 flex-wrap">
         {/* Title */}
-        {titleEdit.isEditing ? (
+        {isTitleEditing ? (
           <input
-            ref={titleEdit.inputRef}
-            value={titleEdit.value}
-            onChange={(e) => titleEdit.setValue(e.target.value)}
-            onBlur={titleEdit.handleBlur}
-            onKeyDown={titleEdit.handleKeyDown}
+            ref={titleInputRef}
+            value={titleValue}
+            onChange={(e) => setTitleValue(e.target.value)}
+            onBlur={handleTitleBlur}
+            onKeyDown={handleTitleKeyDown}
             disabled={isReadOnly || isPending}
             className="text-xl font-semibold bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border-b-2 border-orange-400 outline-none"
             placeholder="Board title"
@@ -88,26 +103,26 @@ export default function BoardHeader({
           />
         ) : (
           <h1
-            onClick={titleEdit.startEditing}
-            onKeyDown={(e) => handleActivationKeyDown(e, titleEdit.startEditing)}
+            onClick={startTitleEditing}
+            onKeyDown={(e) => handleActivationKeyDown(e, startTitleEditing)}
             tabIndex={isReadOnly ? -1 : 0}
             className={`text-xl font-semibold text-slate-900 dark:text-slate-100 ${
               isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
             }`}
             title={isReadOnly ? title : 'Click to edit'}
           >
-            {titleEdit.value}
+            {titleValue}
           </h1>
         )}
 
         {/* Description - inline */}
-        {descriptionEdit.isEditing ? (
+        {isDescriptionEditing ? (
           <input
-            ref={descriptionEdit.inputRef}
-            value={descriptionEdit.value}
-            onChange={(e) => descriptionEdit.setValue(e.target.value)}
-            onBlur={descriptionEdit.handleBlur}
-            onKeyDown={descriptionEdit.handleKeyDown}
+            ref={descriptionInputRef}
+            value={descriptionValue}
+            onChange={(e) => setDescriptionValue(e.target.value)}
+            onBlur={handleDescriptionBlur}
+            onKeyDown={handleDescriptionKeyDown}
             disabled={isReadOnly || isPending}
             className="flex-1 min-w-32 text-sm text-slate-500 dark:text-slate-400 bg-transparent border-b border-orange-400 outline-none"
             placeholder="Add a description..."
@@ -115,15 +130,15 @@ export default function BoardHeader({
           />
         ) : (
           <p
-            onClick={descriptionEdit.startEditing}
-            onKeyDown={(e) => handleActivationKeyDown(e, descriptionEdit.startEditing)}
+            onClick={startDescriptionEditing}
+            onKeyDown={(e) => handleActivationKeyDown(e, startDescriptionEditing)}
             tabIndex={isReadOnly ? -1 : 0}
             className={`text-sm text-slate-500 dark:text-slate-400 ${
               isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
             }`}
-            title={isReadOnly ? (descriptionEdit.value || '') : 'Click to edit'}
+            title={isReadOnly ? (descriptionValue || '') : 'Click to edit'}
           >
-            {descriptionEdit.value || (!isReadOnly ? 'Add description...' : '')}
+            {descriptionValue || (!isReadOnly ? 'Add description...' : '')}
           </p>
         )}
       </div>

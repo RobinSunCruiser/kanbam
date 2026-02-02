@@ -77,10 +77,12 @@ export default function CardModal({
   const pendingEmailRef = useRef<{ boardUid: string; title: string; assignee: string } | null>(null);
   const cardIdRef = useRef<string | null>(null);
   const onUpdateRef = useRef(onUpdate);
+  const cardRef = useRef(card);
 
   // Keep refs in sync without causing re-renders
   cardIdRef.current = card?.id ?? null;
   onUpdateRef.current = onUpdate;
+  cardRef.current = card;
 
   // Ref to hold latest state for save function (avoids stale closures)
   const stateRef = useRef({ title, description, assignee, deadline, checklist, links, activity });
@@ -94,15 +96,16 @@ export default function CardModal({
     setError('');
     setIsSaving(false);
 
-    if (card) {
-      setTitle(card.title);
-      setDescription(card.description);
-      setAssignee(card.assignee || '');
-      assigneeOnOpen.current = card.assignee || '';
-      setDeadline(card.deadline || '');
-      setChecklist(card.checklist || []);
-      setLinks(card.links || []);
-      setActivity(card.activity || []);
+    const currentCard = cardRef.current;
+    if (currentCard) {
+      setTitle(currentCard.title);
+      setDescription(currentCard.description);
+      setAssignee(currentCard.assignee || '');
+      assigneeOnOpen.current = currentCard.assignee || '';
+      setDeadline(currentCard.deadline || '');
+      setChecklist(currentCard.checklist || []);
+      setLinks(currentCard.links || []);
+      setActivity(currentCard.activity || []);
     } else {
       // Create mode or no card - reset to empty
       setTitle('');

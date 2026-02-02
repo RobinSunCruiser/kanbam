@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, RefObject } from 'react';
+import { useState, useRef, useEffect, useCallback, RefObject, useOptimistic } from 'react';
 
 interface UseInlineEditOptions {
   /** Initial value for the input */
@@ -67,16 +67,19 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
   const { initialValue, onSave, disabled = false, validate } = options;
 
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useState(initialValue);
+  const [value, setValue] = useOptimistic(
+    initialValue,
+    (_current, nextValue: string) => nextValue
+  );
   const inputRef = useRef<T>(null);
   const snapshotRef = useRef(initialValue);
   const skipBlurSaveRef = useRef(false);
 
-  // Sync value when initialValue changes
   useEffect(() => {
-    setValue(initialValue);
-    snapshotRef.current = initialValue;
-  }, [initialValue]);
+    if (!isEditing) {
+      snapshotRef.current = initialValue;
+    }
+  }, [initialValue, isEditing]);
 
   // Auto-focus and select when entering edit mode
   useEffect(() => {
@@ -95,7 +98,7 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
   const cancelEditing = useCallback(() => {
     setValue(snapshotRef.current);
     setIsEditing(false);
-  }, []);
+  }, [setValue]);
 
   const saveAndClose = useCallback(() => {
     const trimmed = value.trim();
@@ -121,7 +124,7 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
 
     setValue(trimmed);
     onSave(trimmed);
-  }, [value, validate, onSave]);
+  }, [value, validate, onSave, setValue]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !(e.target instanceof HTMLTextAreaElement)) {

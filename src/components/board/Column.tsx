@@ -48,7 +48,15 @@ const Column = memo(function Column({
   const [isDeleting, setIsDeleting] = useState(false);
 
   // Inline edit for column title
-  const titleEdit = useInlineEdit<HTMLInputElement>({
+  const {
+    isEditing: isTitleEditing,
+    value: titleValue,
+    setValue: setTitleValue,
+    inputRef: titleInputRef,
+    startEditing: startTitleEditing,
+    handleKeyDown: handleTitleKeyDown,
+    handleBlur: handleTitleBlur,
+  } = useInlineEdit<HTMLInputElement>({
     initialValue: column.title,
     onSave: (newTitle) => onUpdateTitle(column.id, newTitle),
     disabled: isReadOnly,
@@ -69,27 +77,27 @@ const Column = memo(function Column({
     >
       <div className="flex justify-between items-center mb-4">
         <div className="flex items-center gap-2 flex-1 min-w-0">
-          {titleEdit.isEditing ? (
+          {isTitleEditing ? (
             <input
-              ref={titleEdit.inputRef}
+              ref={titleInputRef}
               type="text"
-              value={titleEdit.value}
-              onChange={(e) => titleEdit.setValue(e.target.value)}
-              onKeyDown={titleEdit.handleKeyDown}
-              onBlur={titleEdit.handleBlur}
+              value={titleValue}
+              onChange={(e) => setTitleValue(e.target.value)}
+              onKeyDown={handleTitleKeyDown}
+              onBlur={handleTitleBlur}
               className="flex-1 px-2 py-1 text-sm font-semibold bg-white dark:bg-slate-700 rounded-lg border border-orange-500 focus:outline-none min-w-0"
               maxLength={50}
               aria-label="Column title"
             />
           ) : (
             <h3
-              onClick={titleEdit.startEditing}
+              onClick={startTitleEditing}
               className={`font-semibold text-slate-700 dark:text-slate-200 truncate ${
                 !isReadOnly ? 'cursor-pointer hover:text-orange-500' : ''
               }`}
               title={isReadOnly ? column.title : 'Click to edit'}
             >
-              {titleEdit.value}
+              {titleValue}
             </h3>
           )}
           <span className="text-xs text-slate-400 bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded-full flex-shrink-0">
