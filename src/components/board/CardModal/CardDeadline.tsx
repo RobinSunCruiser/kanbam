@@ -1,6 +1,4 @@
 'use client';
-
-import { useRef } from 'react';
 import { PlusIcon, XIcon, CalendarIcon } from '@/components/ui/Icons';
 
 interface CardDeadlineProps {
@@ -10,26 +8,24 @@ interface CardDeadlineProps {
 }
 
 export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDeadlineProps) {
-  const inputRef = useRef<HTMLInputElement>(null);
+  const dateValue = deadline ? new Date(deadline).toISOString().slice(0, 10) : '';
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Deadline</h3>
         {!isReadOnly && !deadline && (
-          <button
-            onClick={() => inputRef.current?.showPicker()}
-            className="w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-          >
-            <PlusIcon />
-          </button>
+          <label className="relative w-6 h-6 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all">
+            <PlusIcon className="w-4 h-4" />
+            <input
+              type="date"
+              value={dateValue}
+              className="absolute inset-0 opacity-0"
+              onChange={(e) => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
+              aria-label="Add deadline"
+            />
+          </label>
         )}
-        <input
-          ref={inputRef}
-          type="date"
-          className="sr-only"
-          onChange={(e) => onChange(e.target.value ? new Date(e.target.value).toISOString() : '')}
-        />
       </div>
       {deadline && (
         <div className="flex flex-wrap gap-2">
