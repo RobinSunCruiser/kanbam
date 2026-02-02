@@ -64,9 +64,12 @@ export async function createBoardAction(formData: FormData) {
  * Updates board metadata (title, description)
  */
 export async function updateBoardAction(boardUid: string, formData: FormData) {
+  const toOptionalString = (value: FormDataEntryValue | null) =>
+    value === null ? undefined : String(value);
+
   const rawData = {
-    title: formData.get('title'),
-    description: formData.get('description'),
+    title: toOptionalString(formData.get('title')),
+    description: toOptionalString(formData.get('description')),
   };
 
   // Validate input
@@ -82,7 +85,13 @@ export async function updateBoardAction(boardUid: string, formData: FormData) {
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
 
-    await updateBoardMetadata(boardUid, validation.data);
+    const updates: { title?: string; description?: string } = {};
+    if (validation.data.title !== undefined) updates.title = validation.data.title;
+    if (validation.data.description !== undefined) updates.description = validation.data.description;
+
+    if (Object.keys(updates).length > 0) {
+      await updateBoardMetadata(boardUid, updates);
+    }
 
     revalidatePath(`/board/${boardUid}`);
     revalidatePath('/dashboard');
