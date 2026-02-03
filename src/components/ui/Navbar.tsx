@@ -82,7 +82,7 @@ export default function Navbar({ user }: NavbarProps) {
                   </button>
 
                   {isOpen && (
-                    <div className="absolute right-0 mt-2 w-48 glass-medium shadow-glass-lg border border-white/20 dark:border-slate-700/40 rounded-xl py-2 z-50">
+                    <div className="absolute right-0 mt-2 w-48 glass-heavy shadow-glass-lg border border-white/20 dark:border-slate-700/40 rounded-xl py-2 z-50">
                       <button
                         onClick={handleDeleteAccount}
                         className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-colors"
