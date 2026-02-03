@@ -238,7 +238,7 @@ export default function CardModal({
       onChange={(e) => setTitle(e.target.value)}
       placeholder="Card title"
       disabled={isReadOnly}
-      className="w-full text-xl font-semibold bg-transparent text-slate-800 dark:text-slate-100 placeholder:text-slate-400 border-2 border-transparent rounded-lg px-2 py-1 -mx-2 -my-1 outline-none focus:border-orange-400 focus:bg-orange-50/50 dark:focus:bg-orange-900/10 transition-colors"
+      className="w-full text-xl font-semibold bg-transparent text-slate-800 dark:text-slate-100 placeholder:text-slate-400 border-none outline-none"
     />
   );
 
@@ -255,6 +255,8 @@ export default function CardModal({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Card title"
+            variant="seamless"
+            className="text-xl font-semibold"
             required
           />
         )}
