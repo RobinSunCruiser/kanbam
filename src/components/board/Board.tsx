@@ -7,7 +7,7 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
-  PointerSensor,
+  MouseSensor,
   TouchSensor,
   useSensor,
   useSensors,
@@ -45,15 +45,15 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
   // Configure sensors for drag detection (pointer for desktop, touch for mobile)
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: {
-        distance: 8, // 8px movement required to start drag
+        distance: 8,
       },
     }),
     useSensor(TouchSensor, {
       activationConstraint: {
-        delay: 200, // 200ms hold required before drag starts on touch
-        tolerance: 5, // 5px movement allowed during delay
+        delay: 300,
+        tolerance: 8,
       },
     })
   );
