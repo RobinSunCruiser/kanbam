@@ -39,7 +39,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
   const checkedCount = items.filter(item => item.checked).length;
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Checklist</h3>
@@ -52,7 +52,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
         {!isReadOnly && !isAdding && (
           <button
             onClick={() => setIsAdding(true)}
-            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
             aria-label="Add checklist item"
           >
             <PlusIcon />
@@ -72,11 +72,13 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
               }`}
               onClick={() => !isReadOnly && handleToggle(item.id)}
             >
-              {item.checked ? (
-                <CheckIcon className="w-3.5 h-3.5 text-green-500 transition-colors" />
-              ) : (
-                <CircleIcon className="w-3.5 h-3.5 text-slate-400 transition-colors" />
-              )}
+              <span className="w-3.5 h-3.5 flex-shrink-0 flex items-center justify-center">
+                {item.checked ? (
+                  <CheckIcon className="w-3.5 h-3.5 text-green-500 transition-colors" />
+                ) : (
+                  <CircleIcon className="w-3.5 h-3.5 text-slate-400 transition-colors" />
+                )}
+              </span>
               <span className={`text-sm transition-colors ${
                 item.checked
                   ? 'line-through text-green-600 dark:text-green-400'

@@ -22,13 +22,13 @@ export default function CardAssignee({ assignee, boardMembers, isReadOnly, onCha
   }, [showSelect]);
 
   return (
-    <div className="space-y-1">
+    <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Assignee</h3>
         {!isReadOnly && !assignee && (
           <button
             onClick={() => setShowSelect(true)}
-            className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
             aria-label="Assign member"
           >
             <PlusIcon />

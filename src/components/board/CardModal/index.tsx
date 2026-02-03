@@ -275,7 +275,7 @@ export default function CardModal({
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />
 
-            <div className="space-y-1">
+            <div className="space-y-0">
               <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
               <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
               <CardDeadline deadline={deadline} isReadOnly={isReadOnly} onChange={setDeadline} />
