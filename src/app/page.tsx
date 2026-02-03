@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import Navbar from '@/components/ui/Navbar';
+import Footer from '@/components/ui/Footer';
 
 export default function Home() {
   return (
@@ -43,9 +44,7 @@ export default function Home() {
           </div>
         </div>
       </main>
-      <footer className="py-3 text-center text-xs text-slate-400 dark:text-slate-500">
-        © {new Date().getFullYear()} Dr. Robin Nicolay
-      </footer>
+      <Footer />
     </div>
   );
 }
