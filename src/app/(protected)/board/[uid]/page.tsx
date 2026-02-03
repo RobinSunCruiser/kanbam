@@ -26,7 +26,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   return (
-    <div className="h-[calc(100vh-4rem)] px-4 sm:px-6 lg:px-8 py-4 flex flex-col overflow-auto max-w-7xl mx-auto">
+    <div className="h-[calc(100vh-var(--spacing-navbar))] px-4 sm:px-6 lg:px-8 py-4 flex flex-col overflow-auto max-w-7xl mx-auto">
       <div className="mb-3 shrink-0 flex items-center justify-between gap-4">
         <div className="flex-1 min-w-0 flex items-center gap-4 flex-wrap">
           <BoardHeader

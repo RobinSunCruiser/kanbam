@@ -537,7 +537,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
           style={{ minWidth: '100%' }}
         >
           {board.columns.map((column, index) => (
-            <div key={column.id} className="shrink-0 md:w-90">
+            <div key={column.id} className="shrink-0 md:w-column">
               <Column
                 column={column}
                 cards={getCardsForColumn(column.id)}

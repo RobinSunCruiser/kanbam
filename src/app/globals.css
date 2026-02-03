@@ -71,6 +71,12 @@
   --font-mono: var(--font-geist-mono);
 }
 
+@theme {
+  /* Layout dimensions - generates h-navbar, w-column utilities */
+  --spacing-navbar: 3.5rem;
+  --spacing-column: 22.5rem;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
