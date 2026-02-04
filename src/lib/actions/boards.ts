@@ -12,6 +12,7 @@ import {
   loadBoard,
 } from '../storage/boards';
 import { getUserById } from '../storage/users';
+import { boardEvents } from '../realtime/events';
 
 /**
  * Server Action: Create Board
@@ -95,6 +96,7 @@ export async function updateBoardAction(boardUid: string, formData: FormData) {
 
     revalidatePath(`/board/${boardUid}`);
     revalidatePath('/dashboard');
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -161,6 +163,7 @@ export async function addBoardMemberAction(boardUid: string, formData: FormData)
     await addBoardMember(boardUid, validation.data.email, validation.data.privilege);
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -206,6 +209,7 @@ export async function removeBoardMemberAction(boardUid: string, email: string) {
 
     revalidatePath(`/board/${boardUid}`);
     revalidatePath('/dashboard');
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,

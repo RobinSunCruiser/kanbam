@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { createColumnSchema, updateColumnSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import { addColumn, updateColumn, deleteColumn, reorderColumn } from '../storage/boards';
+import { boardEvents } from '../realtime/events';
 
 /**
  * Server Action: Create Column
@@ -29,6 +30,7 @@ export async function createColumnAction(boardUid: string, formData: FormData) {
     const column = await addColumn(boardUid, validation.data.title.trim());
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -72,6 +74,7 @@ export async function updateColumnAction(
     const column = await updateColumn(boardUid, columnId, validation.data.title.trim());
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -99,6 +102,7 @@ export async function deleteColumnAction(boardUid: string, columnId: string) {
     await deleteColumn(boardUid, columnId);
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -129,6 +133,7 @@ export async function reorderColumnAction(
     const columns = await reorderColumn(boardUid, columnId, direction);
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,

@@ -5,6 +5,7 @@ import { createCardSchema, updateCardSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import { addCard, updateCard, deleteCard, loadBoard } from '../storage/boards';
 import { sendCardAssignmentEmail } from '../email/send';
+import { boardEvents } from '../realtime/events';
 
 /**
  * Server Action: Create Card
@@ -37,6 +38,7 @@ export async function createCardAction(boardUid: string, formData: FormData) {
     });
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -90,6 +92,7 @@ export async function updateCardAction(
     });
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,
@@ -117,6 +120,7 @@ export async function deleteCardAction(boardUid: string, cardId: string) {
     await deleteCard(boardUid, cardId);
 
     revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
 
     return {
       success: true,

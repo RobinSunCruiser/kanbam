@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import {
   DndContext,
@@ -25,6 +25,7 @@ import Column from './Column';
 import CardModal from './CardModal/index';
 import AlertDialog from '../ui/AlertDialog';
 import { PlusIcon } from '../ui/Icons';
+import { useBoardSync } from '@/lib/hooks/useBoardSync';
 
 interface BoardProps {
   initialBoard: BoardType;
@@ -40,6 +41,13 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const [createColumnId, setCreateColumnId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
   const [errorAlert, setErrorAlert] = useState<{ title: string; message: string } | null>(null);
+
+  // Sync board state when server data changes (e.g., from router.refresh())
+  // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
+  useEffect(() => setBoard(initialBoard), [initialBoard.updatedAt]);
+
+  // Subscribe to real-time updates from other users
+  useBoardSync(board.uid);
 
   const isReadOnly = userPrivilege === 'read';
 
