@@ -36,7 +36,7 @@ interface BoardProps {
 export default function Board({ initialBoard, userPrivilege, userEmail }: BoardProps) {
   const router = useRouter();
   const [board, setBoard] = useState(initialBoard);
-  const [selectedCard, setSelectedCard] = useState<CardType | null>(null);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [createColumnId, setCreateColumnId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
@@ -66,21 +66,24 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     })
   );
 
+  // Derive selected card from board state (auto-updates when board refreshes)
+  const selectedCard = selectedCardId ? board.cards[selectedCardId] ?? null : null;
+
   const handleCardClick = (card: CardType) => {
-    setSelectedCard(card);
+    setSelectedCardId(card.id);
     setCreateColumnId(null);
     setIsModalOpen(true);
   };
 
   const handleAddCard = (columnId: string) => {
-    setSelectedCard(null);
+    setSelectedCardId(null);
     setCreateColumnId(columnId);
     setIsModalOpen(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setSelectedCard(null);
+    setSelectedCardId(null);
     setCreateColumnId(null);
   };
 

@@ -117,7 +117,7 @@ export default function CardModal({
       setLinks([]);
       setActivity([]);
     }
-  }, [isOpen, card?.id]);
+  }, [isOpen, card?.id, card?.updatedAt]);
 
   // Cleanup when modal closes
   useEffect(() => {
