@@ -167,10 +167,12 @@ export default function CardModal({
   // Debounced auto-save for text fields (title, description)
   useEffect(() => {
     if (!card?.id || isCreateMode || isReadOnly || !title.trim()) return;
+    // Skip if values haven't changed from what's already saved
+    if (title === card.title && description === card.description) return;
 
     const timeout = setTimeout(saveCard, 1000);
     return () => clearTimeout(timeout);
-  }, [card?.id, isCreateMode, isReadOnly, title, description, saveCard]);
+  }, [card?.id, card?.title, card?.description, isCreateMode, isReadOnly, title, description, saveCard]);
 
   // Immediate save for non-text fields
   useEffect(() => {
@@ -179,6 +181,17 @@ export default function CardModal({
       return;
     }
     if (!cardIdRef.current || isCreateMode || isReadOnly || !stateRef.current.title.trim()) return;
+
+    // Skip if values haven't changed from what's already saved
+    const currentCard = cardRef.current;
+    if (currentCard) {
+      const sameAssignee = assignee === (currentCard.assignee || '');
+      const sameDeadline = deadline === (currentCard.deadline || '');
+      const sameChecklist = JSON.stringify(checklist) === JSON.stringify(currentCard.checklist || []);
+      const sameLinks = JSON.stringify(links) === JSON.stringify(currentCard.links || []);
+      const sameActivity = JSON.stringify(activity) === JSON.stringify(currentCard.activity || []);
+      if (sameAssignee && sameDeadline && sameChecklist && sameLinks && sameActivity) return;
+    }
 
     saveCard();
   }, [assignee, deadline, checklist, links, activity, isCreateMode, isReadOnly, saveCard]);
