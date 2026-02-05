@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { MoreVerticalIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon } from '../ui/Icons';
+import { MoreVerticalIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, SparklesIcon } from '../ui/Icons';
 
 interface ColumnMenuProps {
   canDelete: boolean;
@@ -11,6 +11,7 @@ interface ColumnMenuProps {
   onMoveLeft: () => void;
   onMoveRight: () => void;
   onDelete: () => void;
+  onClearCards: () => void;
 }
 
 export default function ColumnMenu({
@@ -21,6 +22,7 @@ export default function ColumnMenu({
   onMoveLeft,
   onMoveRight,
   onDelete,
+  onClearCards,
 }: ColumnMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -82,7 +84,21 @@ export default function ColumnMenu({
               Move Right
             </button>
           )}
-          {(canMoveLeft || canMoveRight) && canDelete && (
+          {hasCards && (
+            <>
+              {(canMoveLeft || canMoveRight) && (
+                <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
+              )}
+              <button
+                onClick={() => handleAction(onClearCards)}
+                className="w-full px-3 py-2 text-left text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex items-center gap-2"
+              >
+                <SparklesIcon className="w-4 h-4" />
+                Clear Cards
+              </button>
+            </>
+          )}
+          {(canMoveLeft || canMoveRight || hasCards) && canDelete && (
             <div className="border-t border-slate-200 dark:border-slate-700 my-1" />
           )}
           {canDelete && (

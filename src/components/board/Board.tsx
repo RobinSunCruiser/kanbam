@@ -21,6 +21,7 @@ import {
   deleteColumnAction,
   reorderColumnAction,
 } from '@/lib/actions/columns';
+import confetti from 'canvas-confetti';
 import Column from './Column';
 import CardModal from './CardModal/index';
 import AlertDialog from '../ui/AlertDialog';
@@ -164,39 +165,70 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     }
   };
 
+  // Optimistic removal of a single card from board state
+  const removeCardFromBoard = (cardId: string, columnId: string) => {
+    setBoard((prevBoard) => {
+      const newColumns = prevBoard.columns.map((col) => {
+        if (col.id === columnId) {
+          return { ...col, cardIds: col.cardIds.filter((id) => id !== cardId) };
+        }
+        return col;
+      });
+      const newCards = { ...prevBoard.cards };
+      delete newCards[cardId];
+      return { ...prevBoard, columns: newColumns, cards: newCards, updatedAt: new Date().toISOString() };
+    });
+  };
+
   const handleDeleteCard = async (cardId: string) => {
     const cardToDelete = board.cards[cardId];
     if (!cardToDelete) return;
 
-    // Optimistic update - remove card immediately
-    setBoard((prevBoard) => {
-      const newColumns = prevBoard.columns.map((col) => {
-        if (col.id === cardToDelete.columnId) {
-          return {
-            ...col,
-            cardIds: col.cardIds.filter((id) => id !== cardId),
-          };
-        }
-        return col;
-      });
-
-      const newCards = { ...prevBoard.cards };
-      delete newCards[cardId];
-
-      return {
-        ...prevBoard,
-        columns: newColumns,
-        cards: newCards,
-        updatedAt: new Date().toISOString(),
-      };
-    });
+    removeCardFromBoard(cardId, cardToDelete.columnId);
 
     const result = await deleteCardAction(board.uid, cardId);
-
     if (result?.error) {
-      // Rollback on error
       router.refresh();
       throw new Error(result.error);
+    }
+  };
+
+  const handleClearColumn = async (columnId: string) => {
+    const column = board.columns.find((col) => col.id === columnId);
+    if (!column || column.cardIds.length === 0) return;
+
+    const cardIds = [...column.cardIds].reverse();
+    const confettiColors = ['#f97316', '#fb923c', '#fdba74', '#fbbf24', '#facc15'];
+    const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+    // Remove cards one by one (bottom to top) with confetti at each position
+    await delay(1000);
+    for (let i = 0; i < cardIds.length; i++) {
+      if (i > 0) await delay(500);
+
+      const el = document.querySelector(`[data-card-id="${cardIds[i]}"]`);
+      if (el) {
+        const rect = el.getBoundingClientRect();
+        confetti({
+          particleCount: 60,
+          spread: 70,
+          origin: {
+            x: (rect.left + rect.width / 2) / window.innerWidth,
+            y: (rect.top + rect.height / 2) / window.innerHeight,
+          },
+          colors: confettiColors,
+        });
+      }
+
+      removeCardFromBoard(cardIds[i], columnId);
+    }
+
+    // Delete all cards on the server
+    const results = await Promise.all(
+      cardIds.map((id) => deleteCardAction(board.uid, id))
+    );
+    if (results.some((r) => r?.error)) {
+      router.refresh();
     }
   };
 
@@ -560,6 +592,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
                   onDelete={handleDeleteColumn}
                   onMoveLeft={handleMoveColumnLeft}
                   onMoveRight={handleMoveColumnRight}
+                  onClearCards={handleClearColumn}
                 />
               </div>
             ))}

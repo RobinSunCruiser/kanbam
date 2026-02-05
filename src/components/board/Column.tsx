@@ -23,6 +23,7 @@ interface ColumnProps {
   onDelete: (columnId: string) => Promise<void>;
   onMoveLeft: (columnId: string) => Promise<void>;
   onMoveRight: (columnId: string) => Promise<void>;
+  onClearCards: (columnId: string) => Promise<void>;
 }
 
 /**
@@ -43,9 +44,11 @@ const Column = memo(function Column({
   onDelete,
   onMoveLeft,
   onMoveRight,
+  onClearCards,
 }: ColumnProps) {
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isClearing, setIsClearing] = useState(false);
 
   // Inline edit for column title
   const {
@@ -67,6 +70,11 @@ const Column = memo(function Column({
     await onDelete(column.id);
     setIsDeleting(false);
   }, [column.id, onDelete]);
+
+  const handleClearConfirm = useCallback(async () => {
+    setIsClearing(false);
+    await onClearCards(column.id);
+  }, [column.id, onClearCards]);
 
   return (
     <div
@@ -122,6 +130,7 @@ const Column = memo(function Column({
               onMoveLeft={() => onMoveLeft(column.id)}
               onMoveRight={() => onMoveRight(column.id)}
               onDelete={() => setIsDeleting(true)}
+              onClearCards={() => setIsClearing(true)}
             />
           </div>
         )}
@@ -153,6 +162,16 @@ const Column = memo(function Column({
         variant={cards.length > 0 ? 'primary' : 'danger'}
         onConfirm={cards.length > 0 ? () => setIsDeleting(false) : handleDeleteConfirm}
         onCancel={() => setIsDeleting(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isClearing}
+        title="Clear Cards"
+        message={`Clear all ${cards.length} card(s) from "${column.title}"? This cannot be undone.`}
+        confirmText="Clear All"
+        variant="danger"
+        onConfirm={handleClearConfirm}
+        onCancel={() => setIsClearing(false)}
       />
     </div>
   );

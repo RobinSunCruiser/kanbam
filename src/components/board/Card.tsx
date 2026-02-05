@@ -39,6 +39,7 @@ const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
     <div
       ref={setNodeRef}
       style={style}
+      data-card-id={card.id}
       {...attributes}
       {...listeners}
       onClick={() => !isDragging && onClick()}
