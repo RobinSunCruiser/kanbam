@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback, RefObject, useOptimistic } from 'react';
+import { useState, useRef, useEffect, useCallback, RefObject } from 'react';
 
 interface UseInlineEditOptions {
   /** Initial value for the input */
@@ -67,16 +67,16 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
   const { initialValue, onSave, disabled = false, validate } = options;
 
   const [isEditing, setIsEditing] = useState(false);
-  const [value, setValue] = useOptimistic(
-    initialValue,
-    (_current, nextValue: string) => nextValue
-  );
+  const [value, setValue] = useState(initialValue);
   const inputRef = useRef<T>(null);
   const snapshotRef = useRef(initialValue);
   const skipBlurSaveRef = useRef(false);
 
+  // Sync value with initialValue when not editing (e.g., external updates)
   useEffect(() => {
     if (!isEditing) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setValue(initialValue);
       snapshotRef.current = initialValue;
     }
   }, [initialValue, isEditing]);
