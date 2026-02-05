@@ -49,7 +49,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
         />
       </div>
 
-      <div className="flex-1 min-h-0 px-4 sm:px-6 lg:px-8">
+      <div className="flex-1 min-h-0">
         <BoardWrapper initialBoard={board} userPrivilege={privilege} userEmail={user.email} />
       </div>
     </div>

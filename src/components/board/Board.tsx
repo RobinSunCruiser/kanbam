@@ -526,7 +526,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   return (
     <div className="h-full flex flex-col" suppressHydrationWarning>
       {!isReadOnly && (
-        <div className="flex justify-end mb-2 shrink-0">
+        <div className="flex justify-end mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           <button
             onClick={handleAddColumn}
             className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
@@ -543,7 +543,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex-1 min-h-0 overflow-x-auto py-2 h-full">
+        <div className="flex-1 min-h-0 overflow-x-auto py-2 h-full px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row gap-6 w-fit max-w-full mx-auto h-full">
             {board.columns.map((column, index) => (
               <div key={column.id} className="shrink-0 md:w-column h-full">
