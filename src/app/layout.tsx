@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   description: "A clean and modern Kanban board for task management",
   icons: {
     icon: "/favicon.png",
-    apple: "/favicon.png",
+    apple: "/apple-touch-icon.png",
   },
 };
 
