@@ -11,7 +11,7 @@ import {
   TouchSensor,
   useSensor,
   useSensors,
-  closestCenter,
+  pointerWithin,
 } from '@dnd-kit/core';
 import { Board as BoardType, Card as CardType } from '@/types/board';
 import { createCardAction, updateCardAction, deleteCardAction } from '@/lib/actions/cards';
@@ -539,7 +539,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCenter}
+        collisionDetection={pointerWithin}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
