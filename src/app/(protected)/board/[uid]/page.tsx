@@ -26,8 +26,8 @@ export default async function BoardPage({ params }: BoardPageProps) {
   }
 
   return (
-    <div className="h-[calc(100vh-var(--spacing-navbar))] px-4 sm:px-6 lg:px-8 pt-6 pb-4 flex flex-col overflow-auto max-w-7xl mx-auto">
-      <div className="mb-3 shrink-0 flex items-center justify-between gap-4">
+    <div className="h-[calc(100vh-var(--spacing-navbar))] pt-6 pb-4 flex flex-col overflow-auto">
+      <div className="mb-3 shrink-0 flex items-center justify-between gap-4 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
         <div className="flex-1 min-w-0 flex items-center gap-4 flex-wrap">
           <BoardHeader
             boardUid={board.uid}
@@ -49,7 +49,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
         />
       </div>
 
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 px-4 sm:px-6 lg:px-8">
         <BoardWrapper initialBoard={board} userPrivilege={privilege} userEmail={user.email} />
       </div>
     </div>
