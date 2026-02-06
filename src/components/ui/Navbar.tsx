@@ -106,7 +106,7 @@ export default function Navbar({ user }: NavbarProps) {
                   )}
                 </div>
               ) : (
-                <>
+                <div className="hidden sm:flex items-center gap-3">
                   <Link href="/login">
                     <Button variant="ghost" className="text-sm">
                       {t('login')}
@@ -117,7 +117,7 @@ export default function Navbar({ user }: NavbarProps) {
                       {t('signup')}
                     </Button>
                   </Link>
-                </>
+                </div>
               )}
             </div>
           </div>
