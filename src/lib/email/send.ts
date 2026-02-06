@@ -95,10 +95,10 @@ function canSendVerification(user: User): boolean {
 }
 
 /** Send verification email with rate limiting. Returns true if sent. */
-export async function trySendVerificationEmail(user: User): Promise<boolean> {
+export async function trySendVerificationEmail(user: User, locale: string = 'en'): Promise<boolean> {
   if (!canSendVerification(user)) return false;
 
-  const url = `${await getAppUrl()}/verify?token=${await createEmailToken(user.id, 'verify')}`;
+  const url = `${await getAppUrl()}/${locale}/verify?token=${await createEmailToken(user.id, 'verify')}`;
   await sendEmail(
     user.email,
     'Verify your KanBam account',
@@ -117,8 +117,8 @@ export async function trySendVerificationEmail(user: User): Promise<boolean> {
 }
 
 /** Send password reset email */
-export async function sendPasswordResetEmail(email: string, userId: string, userName: string) {
-  const url = `${await getAppUrl()}/reset-password?token=${await createEmailToken(userId, 'reset')}`;
+export async function sendPasswordResetEmail(email: string, userId: string, userName: string, locale: string = 'en') {
+  const url = `${await getAppUrl()}/${locale}/reset-password?token=${await createEmailToken(userId, 'reset')}`;
   await sendEmail(
     email,
     'Reset your KanBam password',
@@ -158,9 +158,10 @@ export async function sendCardAssignmentEmail(
   assignerName: string,
   cardTitle: string,
   boardTitle: string,
-  boardUid: string
+  boardUid: string,
+  locale: string = 'en'
 ) {
-  const boardUrl = `${await getAppUrl()}/board/${boardUid}`;
+  const boardUrl = `${await getAppUrl()}/${locale}/board/${boardUid}`;
   await sendEmail(
     assigneeEmail,
     `You've been assigned to "${cardTitle}" on KanBam`,

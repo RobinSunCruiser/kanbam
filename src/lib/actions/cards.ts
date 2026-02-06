@@ -166,7 +166,8 @@ export async function sendAssignmentEmailAction(
       user.name,
       cardTitle,
       board.title,
-      boardUid
+      boardUid,
+      locale
     );
 
     return { success: true };

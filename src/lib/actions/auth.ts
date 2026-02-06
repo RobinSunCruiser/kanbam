@@ -57,7 +57,7 @@ export async function loginAction(formData: FormData) {
 
     // Check email verification
     if (!user.emailVerified) {
-      await trySendVerificationEmail(user);
+      await trySendVerificationEmail(user, locale);
       return {
         success: false,
         error: t('verifyEmail'),
@@ -120,7 +120,7 @@ export async function signupAction(formData: FormData) {
     const user = await createUser({ email, name, passwordHash });
 
     // Send verification email
-    await trySendVerificationEmail(user);
+    await trySendVerificationEmail(user, locale);
   } catch (error) {
     console.error('Signup error:', error);
     return {
@@ -229,7 +229,7 @@ export async function forgotPasswordAction(formData: FormData) {
 
     // Always show success to prevent user enumeration
     if (user) {
-      await sendPasswordResetEmail(user.email, user.id, user.name);
+      await sendPasswordResetEmail(user.email, user.id, user.name, locale);
     }
 
     return {
