@@ -8,6 +8,7 @@ import { logoutAction, deleteAccountAction } from '@/lib/actions/auth';
 import Button from './Button';
 import ConfirmDialog from './ConfirmDialog';
 import LanguageSwitcher from './LanguageSwitcher';
+import { MenuIcon } from './Icons';
 
 interface NavbarProps {
   user?: { name: string; email: string } | null;
@@ -76,14 +77,7 @@ export default function Navbar({ user }: NavbarProps) {
                     className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200 transition-colors"
                   >
                     <span className="hidden sm:block">{user.name}</span>
-                    <svg
-                      className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
+                    <MenuIcon className="w-5 h-5" />
                   </button>
 
                   {isOpen && (
