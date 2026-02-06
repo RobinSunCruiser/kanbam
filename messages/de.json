@@ -162,7 +162,8 @@
     "namePlaceholder": "Linkname",
     "urlPlaceholder": "URL",
     "bothFieldsRequired": "Beide Felder erforderlich",
-    "invalidUrl": "Ungültige URL"
+    "invalidUrl": "Ungültige URL",
+    "removeLink": "{name} entfernen"
   },
   "deadline": {
     "title": "Frist",

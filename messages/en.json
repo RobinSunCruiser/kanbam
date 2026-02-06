@@ -162,7 +162,8 @@
     "namePlaceholder": "Link name",
     "urlPlaceholder": "URL",
     "bothFieldsRequired": "Both fields required",
-    "invalidUrl": "Invalid URL"
+    "invalidUrl": "Invalid URL",
+    "removeLink": "Remove {name}"
   },
   "deadline": {
     "title": "Deadline",
