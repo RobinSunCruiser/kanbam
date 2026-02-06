@@ -1,17 +1,21 @@
 'use client';
 
 import { useTransition, useState } from 'react';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { loginAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 export default function LoginForm() {
+  const t = useTranslations('authForm');
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
 
   const handleSubmit = async (formData: FormData) => {
     setError('');
+    formData.append('locale', locale);
 
     startTransition(async () => {
       const result = await loginAction(formData);
@@ -26,18 +30,18 @@ export default function LoginForm() {
     <form action={handleSubmit} className="space-y-4">
       <Input
         type="email"
-        label="Email"
+        label={t('emailLabel')}
         name="email"
-        placeholder="you@example.com"
+        placeholder={t('emailPlaceholder')}
         required
         autoComplete="email"
       />
 
       <Input
         type="password"
-        label="Password"
+        label={t('passwordLabel')}
         name="password"
-        placeholder="••••••••"
+        placeholder={t('passwordPlaceholder')}
         required
         autoComplete="current-password"
       />
@@ -47,7 +51,7 @@ export default function LoginForm() {
           href="/forgot-password"
           className="text-sm text-orange-600 hover:text-orange-500 dark:text-orange-400"
         >
-          Forgot password?
+          {t('forgotPassword')}
         </Link>
       </div>
 
@@ -58,7 +62,7 @@ export default function LoginForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Logging in...' : 'Log in'}
+        {isPending ? t('loggingIn') : t('logIn')}
       </Button>
     </form>
   );

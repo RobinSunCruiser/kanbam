@@ -4,8 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { ActivityNote } from '@/types/board';
 import { nanoid } from 'nanoid';
 import { PlusIcon } from '@/components/ui/Icons';
+import { useTranslations } from 'next-intl';
 
-interface CardActivityProps {
+interface CardActivityProps{
   notes: ActivityNote[];
   isReadOnly: boolean;
   onChange: (notes: ActivityNote[]) => void;
@@ -13,6 +14,8 @@ interface CardActivityProps {
 }
 
 export default function CardActivity({ notes, isReadOnly, onChange, currentUserEmail }: CardActivityProps) {
+  const t = useTranslations('activity');
+  const tCommon = useTranslations('common');
   const [isAdding, setIsAdding] = useState(false);
   const [newNote, setNewNote] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -38,12 +41,12 @@ export default function CardActivity({ notes, isReadOnly, onChange, currentUserE
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Activity</h3>
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('title')}</h3>
         {!isReadOnly && !isAdding && (
           <button
             onClick={() => setIsAdding(true)}
             className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-            aria-label="Add activity note"
+            aria-label={t('addNote')}
           >
             <PlusIcon />
           </button>
@@ -57,13 +60,13 @@ export default function CardActivity({ notes, isReadOnly, onChange, currentUserE
             value={newNote}
             onChange={(e) => setNewNote(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Escape') { setIsAdding(false); setNewNote(''); } }}
-            placeholder="Add a note..."
+            placeholder={t('notePlaceholder')}
             rows={2}
             className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
           <div className="flex gap-2 justify-end">
-            <button onClick={() => { setIsAdding(false); setNewNote(''); }} className="px-3 py-1 text-sm text-slate-500">Cancel</button>
-            <button onClick={handleAdd} disabled={!newNote.trim()} className="px-3 py-1 text-sm text-orange-500 font-medium disabled:opacity-50">Add</button>
+            <button onClick={() => { setIsAdding(false); setNewNote(''); }} className="px-3 py-1 text-sm text-slate-500">{tCommon('cancel')}</button>
+            <button onClick={handleAdd} disabled={!newNote.trim()} className="px-3 py-1 text-sm text-orange-500 font-medium disabled:opacity-50">{tCommon('add')}</button>
           </div>
         </div>
       )}
@@ -81,7 +84,7 @@ export default function CardActivity({ notes, isReadOnly, onChange, currentUserE
           ))}
         </div>
       ) : (
-        <p className="text-sm text-slate-400 text-center py-3">No activity yet</p>
+        <p className="text-sm text-slate-400 text-center py-3">{t('noActivity')}</p>
       )}
     </div>
   );

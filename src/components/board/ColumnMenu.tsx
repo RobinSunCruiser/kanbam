@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { MoreVerticalIcon, ChevronLeftIcon, ChevronRightIcon, TrashIcon, SparklesIcon } from '../ui/Icons';
+import { useTranslations } from 'next-intl';
 
 interface ColumnMenuProps {
   canDelete: boolean;
@@ -24,6 +25,7 @@ export default function ColumnMenu({
   onDelete,
   onClearCards,
 }: ColumnMenuProps) {
+  const t = useTranslations('board');
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -57,7 +59,7 @@ export default function ColumnMenu({
       <button
         onClick={() => setIsOpen(!isOpen)}
         className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-200/50 dark:hover:bg-slate-700/50 transition-all"
-        aria-label="Column options"
+        aria-label={t('columnOptions')}
         aria-expanded={isOpen}
         aria-haspopup="menu"
       >
@@ -72,7 +74,7 @@ export default function ColumnMenu({
               className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
             >
               <ChevronLeftIcon className="w-4 h-4" />
-              Move Left
+              {t('moveLeft')}
             </button>
           )}
           {canMoveRight && (
@@ -81,7 +83,7 @@ export default function ColumnMenu({
               className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
             >
               <ChevronRightIcon className="w-4 h-4" />
-              Move Right
+              {t('moveRight')}
             </button>
           )}
           {hasCards && (
@@ -94,7 +96,7 @@ export default function ColumnMenu({
                 className="w-full px-3 py-2 text-left text-sm text-orange-600 dark:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 flex items-center gap-2"
               >
                 <SparklesIcon className="w-4 h-4" />
-                Clear Cards
+                {t('clearCards')}
               </button>
             </>
           )}
@@ -110,10 +112,10 @@ export default function ColumnMenu({
                   ? 'text-slate-400 cursor-not-allowed'
                   : 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
               }`}
-              title={hasCards ? 'Remove all cards first' : 'Delete column'}
+              title={hasCards ? t('removeCardsFirst') : t('deleteColumn')}
             >
               <TrashIcon className="w-4 h-4" />
-              {hasCards ? 'Has cards' : 'Delete'}
+              {hasCards ? t('hasCards') : t('deleteColumn')}
             </button>
           )}
         </div>

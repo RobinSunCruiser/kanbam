@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { createColumnSchema, updateColumnSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import { addColumn, updateColumn, deleteColumn, reorderColumn } from '../storage/boards';
@@ -11,6 +12,9 @@ import { boardEvents } from '../realtime/events';
  * Adds a new column to the board
  */
 export async function createColumnAction(boardUid: string, formData: FormData) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     title: formData.get('title'),
   };
@@ -19,7 +23,7 @@ export async function createColumnAction(boardUid: string, formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -38,7 +42,7 @@ export async function createColumnAction(boardUid: string, formData: FormData) {
     };
   } catch (error) {
     console.error('Create column error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create column';
+    const errorMessage = error instanceof Error ? error.message : t('failedToCreateColumn');
     return {
       success: false,
       error: errorMessage,
@@ -55,6 +59,9 @@ export async function updateColumnAction(
   columnId: string,
   formData: FormData
 ) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     title: formData.get('title'),
   };
@@ -63,7 +70,7 @@ export async function updateColumnAction(
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -82,7 +89,7 @@ export async function updateColumnAction(
     };
   } catch (error) {
     console.error('Update column error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update column';
+    const errorMessage = error instanceof Error ? error.message : t('failedToUpdateColumn');
     return {
       success: false,
       error: errorMessage,
@@ -95,6 +102,9 @@ export async function updateColumnAction(
  * Removes a column (must be empty)
  */
 export async function deleteColumnAction(boardUid: string, columnId: string) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
@@ -109,7 +119,7 @@ export async function deleteColumnAction(boardUid: string, columnId: string) {
     };
   } catch (error) {
     console.error('Delete column error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete column';
+    const errorMessage = error instanceof Error ? error.message : t('failedToDeleteColumn');
     return {
       success: false,
       error: errorMessage,
@@ -126,6 +136,9 @@ export async function reorderColumnAction(
   columnId: string,
   direction: 'left' | 'right'
 ) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
@@ -141,7 +154,7 @@ export async function reorderColumnAction(
     };
   } catch (error) {
     console.error('Reorder column error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to reorder column';
+    const errorMessage = error instanceof Error ? error.message : t('failedToReorderColumn');
     return {
       success: false,
       error: errorMessage,

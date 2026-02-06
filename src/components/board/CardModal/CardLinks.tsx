@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { CardLink } from '@/types/board';
 import { nanoid } from 'nanoid';
 import { PlusIcon, XIcon, LinkIcon } from '@/components/ui/Icons';
+import { useTranslations } from 'next-intl';
 
 interface CardLinksProps {
   links: CardLink[];
@@ -12,6 +13,8 @@ interface CardLinksProps {
 }
 
 export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProps) {
+  const t = useTranslations('links');
+  const tCommon = useTranslations('common');
   const [isAdding, setIsAdding] = useState(false);
   const [newLinkName, setNewLinkName] = useState('');
   const [newLinkUrl, setNewLinkUrl] = useState('');
@@ -24,7 +27,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
 
   const handleAdd = () => {
     if (!newLinkName.trim() || !newLinkUrl.trim()) {
-      setError('Both fields required');
+      setError(t('bothFieldsRequired'));
       return;
     }
     let url = newLinkUrl.trim();
@@ -32,7 +35,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
     try {
       new URL(url);
     } catch {
-      setError('Invalid URL');
+      setError(t('invalidUrl'));
       return;
     }
     onChange([...links, { id: nanoid(), name: newLinkName.trim(), url }]);
@@ -52,12 +55,12 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
-        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Links</h3>
+        <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('title')}</h3>
         {!isReadOnly && !isAdding && (
           <button
             onClick={() => setIsAdding(true)}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-            aria-label="Add link"
+            aria-label={t('addLink')}
           >
             <PlusIcon />
           </button>
@@ -81,7 +84,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
                 <button
                   onClick={() => onChange(links.filter(l => l.id !== link.id))}
                   className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
-                  aria-label={`Remove link "${link.name}"`}
+                  aria-label={t('removeLink', { name: link.name })}
                 >
                   <XIcon className="w-3.5 h-3.5" />
                 </button>
@@ -98,7 +101,7 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
             type="text"
             value={newLinkName}
             onChange={(e) => setNewLinkName(e.target.value)}
-            placeholder="Link name"
+            placeholder={t('namePlaceholder')}
             className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
           <input
@@ -106,13 +109,13 @@ export default function CardLinks({ links, isReadOnly, onChange }: CardLinksProp
             value={newLinkUrl}
             onChange={(e) => setNewLinkUrl(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') handleCancel(); }}
-            placeholder="URL"
+            placeholder={t('urlPlaceholder')}
             className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
           {error && <p className="text-xs text-red-500">{error}</p>}
           <div className="flex gap-2 justify-end">
-            <button onClick={handleCancel} className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700">Cancel</button>
-            <button onClick={handleAdd} className="px-3 py-1 text-sm text-orange-500 hover:text-orange-600 font-medium">Add</button>
+            <button onClick={handleCancel} className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700">{tCommon('cancel')}</button>
+            <button onClick={handleAdd} className="px-3 py-1 text-sm text-orange-500 hover:text-orange-600 font-medium">{tCommon('add')}</button>
           </div>
         </div>
       )}

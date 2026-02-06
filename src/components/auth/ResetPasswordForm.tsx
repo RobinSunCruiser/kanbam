@@ -1,7 +1,8 @@
 'use client';
 
 import { useTransition, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
+import { useTranslations, useLocale } from 'next-intl';
 import { resetPasswordAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -11,12 +12,15 @@ interface ResetPasswordFormProps {
 }
 
 export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
+  const t = useTranslations('authForm');
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
   const router = useRouter();
 
   const handleSubmit = async (formData: FormData) => {
     setError('');
+    formData.append('locale', locale);
 
     startTransition(async () => {
       const result = await resetPasswordAction(token, formData);
@@ -33,9 +37,9 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
     <form action={handleSubmit} className="space-y-4">
       <Input
         type="password"
-        label="New Password"
+        label={t('newPasswordLabel')}
         name="password"
-        placeholder="••••••••"
+        placeholder={t('passwordPlaceholder')}
         required
         autoComplete="new-password"
         minLength={8}
@@ -48,7 +52,7 @@ export default function ResetPasswordForm({ token }: ResetPasswordFormProps) {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Resetting...' : 'Reset password'}
+        {isPending ? t('resetting') : t('resetPassword')}
       </Button>
     </form>
   );

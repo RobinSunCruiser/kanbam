@@ -1,7 +1,8 @@
 'use server';
 
-import { redirect } from 'next/navigation';
 import { revalidatePath } from 'next/cache';
+import { getLocale, getTranslations } from 'next-intl/server';
+import { redirect } from '@/i18n/navigation';
 import { loginSchema, signupSchema, forgotPasswordSchema, resetPasswordSchema } from '../validation/schemas';
 import { verifyPassword, hashPassword } from '../auth/password';
 import { setTokenCookie, clearTokenCookie } from '../auth/session';
@@ -16,6 +17,9 @@ import { verifyEmailToken } from '../email/tokens';
  * Authenticates a user and creates a session
  */
 export async function loginAction(formData: FormData) {
+  const locale = (formData.get('locale') as string) || (await getLocale());
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     email: formData.get('email'),
     password: formData.get('password'),
@@ -26,7 +30,7 @@ export async function loginAction(formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('genericError'),
     };
   }
 
@@ -38,7 +42,7 @@ export async function loginAction(formData: FormData) {
     if (!user) {
       return {
         success: false,
-        error: 'Invalid email or password',
+        error: t('invalidCredentials'),
       };
     }
 
@@ -47,7 +51,7 @@ export async function loginAction(formData: FormData) {
     if (!isValid) {
       return {
         success: false,
-        error: 'Invalid email or password',
+        error: t('invalidCredentials'),
       };
     }
 
@@ -56,7 +60,7 @@ export async function loginAction(formData: FormData) {
       await trySendVerificationEmail(user);
       return {
         success: false,
-        error: 'Please verify your email. A new verification link has been sent.',
+        error: t('verifyEmail'),
       };
     }
 
@@ -69,11 +73,11 @@ export async function loginAction(formData: FormData) {
     console.error('Login error:', error);
     return {
       success: false,
-      error: 'An error occurred. Please try again.',
+      error: t('genericError'),
     };
   }
 
-  redirect('/dashboard');
+  redirect({ href: '/dashboard', locale });
 }
 
 /**
@@ -81,6 +85,9 @@ export async function loginAction(formData: FormData) {
  * Creates a new user account and sends verification email
  */
 export async function signupAction(formData: FormData) {
+  const locale = (formData.get('locale') as string) || (await getLocale());
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     name: formData.get('name'),
     email: formData.get('email'),
@@ -92,7 +99,7 @@ export async function signupAction(formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('genericError'),
     };
   }
 
@@ -104,7 +111,7 @@ export async function signupAction(formData: FormData) {
     if (existingUser) {
       return {
         success: false,
-        error: 'Email already registered',
+        error: t('emailAlreadyRegistered'),
       };
     }
 
@@ -118,12 +125,12 @@ export async function signupAction(formData: FormData) {
     console.error('Signup error:', error);
     return {
       success: false,
-      error: 'An error occurred. Please try again.',
+      error: t('genericError'),
     };
   }
 
   // Redirect to check email page
-  redirect('/check-email');
+  redirect({ href: '/check-email', locale });
 }
 
 /**
@@ -131,6 +138,9 @@ export async function signupAction(formData: FormData) {
  * Clears the user's session and redirects to home
  */
 export async function logoutAction() {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     await clearTokenCookie();
     revalidatePath('/');
@@ -138,11 +148,11 @@ export async function logoutAction() {
     console.error('Logout error:', error);
     return {
       success: false,
-      error: 'Failed to logout',
+      error: t('failedToLogout'),
     };
   }
 
-  redirect('/');
+  redirect({ href: '/', locale });
 }
 
 /**
@@ -150,12 +160,15 @@ export async function logoutAction() {
  * Verifies user email using token from URL
  */
 export async function verifyEmailAction(token: string) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const payload = await verifyEmailToken(token, 'verify');
     if (!payload) {
       return {
         success: false,
-        error: 'Invalid or expired verification link',
+        error: t('invalidVerificationLink'),
       };
     }
 
@@ -163,14 +176,14 @@ export async function verifyEmailAction(token: string) {
     if (!user) {
       return {
         success: false,
-        error: 'User not found',
+        error: t('userNotFound'),
       };
     }
 
     if (user.emailVerified) {
       return {
         success: true,
-        message: 'Email already verified',
+        message: t('emailAlreadyVerified'),
       };
     }
 
@@ -178,13 +191,13 @@ export async function verifyEmailAction(token: string) {
 
     return {
       success: true,
-      message: 'Email verified successfully',
+      message: t('emailVerifiedSuccess'),
     };
   } catch (error) {
     console.error('Verify email error:', error);
     return {
       success: false,
-      error: 'An error occurred. Please try again.',
+      error: t('genericError'),
     };
   }
 }
@@ -194,6 +207,9 @@ export async function verifyEmailAction(token: string) {
  * Sends password reset email if user exists
  */
 export async function forgotPasswordAction(formData: FormData) {
+  const locale = (formData.get('locale') as string) || (await getLocale());
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     email: formData.get('email'),
   };
@@ -202,7 +218,7 @@ export async function forgotPasswordAction(formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('genericError'),
     };
   }
 
@@ -218,13 +234,13 @@ export async function forgotPasswordAction(formData: FormData) {
 
     return {
       success: true,
-      message: 'If an account exists, a password reset link has been sent.',
+      message: t('resetLinkSent'),
     };
   } catch (error) {
     console.error('Forgot password error:', error);
     return {
       success: false,
-      error: 'An error occurred. Please try again.',
+      error: t('genericError'),
     };
   }
 }
@@ -234,6 +250,9 @@ export async function forgotPasswordAction(formData: FormData) {
  * Resets user password using token
  */
 export async function resetPasswordAction(token: string, formData: FormData) {
+  const locale = (formData.get('locale') as string) || (await getLocale());
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     password: formData.get('password'),
   };
@@ -242,7 +261,7 @@ export async function resetPasswordAction(token: string, formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('genericError'),
     };
   }
 
@@ -253,7 +272,7 @@ export async function resetPasswordAction(token: string, formData: FormData) {
     if (!payload) {
       return {
         success: false,
-        error: 'Invalid or expired reset link',
+        error: t('invalidResetLink'),
       };
     }
 
@@ -261,7 +280,7 @@ export async function resetPasswordAction(token: string, formData: FormData) {
     if (!user) {
       return {
         success: false,
-        error: 'User not found',
+        error: t('userNotFound'),
       };
     }
 
@@ -270,13 +289,13 @@ export async function resetPasswordAction(token: string, formData: FormData) {
 
     return {
       success: true,
-      message: 'Password reset successfully',
+      message: t('passwordResetSuccess'),
     };
   } catch (error) {
     console.error('Reset password error:', error);
     return {
       success: false,
-      error: 'An error occurred. Please try again.',
+      error: t('genericError'),
     };
   }
 }
@@ -286,6 +305,9 @@ export async function resetPasswordAction(token: string, formData: FormData) {
  * Removes user from all boards and deletes account
  */
 export async function deleteAccountAction() {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
 
@@ -305,9 +327,9 @@ export async function deleteAccountAction() {
     console.error('Delete account error:', error);
     return {
       success: false,
-      error: 'Failed to delete account',
+      error: t('failedToDeleteAccount'),
     };
   }
 
-  redirect('/');
+  redirect({ href: '/', locale });
 }

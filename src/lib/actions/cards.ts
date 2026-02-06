@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { createCardSchema, updateCardSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import { addCard, updateCard, deleteCard, loadBoard } from '../storage/boards';
@@ -12,6 +13,9 @@ import { boardEvents } from '../realtime/events';
  * Creates a new card in the specified column
  */
 export async function createCardAction(boardUid: string, formData: FormData) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     title: formData.get('title'),
     description: formData.get('description'),
@@ -23,7 +27,7 @@ export async function createCardAction(boardUid: string, formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -46,7 +50,7 @@ export async function createCardAction(boardUid: string, formData: FormData) {
     };
   } catch (error) {
     console.error('Create card error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create card';
+    const errorMessage = error instanceof Error ? error.message : t('failedToCreateCard');
     return {
       success: false,
       error: errorMessage,
@@ -73,12 +77,15 @@ export async function updateCardAction(
     activity?: Array<{ id: string; text: string; createdBy: string; createdAt: string }>;
   }
 ) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   // Validate input
   const validation = updateCardSchema.safeParse(updates);
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -100,7 +107,7 @@ export async function updateCardAction(
     };
   } catch (error) {
     console.error('Update card error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update card';
+    const errorMessage = error instanceof Error ? error.message : t('failedToUpdateCard');
     return {
       success: false,
       error: errorMessage,
@@ -113,6 +120,9 @@ export async function updateCardAction(
  * Removes a card from the board
  */
 export async function deleteCardAction(boardUid: string, cardId: string) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
@@ -127,7 +137,7 @@ export async function deleteCardAction(boardUid: string, cardId: string) {
     };
   } catch (error) {
     console.error('Delete card error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete card';
+    const errorMessage = error instanceof Error ? error.message : t('failedToDeleteCard');
     return {
       success: false,
       error: errorMessage,
@@ -143,10 +153,13 @@ export async function sendAssignmentEmailAction(
   cardTitle: string,
   assigneeEmail: string
 ) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
     const board = await loadBoard(boardUid);
-    if (!board) return { success: false, error: 'Board not found' };
+    if (!board) return { success: false, error: t('boardNotFound') };
 
     await sendCardAssignmentEmail(
       assigneeEmail,
@@ -159,6 +172,6 @@ export async function sendAssignmentEmailAction(
     return { success: true };
   } catch (error) {
     console.error('Send assignment email error:', error);
-    return { success: false, error: 'Failed to send email' };
+    return { success: false, error: t('failedToSendEmail') };
   }
 }

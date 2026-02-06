@@ -13,41 +13,10 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "KanBam - Kanban Board",
-  description: "A collaborative Kanban board for teams and individuals to manage tasks efficiently",
-  authors: [{ name: "Dr.-Ing. Robin Nicolay", url: "https://robinnicolay.de" }],
-  keywords: [
-    "Kanban",
-    "Kanban board",
-    "task management",
-    "project management",
-    "collaboration",
-    "team productivity",
-    "agile",
-    "workflow",
-  ],
   metadataBase: new URL("https://kanbam.de"),
-  openGraph: {
-    title: "KanBam - Kanban Board",
-    description: "A collaborative Kanban board for teams and individuals to manage tasks efficiently",
-    url: "https://kanbam.de",
-    siteName: "KanBam",
-    locale: "en_US",
-    type: "website",
-    images: [
-      {
-        url: "/og-image.png",
-        width: 1200,
-        height: 630,
-        alt: "KanBam - Kanban Board",
-      },
-    ],
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "KanBam - Kanban Board",
-    description: "A collaborative Kanban board for teams and individuals to manage tasks efficiently",
-    images: ["/og-image.png"],
+  icons: {
+    icon: "/favicon.png",
+    apple: "/apple-touch-icon.png",
   },
   robots: {
     index: true,
@@ -60,10 +29,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  icons: {
-    icon: "/favicon.png",
-    apple: "/apple-touch-icon.png",
-  },
 };
 
 export default function RootLayout({
@@ -72,7 +37,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased relative min-h-screen`}
       >

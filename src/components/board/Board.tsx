@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import {
   DndContext,
   DragEndEvent,
@@ -27,6 +27,7 @@ import CardModal from './CardModal/index';
 import AlertDialog from '../ui/AlertDialog';
 import { PlusIcon } from '../ui/Icons';
 import { useBoardSync } from '@/lib/hooks/useBoardSync';
+import { useTranslations } from 'next-intl';
 
 interface BoardProps {
   initialBoard: BoardType;
@@ -36,6 +37,7 @@ interface BoardProps {
 
 export default function Board({ initialBoard, userPrivilege, userEmail }: BoardProps) {
   const router = useRouter();
+  const t = useTranslations('board');
   const [board, setBoard] = useState(initialBoard);
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -402,8 +404,8 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
         );
 
         setErrorAlert({
-          title: 'Move Failed',
-          message: result.error || 'Failed to move card.',
+          title: t('moveFailed'),
+          message: result.error || t('moveFailedMessage'),
         });
       }
     } catch (error) {
@@ -418,8 +420,8 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       );
 
       setErrorAlert({
-        title: 'Move Failed',
-        message: 'Failed to move card. Please try again.',
+        title: t('moveFailed'),
+        message: t('moveFailedRetry'),
       });
     }
   };
@@ -451,7 +453,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     if (result?.error) {
       router.refresh();
       setErrorAlert({
-        title: 'Update Failed',
+        title: t('updateFailed'),
         message: result.error,
       });
     }
@@ -473,7 +475,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     if (result?.error) {
       router.refresh();
       setErrorAlert({
-        title: 'Delete Failed',
+        title: t('deleteFailed'),
         message: result.error,
       });
     }
@@ -481,13 +483,13 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
   const handleAddColumn = async () => {
     const formData = new FormData();
-    formData.append('title', 'New Column');
+    formData.append('title', t('newColumn'));
 
     const result = await createColumnAction(board.uid, formData);
 
     if (result?.error) {
       setErrorAlert({
-        title: 'Create Failed',
+        title: t('createFailed'),
         message: result.error,
       });
     } else if (result?.column) {
@@ -521,7 +523,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     if (result?.error) {
       router.refresh();
       setErrorAlert({
-        title: 'Reorder Failed',
+        title: t('reorderFailed'),
         message: result.error,
       });
     }
@@ -549,7 +551,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     if (result?.error) {
       router.refresh();
       setErrorAlert({
-        title: 'Reorder Failed',
+        title: t('reorderFailed'),
         message: result.error,
       });
     }
@@ -564,7 +566,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
             className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
           >
             <PlusIcon className="w-3.5 h-3.5" />
-            Add Column
+            {t('addColumn')}
           </button>
         </div>
       )}

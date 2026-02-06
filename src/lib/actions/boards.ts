@@ -1,6 +1,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { createBoardSchema, updateBoardSchema, addMemberSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import {
@@ -19,6 +20,9 @@ import { boardEvents } from '../realtime/events';
  * Creates a new board for the authenticated user
  */
 export async function createBoardAction(formData: FormData) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     title: formData.get('title'),
     description: formData.get('description'),
@@ -29,7 +33,7 @@ export async function createBoardAction(formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -52,7 +56,7 @@ export async function createBoardAction(formData: FormData) {
     };
   } catch (error) {
     console.error('Create board error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to create board';
+    const errorMessage = error instanceof Error ? error.message : t('failedToCreateBoard');
     return {
       success: false,
       error: errorMessage,
@@ -65,6 +69,9 @@ export async function createBoardAction(formData: FormData) {
  * Updates board metadata (title, description)
  */
 export async function updateBoardAction(boardUid: string, formData: FormData) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const toOptionalString = (value: FormDataEntryValue | null) =>
     value === null ? undefined : String(value);
 
@@ -78,7 +85,7 @@ export async function updateBoardAction(boardUid: string, formData: FormData) {
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -103,7 +110,7 @@ export async function updateBoardAction(boardUid: string, formData: FormData) {
     };
   } catch (error) {
     console.error('Update board error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to update board';
+    const errorMessage = error instanceof Error ? error.message : t('failedToUpdateBoard');
     return {
       success: false,
       error: errorMessage,
@@ -116,6 +123,9 @@ export async function updateBoardAction(boardUid: string, formData: FormData) {
  * Deletes a board and all its data
  */
 export async function deleteBoardAction(boardUid: string) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
     await requireBoardAccess(user, boardUid, 'write');
@@ -129,7 +139,7 @@ export async function deleteBoardAction(boardUid: string) {
     };
   } catch (error) {
     console.error('Delete board error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to delete board';
+    const errorMessage = error instanceof Error ? error.message : t('failedToDeleteBoard');
     return {
       success: false,
       error: errorMessage,
@@ -142,6 +152,9 @@ export async function deleteBoardAction(boardUid: string) {
  * Invites a member to the board with specified privileges
  */
 export async function addBoardMemberAction(boardUid: string, formData: FormData) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   const rawData = {
     email: formData.get('email'),
     privilege: formData.get('privilege'),
@@ -152,7 +165,7 @@ export async function addBoardMemberAction(boardUid: string, formData: FormData)
   if (!validation.success) {
     return {
       success: false,
-      error: validation.error.issues[0]?.message || 'Invalid input',
+      error: validation.error.issues[0]?.message || t('invalidInput'),
     };
   }
 
@@ -170,7 +183,7 @@ export async function addBoardMemberAction(boardUid: string, formData: FormData)
     };
   } catch (error) {
     console.error('Add member error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to add member';
+    const errorMessage = error instanceof Error ? error.message : t('failedToAddMember');
     return {
       success: false,
       error: errorMessage,
@@ -184,6 +197,9 @@ export async function addBoardMemberAction(boardUid: string, formData: FormData)
  * Authorization: Users can remove themselves, or users with write access can remove others (except the owner)
  */
 export async function removeBoardMemberAction(boardUid: string, email: string) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
   try {
     const user = await requireAuth();
     const isSelfRemoval = user.email.toLowerCase() === email.toLowerCase();
@@ -195,12 +211,12 @@ export async function removeBoardMemberAction(boardUid: string, email: string) {
       // Prevent removing the board owner
       const board = await loadBoard(boardUid);
       if (!board) {
-        throw new Error('Board not found');
+        throw new Error(t('boardNotFound'));
       }
 
       const owner = await getUserById(board.ownerId);
       if (owner && owner.email.toLowerCase() === email.toLowerCase()) {
-        throw new Error('Cannot remove board owner. The owner must leave the board themselves.');
+        throw new Error(t('cannotRemoveOwner'));
       }
     }
     // Self-removal always allowed (users can leave any board they're a member of)
@@ -216,7 +232,7 @@ export async function removeBoardMemberAction(boardUid: string, email: string) {
     };
   } catch (error) {
     console.error('Remove member error:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to remove member';
+    const errorMessage = error instanceof Error ? error.message : t('failedToRemoveMember');
     return {
       success: false,
       error: errorMessage,

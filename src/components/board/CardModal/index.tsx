@@ -13,6 +13,7 @@ import CardDeadline from './CardDeadline';
 import CardAssignee from './CardAssignee';
 import CardActivity from './CardActivity';
 import { sendAssignmentEmailAction } from '@/lib/actions/cards';
+import { useTranslations } from 'next-intl';
 
 interface CardModalProps {
   card: Card | null;
@@ -57,6 +58,8 @@ export default function CardModal({
   onCreate,
   columnId,
 }: CardModalProps) {
+  const t = useTranslations('card');
+  const tCommon = useTranslations('common');
   const isCreateMode = !card && onCreate && columnId;
 
   // Form state
@@ -199,7 +202,7 @@ export default function CardModal({
   // Handle create mode submission
   const handleCreate = async () => {
     if (!title.trim()) {
-      setError('Title is required');
+      setError(t('titleRequired'));
       return;
     }
 
@@ -216,7 +219,7 @@ export default function CardModal({
         onClose();
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create card';
+      const errorMessage = err instanceof Error ? err.message : t('createFailed');
       setError(errorMessage);
     } finally {
       setIsSaving(false);
@@ -238,7 +241,7 @@ export default function CardModal({
       await onDelete(card.id);
       onClose();
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to delete card';
+      const errorMessage = err instanceof Error ? err.message : t('deleteFailed');
       setError(errorMessage);
       setIsSaving(false);
     }
@@ -249,7 +252,7 @@ export default function CardModal({
       type="text"
       value={title}
       onChange={(e) => setTitle(e.target.value)}
-      placeholder="Card title"
+      placeholder={t('cardTitlePlaceholder')}
       disabled={isReadOnly}
       className="w-full text-xl font-semibold bg-transparent text-slate-800 dark:text-slate-100 placeholder:text-slate-400 border-none outline-none"
     />
@@ -259,7 +262,7 @@ export default function CardModal({
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={isCreateMode ? 'Create Card' : undefined}
+      title={isCreateMode ? t('createCard') : undefined}
       header={headerContent}
     >
       <div className="space-y-5">
@@ -267,7 +270,7 @@ export default function CardModal({
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Card title"
+            placeholder={t('cardTitlePlaceholder')}
             variant="seamless"
             className="text-xl font-semibold"
             required
@@ -277,7 +280,7 @@ export default function CardModal({
         <Textarea
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Add a description..."
+          placeholder={t('descriptionPlaceholder')}
           rows={1}
           disabled={isReadOnly}
           variant="seamless"
@@ -319,12 +322,12 @@ export default function CardModal({
                 disabled={isSaving}
                 className="text-sm text-slate-400 hover:text-red-500 transition-colors disabled:opacity-50"
               >
-                Delete
+                {tCommon('delete')}
               </button>
             )}
             {card && (
               <span className="text-xs text-slate-400">
-                Created {new Date(card.createdAt).toLocaleDateString()}
+                {t('created', { date: new Date(card.createdAt).toLocaleDateString() })}
               </span>
             )}
           </div>
@@ -335,11 +338,11 @@ export default function CardModal({
               disabled={isSaving}
               className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
             >
-              Close
+              {tCommon('close')}
             </button>
             {isCreateMode && (
               <Button type="button" onClick={handleCreate} disabled={isSaving || !title.trim()}>
-                {isSaving ? 'Creating...' : 'Create'}
+                {isSaving ? t('creating') : tCommon('create')}
               </Button>
             )}
           </div>
@@ -349,11 +352,11 @@ export default function CardModal({
       {showDeleteConfirm && (
         <ConfirmDialog
           isOpen={true}
-          title="Delete Card"
-          message="Are you sure you want to delete this card? This action cannot be undone."
+          title={t('deleteCardTitle')}
+          message={t('deleteCardConfirm')}
           variant="danger"
-          confirmText="Delete"
-          cancelText="Cancel"
+          confirmText={tCommon('delete')}
+          cancelText={tCommon('cancel')}
           onConfirm={handleDeleteConfirm}
           onCancel={() => setShowDeleteConfirm(false)}
         />

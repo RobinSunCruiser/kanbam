@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { ChecklistItem } from '@/types/board';
 import { nanoid } from 'nanoid';
 import { PlusIcon, XIcon, CheckIcon, CircleIcon } from '@/components/ui/Icons';
+import { useTranslations } from 'next-intl';
 
 interface CardChecklistProps {
   items: ChecklistItem[];
@@ -12,6 +13,8 @@ interface CardChecklistProps {
 }
 
 export default function CardChecklist({ items, isReadOnly, onChange }: CardChecklistProps) {
+  const t = useTranslations('checklist');
+  const tCommon = useTranslations('common');
   const [isAdding, setIsAdding] = useState(false);
   const [newItemText, setNewItemText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
@@ -42,7 +45,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">Checklist</h3>
+          <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('title')}</h3>
           {items.length > 0 && (
             <span className="text-xs text-slate-400 bg-slate-100 dark:bg-slate-700/50 px-1.5 py-0.5 rounded">
               {checkedCount}/{items.length}
@@ -53,7 +56,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
           <button
             onClick={() => setIsAdding(true)}
             className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-            aria-label="Add checklist item"
+            aria-label={t('addItem')}
           >
             <PlusIcon />
           </button>
@@ -90,7 +93,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
                 <button
                   onClick={(e) => { e.stopPropagation(); onChange(items.filter(i => i.id !== item.id)); }}
                   className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
-                  aria-label={`Remove "${item.text}"`}
+                  aria-label={t('removeItem', { text: item.text })}
                 >
                   <XIcon className="w-3.5 h-3.5" />
                 </button>
@@ -108,12 +111,12 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
             value={newItemText}
             onChange={(e) => setNewItemText(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') handleCancel(); }}
-            placeholder="Add checklist item..."
+            placeholder={t('itemPlaceholder')}
             className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
           <div className="flex gap-2 justify-end">
-            <button onClick={handleCancel} className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700">Cancel</button>
-            <button onClick={handleAdd} disabled={!newItemText.trim()} className="px-3 py-1 text-sm text-orange-500 hover:text-orange-600 font-medium disabled:opacity-50">Add</button>
+            <button onClick={handleCancel} className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700">{tCommon('cancel')}</button>
+            <button onClick={handleAdd} disabled={!newItemText.trim()} className="px-3 py-1 text-sm text-orange-500 hover:text-orange-600 font-medium disabled:opacity-50">{tCommon('add')}</button>
           </div>
         </div>
       )}

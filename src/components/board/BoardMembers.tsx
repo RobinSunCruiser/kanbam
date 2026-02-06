@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { Board } from '@/types/board';
 import { addBoardMemberAction, removeBoardMemberAction } from '@/lib/actions/boards';
 import Button from '../ui/Button';
@@ -10,6 +10,7 @@ import Modal from '../ui/Modal';
 import ConfirmDialog from '../ui/ConfirmDialog';
 import AlertDialog from '../ui/AlertDialog';
 import { UsersIcon } from '../ui/Icons';
+import { useTranslations } from 'next-intl';
 
 interface BoardMembersProps {
   board: Board;
@@ -23,6 +24,8 @@ export default function BoardMembers({
   userPrivilege,
 }: BoardMembersProps) {
   const router = useRouter();
+  const t = useTranslations('members');
+  const tCommon = useTranslations('common');
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
@@ -61,7 +64,7 @@ export default function BoardMembers({
       setShowInviteModal(false);
       router.refresh();
     } catch {
-      setError('An error occurred. Please try again.');
+      setError(t('genericError'));
     } finally {
       setLoading(false);
     }
@@ -69,8 +72,8 @@ export default function BoardMembers({
 
   const handleLeaveBoard = () => {
     setConfirmDialog({
-      title: 'Leave Board',
-      message: 'Are you sure you want to leave this board?',
+      title: t('leaveBoard'),
+      message: t('leaveBoardConfirmMessage'),
       onConfirm: async () => {
         setConfirmDialog(null);
         setLoading(true);
@@ -80,7 +83,7 @@ export default function BoardMembers({
 
           if (result?.error) {
             setAlertDialog({
-              title: 'Error',
+              title: tCommon('error'),
               message: result.error,
             });
             setLoading(false);
@@ -90,8 +93,8 @@ export default function BoardMembers({
           router.push('/dashboard');
         } catch {
           setAlertDialog({
-            title: 'Error',
-            message: 'An error occurred. Please try again.',
+            title: tCommon('error'),
+            message: t('genericError'),
           });
           setLoading(false);
         }
@@ -101,8 +104,8 @@ export default function BoardMembers({
 
   const handleRemoveMember = (email: string) => {
     setConfirmDialog({
-      title: 'Remove Member',
-      message: `Remove ${email} from this board?`,
+      title: t('removeMember'),
+      message: t('removeMemberConfirm', { email }),
       onConfirm: async () => {
         setConfirmDialog(null);
         setLoading(true);
@@ -112,7 +115,7 @@ export default function BoardMembers({
 
           if (result?.error) {
             setAlertDialog({
-              title: 'Error',
+              title: tCommon('error'),
               message: result.error,
             });
             setLoading(false);
@@ -122,8 +125,8 @@ export default function BoardMembers({
           router.refresh();
         } catch {
           setAlertDialog({
-            title: 'Error',
-            message: 'An error occurred. Please try again.',
+            title: tCommon('error'),
+            message: t('genericError'),
           });
         } finally {
           setLoading(false);
@@ -138,10 +141,10 @@ export default function BoardMembers({
       <button
         onClick={() => setShowMembersModal(true)}
         className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-        aria-label={`View ${board.members.length} board members`}
+        aria-label={t('viewMembers', { count: board.members.length })}
       >
         <UsersIcon />
-        <span>Members</span>
+        <span>{t('title')}</span>
         <span className="ml-1 px-2 py-0.5 text-xs font-semibold bg-slate-200 dark:bg-slate-700 rounded-full">
           {board.members.length}
         </span>
@@ -151,7 +154,7 @@ export default function BoardMembers({
       <Modal
         isOpen={showMembersModal}
         onClose={() => setShowMembersModal(false)}
-        title="Board Members"
+        title={t('boardMembers')}
       >
         <div className="space-y-4">
           {/* Member List */}
@@ -166,12 +169,12 @@ export default function BoardMembers({
                     {member.email}
                     {member.email.toLowerCase() === userEmail.toLowerCase() && (
                       <span className="ml-2 text-xs text-orange-600 dark:text-orange-400 font-normal">
-                        (you)
+                        {t('you')}
                       </span>
                     )}
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-400">
-                    {member.privilege === 'write' ? 'Can edit' : 'Read only'}
+                    {member.privilege === 'write' ? t('canEdit') : t('readOnly')}
                   </p>
                 </div>
                 {userPrivilege === 'write' &&
@@ -180,9 +183,9 @@ export default function BoardMembers({
                       onClick={() => handleRemoveMember(member.email)}
                       disabled={loading}
                       className="ml-3 px-3 py-1 text-xs font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors disabled:opacity-50"
-                      aria-label={`Remove ${member.email} from board`}
+                      aria-label={t('removeMember', { email: member.email })}
                     >
-                      Remove
+                      {t('remove')}
                     </button>
                   )}
               </div>
@@ -199,7 +202,7 @@ export default function BoardMembers({
                 }}
                 className="flex-1"
               >
-                Invite Member
+                {t('inviteMember')}
               </Button>
             )}
             <Button
@@ -208,7 +211,7 @@ export default function BoardMembers({
               disabled={loading}
               className="flex-1"
             >
-              Leave Board
+              {t('leaveBoard')}
             </Button>
           </div>
         </div>
@@ -218,21 +221,21 @@ export default function BoardMembers({
       <Modal
         isOpen={showInviteModal}
         onClose={() => setShowInviteModal(false)}
-        title="Invite Member"
+        title={t('inviteMember')}
       >
         <div className="space-y-4">
           <Input
             type="email"
-            label="Email Address"
+            label={t('emailLabel')}
             value={inviteEmail}
             onChange={(e) => setInviteEmail(e.target.value)}
-            placeholder="user@example.com"
+            placeholder={t('emailPlaceholder')}
             required
           />
 
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-              Access Level
+              {t('accessLevel')}
             </label>
             <div className="space-y-2">
               <label className="flex items-center p-3 bg-slate-50 dark:bg-slate-700 rounded-lg cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-600 transition-colors">
@@ -245,10 +248,10 @@ export default function BoardMembers({
                 />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                    Read only
+                    {t('readOnly')}
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-400">
-                    Can view cards but not edit
+                    {t('readOnlyDescription')}
                   </p>
                 </div>
               </label>
@@ -262,10 +265,10 @@ export default function BoardMembers({
                 />
                 <div className="ml-3">
                   <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
-                    Can edit
+                    {t('canEdit')}
                   </p>
                   <p className="text-xs text-slate-600 dark:text-slate-400">
-                    Full access to add, edit, and delete cards
+                    {t('canEditDescription')}
                   </p>
                 </div>
               </label>
@@ -284,10 +287,10 @@ export default function BoardMembers({
               variant="secondary"
               disabled={loading}
             >
-              Cancel
+              {tCommon('cancel')}
             </Button>
             <Button onClick={handleInvite} disabled={loading || !inviteEmail.trim()}>
-              {loading ? 'Inviting...' : 'Send Invite'}
+              {loading ? t('inviting') : t('sendInvite')}
             </Button>
           </div>
         </div>
@@ -299,8 +302,8 @@ export default function BoardMembers({
           title={confirmDialog.title}
           message={confirmDialog.message}
           variant="danger"
-          confirmText="Confirm"
-          cancelText="Cancel"
+          confirmText={tCommon('confirm')}
+          cancelText={tCommon('cancel')}
           onConfirm={confirmDialog.onConfirm}
           onCancel={() => setConfirmDialog(null)}
         />

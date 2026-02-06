@@ -3,6 +3,7 @@
 import { useState, useTransition, useCallback } from 'react';
 import { updateBoardAction } from '@/lib/actions/boards';
 import { useInlineEdit } from '@/lib/hooks/useInlineEdit';
+import { useTranslations } from 'next-intl';
 
 interface BoardHeaderProps {
   boardUid: string;
@@ -23,6 +24,7 @@ export default function BoardHeader({
   description,
   isReadOnly,
 }: BoardHeaderProps) {
+  const t = useTranslations('board');
   const [error, setError] = useState('');
   const [isPending, startTransition] = useTransition();
 
@@ -98,7 +100,7 @@ export default function BoardHeader({
             onKeyDown={handleTitleKeyDown}
             disabled={isReadOnly || isPending}
             className="text-xl font-semibold bg-transparent text-slate-900 dark:text-slate-100 placeholder:text-slate-400 border-b-2 border-orange-400 outline-none"
-            placeholder="Board title"
+            placeholder={t('boardTitlePlaceholder')}
             aria-label="Board title"
           />
         ) : (
@@ -109,7 +111,7 @@ export default function BoardHeader({
             className={`text-xl font-semibold text-slate-900 dark:text-slate-100 ${
               isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
             }`}
-            title={isReadOnly ? title : 'Click to edit'}
+            title={isReadOnly ? title : t('clickToEdit')}
           >
             {titleValue}
           </h1>
@@ -125,7 +127,7 @@ export default function BoardHeader({
             onKeyDown={handleDescriptionKeyDown}
             disabled={isReadOnly || isPending}
             className="flex-1 min-w-32 text-sm text-slate-500 dark:text-slate-400 bg-transparent border-b border-orange-400 outline-none"
-            placeholder="Add a description..."
+            placeholder={t('boardDescriptionPlaceholder')}
             aria-label="Board description"
           />
         ) : (
@@ -136,9 +138,9 @@ export default function BoardHeader({
             className={`text-sm text-slate-500 dark:text-slate-400 ${
               isReadOnly ? '' : 'cursor-text hover:text-orange-600 dark:hover:text-orange-400'
             }`}
-            title={isReadOnly ? (descriptionValue || '') : 'Click to edit'}
+            title={isReadOnly ? (descriptionValue || '') : t('clickToEdit')}
           >
-            {descriptionValue || (!isReadOnly ? 'Add description...' : '')}
+            {descriptionValue || (!isReadOnly ? t('descriptionPlaceholder') : '')}
           </p>
         )}
       </div>

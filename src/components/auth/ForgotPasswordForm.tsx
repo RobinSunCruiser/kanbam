@@ -1,17 +1,21 @@
 'use client';
 
 import { useTransition, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { forgotPasswordAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 export default function ForgotPasswordForm() {
+  const t = useTranslations('authForm');
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (formData: FormData) => {
     setError('');
+    formData.append('locale', locale);
     setSuccess(false);
 
     startTransition(async () => {
@@ -39,7 +43,7 @@ export default function ForgotPasswordForm() {
           </svg>
         </div>
         <p className="text-gray-600 dark:text-gray-400">
-          If an account exists with that email, we&apos;ve sent a password reset link.
+          {t('resetLinkSent')}
         </p>
       </div>
     );
@@ -49,9 +53,9 @@ export default function ForgotPasswordForm() {
     <form action={handleSubmit} className="space-y-4">
       <Input
         type="email"
-        label="Email"
+        label={t('emailLabel')}
         name="email"
-        placeholder="you@example.com"
+        placeholder={t('emailPlaceholder')}
         required
         autoComplete="email"
       />
@@ -63,7 +67,7 @@ export default function ForgotPasswordForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Sending...' : 'Send reset link'}
+        {isPending ? t('sending') : t('sendResetLink')}
       </Button>
     </form>
   );

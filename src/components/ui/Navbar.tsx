@@ -1,17 +1,21 @@
 'use client';
 
-import Link from 'next/link';
 import Image from 'next/image';
 import { useTransition, useState, useRef, useEffect } from 'react';
+import { useTranslations } from 'next-intl';
+import { Link } from '@/i18n/navigation';
 import { logoutAction, deleteAccountAction } from '@/lib/actions/auth';
 import Button from './Button';
 import ConfirmDialog from './ConfirmDialog';
+import LanguageSwitcher from './LanguageSwitcher';
 
 interface NavbarProps {
   user?: { name: string; email: string } | null;
 }
 
 export default function Navbar({ user }: NavbarProps) {
+  const t = useTranslations('nav');
+  const tc = useTranslations('common');
   const [isPending, startTransition] = useTransition();
   const [isOpen, setIsOpen] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -53,7 +57,7 @@ export default function Navbar({ user }: NavbarProps) {
             <Link href={user ? '/dashboard' : '/'} className="flex items-center gap-2.5 group">
               <Image
                 src="/favicon.png"
-                alt="KanBam Logo"
+                alt={t('logoAlt')}
                 width={36}
                 height={36}
                 className="transition-transform group-hover:scale-110"
@@ -64,6 +68,7 @@ export default function Navbar({ user }: NavbarProps) {
             </Link>
 
             <div className="flex items-center gap-3">
+              <LanguageSwitcher />
               {user ? (
                 <div className="relative" ref={dropdownRef}>
                   <button
@@ -87,7 +92,7 @@ export default function Navbar({ user }: NavbarProps) {
                         onClick={handleDeleteAccount}
                         className="w-full px-4 py-2.5 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-colors"
                       >
-                        Delete Account
+                        {t('deleteAccount')}
                       </button>
                       <hr className="my-1 border-slate-200/50 dark:border-slate-700/50" />
                       <button
@@ -95,7 +100,7 @@ export default function Navbar({ user }: NavbarProps) {
                         disabled={isPending}
                         className="w-full px-4 py-2.5 text-left text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-white/50 dark:hover:bg-slate-700/50 transition-colors disabled:opacity-50"
                       >
-                        {isPending ? 'Logging out...' : 'Logout'}
+                        {isPending ? t('loggingOut') : t('logout')}
                       </button>
                     </div>
                   )}
@@ -104,12 +109,12 @@ export default function Navbar({ user }: NavbarProps) {
                 <>
                   <Link href="/login">
                     <Button variant="ghost" className="text-sm">
-                      Login
+                      {t('login')}
                     </Button>
                   </Link>
                   <Link href="/signup">
                     <Button variant="primary" className="text-sm">
-                      Sign Up
+                      {t('signup')}
                     </Button>
                   </Link>
                 </>
@@ -121,10 +126,10 @@ export default function Navbar({ user }: NavbarProps) {
 
       <ConfirmDialog
         isOpen={showDeleteDialog}
-        title="Delete Account"
-        message="Are you sure you want to delete your account? This will remove you from all boards and permanently delete your data. This action cannot be undone."
-        confirmText={isPending ? 'Deleting...' : 'Delete Account'}
-        cancelText="Cancel"
+        title={t('deleteAccountConfirmTitle')}
+        message={t('deleteAccountConfirmMessage')}
+        confirmText={isPending ? t('deletingAccount') : t('deleteAccount')}
+        cancelText={tc('cancel')}
         variant="danger"
         onConfirm={confirmDeleteAccount}
         onCancel={() => setShowDeleteDialog(false)}

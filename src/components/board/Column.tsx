@@ -9,6 +9,7 @@ import Card from './Card';
 import { PlusIcon } from '../ui/Icons';
 import ColumnMenu from './ColumnMenu';
 import ConfirmDialog from '../ui/ConfirmDialog';
+import { useTranslations } from 'next-intl';
 
 interface ColumnProps {
   column: ColumnType;
@@ -46,6 +47,8 @@ const Column = memo(function Column({
   onMoveRight,
   onClearCards,
 }: ColumnProps) {
+  const t = useTranslations('board');
+  const tCommon = useTranslations('common');
   const { setNodeRef, isOver } = useDroppable({ id: column.id });
   const [isDeleting, setIsDeleting] = useState(false);
   const [isClearing, setIsClearing] = useState(false);
@@ -95,7 +98,7 @@ const Column = memo(function Column({
               onBlur={handleTitleBlur}
               className="flex-1 px-2 py-1 text-sm font-semibold bg-white dark:bg-slate-700 rounded-lg border border-orange-500 focus:outline-none min-w-0"
               maxLength={50}
-              aria-label="Column title"
+              aria-label={t('columnTitle')}
             />
           ) : (
             <h3
@@ -103,7 +106,7 @@ const Column = memo(function Column({
               className={`font-semibold text-slate-700 dark:text-slate-200 truncate ${
                 !isReadOnly ? 'cursor-pointer hover:text-orange-500' : ''
               }`}
-              title={isReadOnly ? column.title : 'Click to edit'}
+              title={isReadOnly ? column.title : t('clickToEdit')}
             >
               {titleValue}
             </h3>
@@ -118,7 +121,7 @@ const Column = memo(function Column({
             <button
               onClick={() => onAddCard(column.id)}
               className="w-11 h-11 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
-              aria-label={`Add card to ${column.title}`}
+              aria-label={t('addCardTo', { column: column.title })}
             >
               <PlusIcon className="w-5 h-5" />
             </button>
@@ -144,7 +147,7 @@ const Column = memo(function Column({
 
           {cards.length === 0 && (
             <div className="h-32 flex items-center justify-center border-2 border-dashed border-slate-200/50 dark:border-slate-700/40 rounded-xl glass-light opacity-60">
-              <p className="text-sm text-slate-400">Drop cards here</p>
+              <p className="text-sm text-slate-400">{t('dropCardsHere')}</p>
             </div>
           )}
         </div>
@@ -152,13 +155,13 @@ const Column = memo(function Column({
 
       <ConfirmDialog
         isOpen={isDeleting}
-        title="Delete Column"
+        title={t('deleteColumn')}
         message={
           cards.length > 0
-            ? `This column contains ${cards.length} card(s). Move or delete them before deleting the column.`
-            : `Are you sure you want to delete "${column.title}"?`
+            ? t('deleteColumnHasCards', { count: cards.length })
+            : t('deleteColumnConfirm', { title: column.title })
         }
-        confirmText={cards.length > 0 ? 'OK' : 'Delete'}
+        confirmText={cards.length > 0 ? tCommon('ok') : tCommon('delete')}
         variant={cards.length > 0 ? 'primary' : 'danger'}
         onConfirm={cards.length > 0 ? () => setIsDeleting(false) : handleDeleteConfirm}
         onCancel={() => setIsDeleting(false)}
@@ -166,9 +169,9 @@ const Column = memo(function Column({
 
       <ConfirmDialog
         isOpen={isClearing}
-        title="Clear Cards"
-        message={`Clear all ${cards.length} card(s) from "${column.title}"? This cannot be undone.`}
-        confirmText="Clear All"
+        title={t('clearCards')}
+        message={t('clearCardsConfirm', { count: cards.length, title: column.title })}
+        confirmText={t('clearAll')}
         variant="danger"
         onConfirm={handleClearConfirm}
         onCancel={() => setIsClearing(false)}

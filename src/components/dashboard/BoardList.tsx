@@ -2,17 +2,20 @@
 
 import { BoardMetadata } from '@/types/board';
 import BoardCard from './BoardCard';
+import { useTranslations } from 'next-intl';
 
 interface BoardListProps {
   boards: BoardMetadata[];
 }
 
 export default function BoardList({ boards }: BoardListProps) {
+  const t = useTranslations('dashboard');
+
   if (boards.length === 0) {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600 dark:text-gray-400 text-lg">
-          No boards yet. Create your first board to get started!
+          {t('noBoards')}
         </p>
       </div>
     );

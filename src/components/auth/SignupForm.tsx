@@ -1,16 +1,20 @@
 'use client';
 
 import { useTransition, useState } from 'react';
+import { useTranslations, useLocale } from 'next-intl';
 import { signupAction } from '@/lib/actions/auth';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 export default function SignupForm() {
+  const t = useTranslations('authForm');
+  const locale = useLocale();
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState('');
 
   const handleSubmit = async (formData: FormData) => {
     setError('');
+    formData.append('locale', locale);
 
     startTransition(async () => {
       const result = await signupAction(formData);
@@ -26,27 +30,27 @@ export default function SignupForm() {
     <form action={handleSubmit} className="space-y-4">
       <Input
         type="text"
-        label="Name"
+        label={t('nameLabel')}
         name="name"
-        placeholder="John Doe"
+        placeholder={t('namePlaceholder')}
         required
         autoComplete="name"
       />
 
       <Input
         type="email"
-        label="Email"
+        label={t('emailLabel')}
         name="email"
-        placeholder="you@example.com"
+        placeholder={t('emailPlaceholder')}
         required
         autoComplete="email"
       />
 
       <Input
         type="password"
-        label="Password"
+        label={t('passwordLabel')}
         name="password"
-        placeholder="••••••••"
+        placeholder={t('passwordPlaceholder')}
         required
         autoComplete="new-password"
       />
@@ -58,7 +62,7 @@ export default function SignupForm() {
       )}
 
       <Button type="submit" className="w-full" disabled={isPending}>
-        {isPending ? 'Creating account...' : 'Sign up'}
+        {isPending ? t('creatingAccount') : t('signUp')}
       </Button>
     </form>
   );
