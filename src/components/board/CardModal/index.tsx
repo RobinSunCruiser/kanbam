@@ -331,19 +331,30 @@ export default function CardModal({
               </span>
             )}
           </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onClose}
-              disabled={isSaving}
-              className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
-            >
-              {tCommon('close')}
-            </button>
-            {isCreateMode && (
-              <Button type="button" onClick={handleCreate} disabled={isSaving || !title.trim()}>
-                {isSaving ? t('creating') : tCommon('create')}
-              </Button>
+          <div className="flex gap-3">
+            {isCreateMode ? (
+              <>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  onClick={onClose}
+                  disabled={isSaving}
+                >
+                  {tCommon('cancel')}
+                </Button>
+                <Button type="button" onClick={handleCreate} disabled={isSaving || !title.trim()}>
+                  {isSaving ? t('creating') : tCommon('create')}
+                </Button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={isSaving}
+                className="text-sm text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors disabled:opacity-50"
+              >
+                {tCommon('close')}
+              </button>
             )}
           </div>
         </div>
