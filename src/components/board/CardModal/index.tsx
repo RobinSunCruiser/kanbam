@@ -155,7 +155,7 @@ export default function CardModal({
       await onUpdateRef.current(cardId, {
         title: state.title.trim(),
         description: state.description.trim(),
-        assignee: state.assignee || undefined,
+        assignee: state.assignee, // Send empty string, not undefined
         deadline: state.deadline || null,
         checklist: state.checklist,
         links: state.links,
