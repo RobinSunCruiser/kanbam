@@ -103,7 +103,10 @@
   },
   "board": {
     "addColumn": "Spalte hinzufügen",
+    "createColumn": "Spalte erstellen",
     "newColumn": "Neue Spalte",
+    "columnTitlePlaceholder": "Spaltennamen eingeben...",
+    "columnTitleRequired": "Spaltentitel ist erforderlich",
     "dropCardsHere": "Karten hier ablegen",
     "columnOptions": "Spaltenoptionen",
     "moveLeft": "Nach links",
@@ -131,7 +134,8 @@
     "updateFailed": "Aktualisierung fehlgeschlagen",
     "deleteFailed": "Löschen fehlgeschlagen",
     "createFailed": "Erstellen fehlgeschlagen",
-    "reorderFailed": "Neuordnung fehlgeschlagen"
+    "reorderFailed": "Neuordnung fehlgeschlagen",
+    "creating": "Wird erstellt..."
   },
   "card": {
     "createCard": "Karte erstellen",

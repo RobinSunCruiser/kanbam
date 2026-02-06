@@ -103,7 +103,10 @@
   },
   "board": {
     "addColumn": "Add Column",
+    "createColumn": "Create Column",
     "newColumn": "New Column",
+    "columnTitlePlaceholder": "Enter column name...",
+    "columnTitleRequired": "Column title is required",
     "dropCardsHere": "Drop cards here",
     "columnOptions": "Column options",
     "moveLeft": "Move Left",
@@ -131,7 +134,8 @@
     "updateFailed": "Update Failed",
     "deleteFailed": "Delete Failed",
     "createFailed": "Create Failed",
-    "reorderFailed": "Reorder Failed"
+    "reorderFailed": "Reorder Failed",
+    "creating": "Creating..."
   },
   "card": {
     "createCard": "Create Card",

@@ -24,6 +24,7 @@ import {
 import confetti from 'canvas-confetti';
 import Column from './Column';
 import CardModal from './CardModal/index';
+import ColumnDialog from './ColumnDialog';
 import AlertDialog from '../ui/AlertDialog';
 import { PlusIcon } from '../ui/Icons';
 import { useBoardSync } from '@/lib/hooks/useBoardSync';
@@ -44,6 +45,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const [createColumnId, setCreateColumnId] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
   const [errorAlert, setErrorAlert] = useState<{ title: string; message: string } | null>(null);
+  const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
 
   // Sync board state when server data changes (e.g., from router.refresh())
   // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
@@ -481,17 +483,18 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     }
   };
 
-  const handleAddColumn = async () => {
+  const handleAddColumnClick = () => {
+    setIsColumnDialogOpen(true);
+  };
+
+  const handleCreateColumn = async (title: string) => {
     const formData = new FormData();
-    formData.append('title', t('newColumn'));
+    formData.append('title', title);
 
     const result = await createColumnAction(board.uid, formData);
 
     if (result?.error) {
-      setErrorAlert({
-        title: t('createFailed'),
-        message: result.error,
-      });
+      throw new Error(result.error);
     } else if (result?.column) {
       setBoard((prevBoard) => ({
         ...prevBoard,
@@ -562,8 +565,8 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       {!isReadOnly && (
         <div className="flex justify-end mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
           <button
-            onClick={handleAddColumn}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all"
+            onClick={handleAddColumnClick}
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
           >
             <PlusIcon className="w-3.5 h-3.5" />
             {t('addColumn')}
@@ -629,6 +632,12 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
         onDelete={handleDeleteCard}
         onCreate={createColumnId ? handleCreateCard : undefined}
         columnId={createColumnId || undefined}
+      />
+
+      <ColumnDialog
+        isOpen={isColumnDialogOpen}
+        onClose={() => setIsColumnDialogOpen(false)}
+        onCreate={handleCreateColumn}
       />
 
       {errorAlert && (
