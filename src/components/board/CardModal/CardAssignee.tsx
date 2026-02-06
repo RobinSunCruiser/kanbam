@@ -47,7 +47,7 @@ export default function CardAssignee({ assignee, boardMembers, isReadOnly, onCha
             {!isReadOnly && (
               <button
                 onClick={() => onChange('')}
-                className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
+                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
                 aria-label={t('removeAssignee')}
               >
                 <XIcon className="w-3.5 h-3.5" />

@@ -92,7 +92,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
               {!isReadOnly && (
                 <button
                   onClick={(e) => { e.stopPropagation(); onChange(items.filter(i => i.id !== item.id)); }}
-                  className="opacity-0 group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
+                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
                   aria-label={t('removeItem', { text: item.text })}
                 >
                   <XIcon className="w-3.5 h-3.5" />
