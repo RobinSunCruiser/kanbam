@@ -72,7 +72,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
               }`}
               onClick={() => !isReadOnly && handleToggle(item.id)}
             >
-              <span className="w-3.5 h-3.5 flex-shrink-0 flex items-center justify-center">
+              <span className="w-3.5 h-3.5 shrink-0 flex items-center justify-center">
                 {item.checked ? (
                   <CheckIcon className="w-3.5 h-3.5 text-green-500 transition-colors" />
                 ) : (
