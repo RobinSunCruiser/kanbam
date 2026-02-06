@@ -9,6 +9,8 @@ interface UseInlineEditOptions {
   disabled?: boolean;
   /** Validate value before saving (return true if valid) */
   validate?: (value: string) => boolean;
+  /** Allow saving empty values (default: false, reverts to previous value) */
+  allowEmpty?: boolean;
 }
 
 interface UseInlineEditReturn<T extends HTMLInputElement | HTMLTextAreaElement> {
@@ -64,7 +66,7 @@ interface UseInlineEditReturn<T extends HTMLInputElement | HTMLTextAreaElement> 
 export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement = HTMLInputElement>(
   options: UseInlineEditOptions
 ): UseInlineEditReturn<T> {
-  const { initialValue, onSave, disabled = false, validate } = options;
+  const { initialValue, onSave, disabled = false, validate, allowEmpty = false } = options;
 
   const [isEditing, setIsEditing] = useState(false);
   const [value, setValue] = useState(initialValue);
@@ -104,8 +106,8 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
     const trimmed = value.trim();
     setIsEditing(false);
 
-    // Don't save empty values - revert instead
-    if (!trimmed) {
+    // Don't save empty values - revert instead (unless allowEmpty)
+    if (!trimmed && !allowEmpty) {
       setValue(snapshotRef.current);
       return;
     }
@@ -124,7 +126,7 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
 
     setValue(trimmed);
     onSave(trimmed);
-  }, [value, validate, onSave, setValue]);
+  }, [value, validate, onSave, setValue, allowEmpty]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !(e.target instanceof HTMLTextAreaElement)) {

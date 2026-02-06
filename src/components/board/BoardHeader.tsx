@@ -74,6 +74,7 @@ export default function BoardHeader({
     initialValue: description ?? '',
     onSave: (newDescription) => saveToServer({ description: newDescription }),
     disabled: isReadOnly || isPending,
+    allowEmpty: true,
   });
 
   // Handle keyboard activation for non-editable elements
@@ -140,7 +141,7 @@ export default function BoardHeader({
             }`}
             title={isReadOnly ? (descriptionValue || '') : t('clickToEdit')}
           >
-            {descriptionValue || (!isReadOnly ? t('descriptionPlaceholder') : '')}
+            {descriptionValue || (!isReadOnly ? t('addDescription') : '')}
           </p>
         )}
       </div>
