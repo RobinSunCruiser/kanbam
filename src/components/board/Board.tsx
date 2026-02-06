@@ -581,9 +581,9 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
         onDragEnd={handleDragEnd}
       >
         <div className="flex-1 min-h-0 overflow-x-auto py-2 h-full px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row gap-6 w-fit max-w-full mx-auto h-full">
+          <div className="flex flex-col md:flex-row gap-6 w-full md:w-fit max-w-full mx-auto h-full">
             {board.columns.map((column, index) => (
-              <div key={column.id} className="shrink-0 md:w-column h-full">
+              <div key={column.id} className="shrink-0 w-full md:w-column h-full">
                 <Column
                   column={column}
                   cards={getCardsForColumn(column.id)}
