@@ -14,6 +14,20 @@ A collaborative Kanban board application built with Next.js, TypeScript, and Pos
 - **Internationalization** -- English and German (extensible via next-intl)
 - **Responsive design** -- Works on desktop, tablet, and mobile with dark mode support
 
+## Screenshots
+
+### Home
+
+![Home](public/Home.png)
+
+### Kanban Board
+
+![Kanban Board](public/Board.png)
+
+### Kanban Card
+
+![Kanban Card](public/Card.png)
+
 ## Tech Stack
 
 | Category       | Technology                          |
