@@ -64,7 +64,9 @@
     "authErrorDefault": "An error occurred during authentication. Please try again.",
     "protectedErrorTitle": "Something went wrong",
     "protectedErrorDefault": "An unexpected error occurred. Please try again.",
-    "goToDashboard": "Go to Dashboard"
+    "goToDashboard": "Go to Dashboard",
+    "authBoundaryErrorTitle": "Authentication Error",
+    "authBoundaryErrorDescription": "An error occurred during authentication. Please try again."
   },
   "authForm": {
     "emailLabel": "Email",

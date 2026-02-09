@@ -29,10 +29,10 @@ export default function AuthError({
         <div className="text-center">
           <div className="text-red-600 dark:text-red-400 text-5xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {t('error.title')}
+            {t('authBoundaryErrorTitle')}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {error.message || t('error.description')}
+            {error.message || t('authBoundaryErrorDescription')}
           </p>
           <div className="flex gap-3 justify-center">
             <Button

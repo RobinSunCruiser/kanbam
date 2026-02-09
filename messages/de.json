@@ -64,7 +64,9 @@
     "authErrorDefault": "Bei der Authentifizierung ist ein Fehler aufgetreten. Bitte versuche es erneut.",
     "protectedErrorTitle": "Etwas ist schiefgelaufen",
     "protectedErrorDefault": "Ein unerwarteter Fehler ist aufgetreten. Bitte versuche es erneut.",
-    "goToDashboard": "Zum Dashboard"
+    "goToDashboard": "Zum Dashboard",
+    "authBoundaryErrorTitle": "Authentifizierungsfehler",
+    "authBoundaryErrorDescription": "Bei der Authentifizierung ist ein Fehler aufgetreten. Bitte versuche es erneut."
   },
   "authForm": {
     "emailLabel": "E-Mail",
