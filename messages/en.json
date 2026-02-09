@@ -25,7 +25,7 @@
     "logoAlt": "KanBam Logo"
   },
   "footer": {
-    "copyright": "© {year} Dr. Robin Nicolay",
+    "copyright": "© {year} <author>Dr. Robin Nicolay</author>",
     "impressum": "Impressum",
     "datenschutz": "Datenschutz"
   },
