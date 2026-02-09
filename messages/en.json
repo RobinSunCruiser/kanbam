@@ -154,7 +154,8 @@
     "title": "Checklist",
     "addItem": "Add checklist item",
     "itemPlaceholder": "Add checklist item...",
-    "removeItem": "Remove {text}"
+    "removeItem": "Remove {text}",
+    "dragItem": "Drag to reorder"
   },
   "links": {
     "title": "Links",
@@ -163,7 +164,8 @@
     "urlPlaceholder": "URL",
     "bothFieldsRequired": "Both fields required",
     "invalidUrl": "Invalid URL",
-    "removeLink": "Remove {name}"
+    "removeLink": "Remove {name}",
+    "dragLink": "Drag to reorder"
   },
   "deadline": {
     "title": "Deadline",

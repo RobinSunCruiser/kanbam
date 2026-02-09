@@ -154,7 +154,8 @@
     "title": "Checkliste",
     "addItem": "Checklisten-Element hinzufügen",
     "itemPlaceholder": "Checklisten-Element hinzufügen...",
-    "removeItem": "{text} entfernen"
+    "removeItem": "{text} entfernen",
+    "dragItem": "Zum Neuordnen ziehen"
   },
   "links": {
     "title": "Links",
@@ -163,7 +164,8 @@
     "urlPlaceholder": "URL",
     "bothFieldsRequired": "Beide Felder erforderlich",
     "invalidUrl": "Ungültige URL",
-    "removeLink": "{name} entfernen"
+    "removeLink": "{name} entfernen",
+    "dragLink": "Zum Neuordnen ziehen"
   },
   "deadline": {
     "title": "Frist",
