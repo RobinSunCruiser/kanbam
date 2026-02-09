@@ -2,6 +2,8 @@
 
 A collaborative Kanban board application built with Next.js, TypeScript, and PostgreSQL.
 
+**Live at [kanbam.de](https://kanbam.de)**
+
 ## Features
 
 - **Drag-and-drop boards** -- Create unlimited boards with custom columns and cards powered by @dnd-kit
