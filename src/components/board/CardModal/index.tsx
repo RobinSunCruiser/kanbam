@@ -120,7 +120,8 @@ export default function CardModal({
       setLinks([]);
       setActivity([]);
     }
-  }, [isOpen, card?.id, card?.updatedAt]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, card?.id]);
 
   // Cleanup when modal closes
   useEffect(() => {
