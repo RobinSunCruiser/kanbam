@@ -74,14 +74,17 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
   const snapshotRef = useRef(initialValue);
   const skipBlurSaveRef = useRef(false);
 
-  // Sync value with initialValue when not editing (e.g., external updates)
+  // Sync with external prop changes (e.g., server response or other-user update).
+  // Only reacts to initialValue changes — editing transitions are handled by
+  // saveAndClose (keeps new value) and cancelEditing (reverts to snapshot).
   useEffect(() => {
     if (!isEditing) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(initialValue);
       snapshotRef.current = initialValue;
     }
-  }, [initialValue, isEditing]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValue]);
 
   // Auto-focus and select when entering edit mode
   useEffect(() => {
