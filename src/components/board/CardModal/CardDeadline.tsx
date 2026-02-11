@@ -1,6 +1,8 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import { format } from 'date-fns';
 import { PlusIcon, XIcon, CalendarIcon } from '@/components/ui/Icons';
+import { Calendar } from '@/components/ui/Calendar';
 import { useTranslations } from 'next-intl';
 
 interface CardDeadlineProps {
@@ -11,66 +13,102 @@ interface CardDeadlineProps {
 
 export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDeadlineProps) {
   const t = useTranslations('deadline');
-  const tCommon = useTranslations('common');
-  const [isAdding, setIsAdding] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const selectedDate = deadline ? new Date(deadline) : undefined;
+
+  // Close on click outside
   useEffect(() => {
-    if (isAdding && inputRef.current) inputRef.current.focus();
-  }, [isAdding]);
+    if (!open) return;
+    const handleClick = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, [open]);
 
-  const handleDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.value) {
-      onChange(new Date(e.target.value).toISOString());
+  // Close on Escape (capture phase so it fires before the modal's handler)
+  useEffect(() => {
+    if (!open) return;
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.stopPropagation();
+        setOpen(false);
+      }
+    };
+    document.addEventListener('keydown', handleEscape, true);
+    return () => document.removeEventListener('keydown', handleEscape, true);
+  }, [open]);
+
+  const handleSelect = (date: Date | undefined) => {
+    if (date) {
+      onChange(date.toISOString());
     }
-    setIsAdding(false);
+    setOpen(false);
   };
 
-  const handleCancel = () => setIsAdding(false);
+  const calendarDropdown = (align: 'left' | 'right' = 'left') => open && (
+    <div className={align === 'right'
+      ? 'absolute right-0 top-full z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800'
+      : 'absolute left-0 top-full z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800'
+    }>
+      <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} />
+    </div>
+  );
+
+  const formattedDate = deadline ? format(new Date(deadline), 'PPP') : '';
+
+  const datePill = (
+    <>
+      <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+      <span className="text-sm text-slate-700 dark:text-slate-300">
+        {formattedDate}
+      </span>
+    </>
+  );
 
   return (
     <div className="space-y-0.5">
       <div className="flex items-center justify-between">
         <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400">{t('title')}</h3>
-        {!isReadOnly && !deadline && !isAdding && (
-          <button onClick={() => setIsAdding(true)} className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all" aria-label={t('setDeadline')}>
-            <PlusIcon className="w-4 h-4" />
-          </button>
+        {!isReadOnly && !deadline && (
+          <div className="relative" ref={dropdownRef}>
+            <button
+              onClick={() => setOpen(!open)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-slate-400 hover:text-orange-500 hover:bg-orange-50 dark:hover:bg-orange-500/10 transition-all"
+              aria-label={t('setDeadline')}
+            >
+              <PlusIcon className="w-4 h-4" />
+            </button>
+            {calendarDropdown('right')}
+          </div>
         )}
       </div>
 
-      {isAdding && !deadline && (
-        <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl">
-          <input
-            ref={inputRef}
-            type="date"
-            onChange={handleDateChange}
-            onKeyDown={(e) => { if (e.key === 'Escape') handleCancel(); }}
-            className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50"
-            aria-label={t('setDeadline')}
-          />
-          <div className="flex gap-2 justify-end">
-            <button onClick={handleCancel} className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700">{tCommon('cancel')}</button>
-          </div>
-        </div>
-      )}
-
       {deadline && (
         <div className="flex flex-wrap gap-2">
-          <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
-            <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
-            <span className="text-sm text-slate-700 dark:text-slate-300">
-              {new Date(deadline).toLocaleDateString()}
-            </span>
-            {!isReadOnly && (
+          <div className="relative" ref={dropdownRef}>
+            <div className="group flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
               <button
-                onClick={() => onChange('')}
-                className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
-                aria-label={t('removeDeadline')}
+                onClick={() => !isReadOnly && setOpen(!open)}
+                className="flex items-center gap-1.5"
               >
-                <XIcon className="w-3.5 h-3.5" />
+                {datePill}
               </button>
-            )}
+              {!isReadOnly && (
+                <button
+                  onClick={() => onChange('')}
+                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
+                  aria-label={t('removeDeadline')}
+                >
+                  <XIcon className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+            {calendarDropdown()}
           </div>
         </div>
       )}
