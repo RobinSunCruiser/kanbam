@@ -82,6 +82,14 @@ export default function CardModal({
   const onUpdateRef = useRef(onUpdate);
   const cardRef = useRef(card);
 
+  // Tracks the last values we sent to the server so the sync effect can
+  // distinguish our own optimistic updates from genuine external changes.
+  const lastSavedRef = useRef<{
+    title: string; description: string; assignee: string;
+    deadline: string; checklist: ChecklistItem[]; links: CardLink[];
+    activity: ActivityNote[];
+  } | null>(null);
+
   // Keep refs in sync without causing re-renders
   cardIdRef.current = card?.id ?? null;
   onUpdateRef.current = onUpdate;
@@ -109,6 +117,15 @@ export default function CardModal({
       setChecklist(currentCard.checklist || []);
       setLinks(currentCard.links || []);
       setActivity(currentCard.activity || []);
+      lastSavedRef.current = {
+        title: currentCard.title,
+        description: currentCard.description,
+        assignee: currentCard.assignee || '',
+        deadline: currentCard.deadline || '',
+        checklist: currentCard.checklist || [],
+        links: currentCard.links || [],
+        activity: currentCard.activity || [],
+      };
     } else {
       // Create mode or no card - reset to empty
       setTitle('');
@@ -119,8 +136,52 @@ export default function CardModal({
       setChecklist([]);
       setLinks([]);
       setActivity([]);
+      lastSavedRef.current = null;
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, card?.id]);
+
+  // Sync external updates (from other users) into form state while modal is open.
+  // Compares the incoming card against what we last sent to the server:
+  //  - Match → our own optimistic update → skip (preserves in-progress typing)
+  //  - Mismatch → genuine external change → apply to form
+  useEffect(() => {
+    if (!isOpen || !card || isInitialMount.current) return;
+
+    const saved = lastSavedRef.current;
+    if (saved) {
+      const isOwnUpdate =
+        card.title === saved.title &&
+        card.description === saved.description &&
+        (card.assignee || '') === saved.assignee &&
+        (card.deadline || '') === saved.deadline &&
+        JSON.stringify(card.checklist || []) === JSON.stringify(saved.checklist) &&
+        JSON.stringify(card.links || []) === JSON.stringify(saved.links) &&
+        JSON.stringify(card.activity || []) === JSON.stringify(saved.activity);
+
+      if (isOwnUpdate) return;
+    }
+
+    setTitle(card.title);
+    setDescription(card.description);
+    setAssignee(card.assignee || '');
+    setDeadline(card.deadline || '');
+    setChecklist(card.checklist || []);
+    setLinks(card.links || []);
+    setActivity(card.activity || []);
+
+    // Update baseline so the next comparison is against this external state
+    lastSavedRef.current = {
+      title: card.title,
+      description: card.description,
+      assignee: card.assignee || '',
+      deadline: card.deadline || '',
+      checklist: card.checklist || [],
+      links: card.links || [],
+      activity: card.activity || [],
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [card?.updatedAt]);
 
   // Cleanup when modal closes
   useEffect(() => {
@@ -150,6 +211,18 @@ export default function CardModal({
     const state = stateRef.current;
     const cardId = cardIdRef.current;
     if (!cardId || !state.title.trim() || isReadOnly) return;
+
+    // Record what we're about to send so the sync effect can recognise our
+    // own optimistic updates and skip them (prevents "jump back" while typing).
+    lastSavedRef.current = {
+      title: state.title.trim(),
+      description: state.description.trim(),
+      assignee: state.assignee,
+      deadline: state.deadline || '',
+      checklist: state.checklist,
+      links: state.links,
+      activity: state.activity,
+    };
 
     try {
       await onUpdateRef.current(cardId, {
