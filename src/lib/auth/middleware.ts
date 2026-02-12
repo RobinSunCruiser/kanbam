@@ -29,6 +29,11 @@ export async function requireAuth(): Promise<UserAuth> {
     throw new UnauthorizedError('User not found');
   }
 
+  // Enforce email verification at middleware level (defense-in-depth)
+  if (!user.emailVerified) {
+    throw new UnauthorizedError('Email not verified');
+  }
+
   // Return UserAuth (without password hash)
   const userAuth: UserAuth = {
     id: user.id,
