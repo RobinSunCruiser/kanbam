@@ -1,65 +1,35 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #F8FAFC;
-  --foreground: #0F172A;
-  --primary: #F97316;
-  --primary-hover: #EA580C;
-  --surface: #ffffff;
-  --border: #E2E8F0;
+  --background: #0F172A;
+  --foreground: #F1F5F9;
+  --primary: #FB923C;
+  --primary-hover: #F97316;
+  --surface: #1E293B;
+  --border: #334155;
 
   /* Glass effect variables */
-  --glass-bg-light: rgba(255, 255, 255, 0.6);
-  --glass-bg-medium: rgba(255, 255, 255, 0.4);
-  --glass-bg-heavy: rgba(255, 255, 255, 0.8);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-border-hover: rgba(255, 255, 255, 0.4);
+  --glass-bg-light: rgba(30, 41, 59, 0.6);
+  --glass-bg-medium: rgba(30, 41, 59, 0.4);
+  --glass-bg-heavy: rgba(30, 41, 59, 0.8);
+  --glass-border: rgba(71, 85, 105, 0.3);
+  --glass-border-hover: rgba(71, 85, 105, 0.5);
 
   /* Glow colors */
-  --glow-primary: rgba(249, 115, 22, 0.2);
-  --glow-primary-intense: rgba(249, 115, 22, 0.4);
+  --glow-primary: rgba(251, 146, 60, 0.15);
+  --glow-primary-intense: rgba(251, 146, 60, 0.3);
 
   /* Background orb colors */
-  --orb-orange: rgba(251, 146, 60, 0.15);
-  --orb-slate: rgba(148, 163, 184, 0.1);
-  --orb-amber: rgba(245, 158, 11, 0.1);
+  --orb-orange: rgba(251, 146, 60, 0.08);
+  --orb-slate: rgba(71, 85, 105, 0.15);
+  --orb-amber: rgba(245, 158, 11, 0.05);
 
   /* Shadow colors */
-  --shadow-soft: rgba(15, 23, 42, 0.05);
-  --shadow-medium: rgba(15, 23, 42, 0.1);
-  --shadow-orange: rgba(249, 115, 22, 0.15);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0F172A;
-    --foreground: #F1F5F9;
-    --primary: #FB923C;
-    --primary-hover: #F97316;
-    --surface: #1E293B;
-    --border: #334155;
-
-    /* Dark mode glass */
-    --glass-bg-light: rgba(30, 41, 59, 0.6);
-    --glass-bg-medium: rgba(30, 41, 59, 0.4);
-    --glass-bg-heavy: rgba(30, 41, 59, 0.8);
-    --glass-border: rgba(71, 85, 105, 0.3);
-    --glass-border-hover: rgba(71, 85, 105, 0.5);
-
-    /* Dark mode glows */
-    --glow-primary: rgba(251, 146, 60, 0.15);
-    --glow-primary-intense: rgba(251, 146, 60, 0.3);
-
-    /* Dark mode orbs */
-    --orb-orange: rgba(251, 146, 60, 0.08);
-    --orb-slate: rgba(71, 85, 105, 0.15);
-    --orb-amber: rgba(245, 158, 11, 0.05);
-
-    /* Dark mode shadows */
-    --shadow-soft: rgba(0, 0, 0, 0.2);
-    --shadow-medium: rgba(0, 0, 0, 0.3);
-    --shadow-orange: rgba(251, 146, 60, 0.1);
-  }
+  --shadow-soft: rgba(0, 0, 0, 0.2);
+  --shadow-medium: rgba(0, 0, 0, 0.3);
+  --shadow-orange: rgba(251, 146, 60, 0.1);
 }
 
 @theme inline {
