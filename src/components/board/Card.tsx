@@ -6,6 +6,7 @@ import { CSS } from '@dnd-kit/utilities';
 import { Card as CardType } from '@/types/board';
 import { getDeadlineText, isOverdue } from '@/lib/utils/dates';
 import { CheckIcon, UserIcon, ClockIcon } from '../ui/Icons';
+import { useTranslations } from 'next-intl';
 
 interface CardProps {
   card: CardType;
@@ -20,6 +21,7 @@ interface CardProps {
  * but this specific card's data remains the same.
  */
 const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
+  const tDeadline = useTranslations('deadline');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
     disabled: isReadOnly,
@@ -83,7 +85,7 @@ const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
                 : 'bg-slate-100 dark:bg-slate-700/50 text-slate-500'
             }`}>
               <ClockIcon className="w-3 h-3" />
-              {getDeadlineText(card.deadline)}
+              {getDeadlineText(card.deadline, tDeadline)}
             </span>
           )}
         </div>

@@ -44,7 +44,6 @@ async function initSchema(): Promise<void> {
     await baseSql`CREATE INDEX IF NOT EXISTS idx_boards_members ON boards USING GIN ((data->'members'))`;
     await baseSql`CREATE INDEX IF NOT EXISTS idx_boards_owner ON boards(owner_id)`;
 
-    console.log('✅ Database schema initialized');
     isInitialized = true;
   } catch (error) {
     console.error('Failed to initialize database schema:', error);
@@ -188,14 +187,6 @@ export async function deleteBoardByUid(uid: string): Promise<boolean> {
     DELETE FROM boards
     WHERE uid = ${uid}
     RETURNING uid
-  `;
-  return result.length > 0;
-}
-
-/** Check if board exists by UID */
-export async function boardExists(uid: string): Promise<boolean> {
-  const result = await sql`
-    SELECT 1 FROM boards WHERE uid = ${uid}
   `;
   return result.length > 0;
 }

@@ -9,8 +9,7 @@ interface ColumnMenuProps {
   canMoveLeft: boolean;
   canMoveRight: boolean;
   hasCards: boolean;
-  onMoveLeft: () => void;
-  onMoveRight: () => void;
+  onMoveColumn: (direction: 'left' | 'right') => void;
   onDelete: () => void;
   onClearCards: () => void;
 }
@@ -20,8 +19,7 @@ export default function ColumnMenu({
   canMoveLeft,
   canMoveRight,
   hasCards,
-  onMoveLeft,
-  onMoveRight,
+  onMoveColumn,
   onDelete,
   onClearCards,
 }: ColumnMenuProps) {
@@ -70,7 +68,7 @@ export default function ColumnMenu({
         <div className="absolute right-0 top-full mt-1 w-40 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50">
           {canMoveLeft && (
             <button
-              onClick={() => handleAction(onMoveLeft)}
+              onClick={() => handleAction(() => onMoveColumn('left'))}
               className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
             >
               <ChevronLeftIcon className="w-4 h-4" />
@@ -79,7 +77,7 @@ export default function ColumnMenu({
           )}
           {canMoveRight && (
             <button
-              onClick={() => handleAction(onMoveRight)}
+              onClick={() => handleAction(() => onMoveColumn('right'))}
               className="w-full px-3 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 flex items-center gap-2"
             >
               <ChevronRightIcon className="w-4 h-4" />

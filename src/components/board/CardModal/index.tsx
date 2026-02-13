@@ -13,6 +13,7 @@ import CardDeadline from './CardDeadline';
 import CardAssignee from './CardAssignee';
 import CardActivity from './CardActivity';
 import { sendAssignmentEmailAction } from '@/lib/actions/cards';
+import { AUTOSAVE_DEBOUNCE_MS } from '@/lib/constants';
 import { useTranslations } from 'next-intl';
 
 interface CardModalProps {
@@ -255,7 +256,7 @@ export default function CardModal({
     // Skip if values haven't changed from what's already saved
     if (title === card.title && description === card.description) return;
 
-    const timeout = setTimeout(saveCard, 1000);
+    const timeout = setTimeout(saveCard, AUTOSAVE_DEBOUNCE_MS);
     return () => clearTimeout(timeout);
   }, [card?.id, card?.title, card?.description, isCreateMode, isReadOnly, title, description, saveCard]);
 

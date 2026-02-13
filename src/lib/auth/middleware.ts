@@ -66,9 +66,3 @@ export async function requireBoardAccess(
   }
 }
 
-export async function getUserBoardPrivilege(
-  user: UserAuth,
-  boardUid: string
-): Promise<'read' | 'write' | null> {
-  return await getBoardMemberPrivilege(boardUid, user.email);
-}

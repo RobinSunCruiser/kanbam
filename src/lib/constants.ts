@@ -19,10 +19,15 @@ export function isValidColumnId(value: unknown): value is string {
 export const REMINDER_OPTIONS = ['0d', '1d', '2d', '3d', '1w', '2w'] as const satisfies readonly ReminderOption[];
 
 /**
- * Session and cookie configuration
+ * Timing constants
  */
-export const SESSION_CONFIG = {
-  TOKEN_NAME: 'session',
-  TOKEN_EXPIRY: '7d',
-  COOKIE_MAX_AGE: 60 * 60 * 24 * 7, // 7 days in seconds
-} as const;
+export const RECONNECT_DELAY_MS = 3000;
+export const AUTOSAVE_DEBOUNCE_MS = 1000;
+
+/**
+ * DnD activation constraints
+ */
+export const DND_MOUSE_DISTANCE = 8;
+export const DND_TOUCH_DELAY = 300;
+export const DND_TOUCH_TOLERANCE = 8;
+

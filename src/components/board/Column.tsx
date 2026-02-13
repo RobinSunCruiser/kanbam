@@ -22,8 +22,7 @@ interface ColumnProps {
   onAddCard: (columnId: string) => void;
   onUpdateTitle: (columnId: string, title: string) => Promise<void>;
   onDelete: (columnId: string) => Promise<void>;
-  onMoveLeft: (columnId: string) => Promise<void>;
-  onMoveRight: (columnId: string) => Promise<void>;
+  onMoveColumn: (columnId: string, direction: 'left' | 'right') => Promise<void>;
   onClearCards: (columnId: string) => Promise<void>;
 }
 
@@ -43,8 +42,7 @@ const Column = memo(function Column({
   onAddCard,
   onUpdateTitle,
   onDelete,
-  onMoveLeft,
-  onMoveRight,
+  onMoveColumn,
   onClearCards,
 }: ColumnProps) {
   const t = useTranslations('board');
@@ -130,8 +128,7 @@ const Column = memo(function Column({
               canMoveLeft={canMoveLeft}
               canMoveRight={canMoveRight}
               hasCards={cards.length > 0}
-              onMoveLeft={() => onMoveLeft(column.id)}
-              onMoveRight={() => onMoveRight(column.id)}
+              onMoveColumn={(direction) => onMoveColumn(column.id, direction)}
               onDelete={() => setIsDeleting(true)}
               onClearCards={() => setIsClearing(true)}
             />

@@ -1,6 +1,6 @@
 import { notFound } from 'next/navigation';
-import { requireAuth, getUserBoardPrivilege } from '@/lib/auth/middleware';
-import { loadBoard } from '@/lib/storage/boards';
+import { requireAuth } from '@/lib/auth/middleware';
+import { loadBoard, getBoardMemberPrivilege } from '@/lib/storage/boards';
 import BoardMembers from '@/components/board/BoardMembers';
 import BoardWrapper from '@/components/board/BoardWrapper';
 import BoardHeader from '@/components/board/BoardHeader';
@@ -19,7 +19,7 @@ export default async function BoardPage({ params }: BoardPageProps) {
   const t = await getTranslations('board');
 
   // Check user has access to this board
-  const privilege = await getUserBoardPrivilege(user, uid);
+  const privilege = await getBoardMemberPrivilege(uid, user.email);
   if (!privilege) {
     notFound();
   }

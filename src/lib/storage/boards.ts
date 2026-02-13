@@ -2,7 +2,7 @@ import { Board, Card, Column, ChecklistItem, CardLink, ActivityNote, type Remind
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
-import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid, boardExists as dbBoardExists } from './db';
+import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid } from './db';
 
 // ============================================================================
 // BOARD CRUD OPERATIONS
@@ -58,15 +58,6 @@ export async function deleteBoard(uid: string): Promise<void> {
   if (!deleted) {
     throw new NotFoundError('Board not found');
   }
-}
-
-/** Check if board exists by UID */
-export async function boardExists(uid: string): Promise<boolean> {
-  if (!isValidUid(uid)) {
-    return false;
-  }
-
-  return await dbBoardExists(uid);
 }
 
 /** List all boards where user is a member */

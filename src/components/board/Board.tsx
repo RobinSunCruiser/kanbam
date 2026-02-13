@@ -7,10 +7,6 @@ import {
   DragEndEvent,
   DragOverlay,
   DragStartEvent,
-  MouseSensor,
-  TouchSensor,
-  useSensor,
-  useSensors,
   pointerWithin,
 } from '@dnd-kit/core';
 import { Board as BoardType, Card as CardType, type ReminderOption } from '@/types/board';
@@ -28,6 +24,7 @@ import ColumnDialog from './ColumnDialog';
 import AlertDialog from '../ui/AlertDialog';
 import { PlusIcon } from '../ui/Icons';
 import { useBoardSync } from '@/lib/hooks/useBoardSync';
+import { useDndSensors } from '@/lib/hooks/useDndSensors';
 import { useTranslations } from 'next-intl';
 
 interface BoardProps {
@@ -56,20 +53,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
   const isReadOnly = userPrivilege === 'read';
 
-  // Configure sensors for drag detection (pointer for desktop, touch for mobile)
-  const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: {
-        distance: 8,
-      },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: {
-        delay: 300,
-        tolerance: 8,
-      },
-    })
-  );
+  const sensors = useDndSensors();
 
   // Derive selected card from board state (auto-updates when board refreshes)
   const selectedCard = selectedCardId ? board.cards[selectedCardId] ?? null : null;
@@ -505,16 +489,19 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     }
   };
 
-  const handleMoveColumnLeft = async (columnId: string) => {
+  const handleMoveColumn = async (columnId: string, direction: 'left' | 'right') => {
     const currentIndex = board.columns.findIndex((c) => c.id === columnId);
-    if (currentIndex <= 0) return;
+    const canMove = direction === 'left' ? currentIndex > 0 : currentIndex < board.columns.length - 1;
+    if (!canMove) return;
+
+    const swapIndex = direction === 'left' ? currentIndex - 1 : currentIndex + 1;
 
     // Optimistic update
     setBoard((prevBoard) => {
       const newColumns = [...prevBoard.columns];
       const temp = newColumns[currentIndex];
-      newColumns[currentIndex] = newColumns[currentIndex - 1];
-      newColumns[currentIndex - 1] = temp;
+      newColumns[currentIndex] = newColumns[swapIndex];
+      newColumns[swapIndex] = temp;
       return {
         ...prevBoard,
         columns: newColumns,
@@ -522,35 +509,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       };
     });
 
-    const result = await reorderColumnAction(board.uid, columnId, 'left');
-
-    if (result?.error) {
-      router.refresh();
-      setErrorAlert({
-        title: t('reorderFailed'),
-        message: result.error,
-      });
-    }
-  };
-
-  const handleMoveColumnRight = async (columnId: string) => {
-    const currentIndex = board.columns.findIndex((c) => c.id === columnId);
-    if (currentIndex >= board.columns.length - 1) return;
-
-    // Optimistic update
-    setBoard((prevBoard) => {
-      const newColumns = [...prevBoard.columns];
-      const temp = newColumns[currentIndex];
-      newColumns[currentIndex] = newColumns[currentIndex + 1];
-      newColumns[currentIndex + 1] = temp;
-      return {
-        ...prevBoard,
-        columns: newColumns,
-        updatedAt: new Date().toISOString(),
-      };
-    });
-
-    const result = await reorderColumnAction(board.uid, columnId, 'right');
+    const result = await reorderColumnAction(board.uid, columnId, direction);
 
     if (result?.error) {
       router.refresh();
@@ -596,8 +555,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
                   onAddCard={handleAddCard}
                   onUpdateTitle={handleUpdateColumnTitle}
                   onDelete={handleDeleteColumn}
-                  onMoveLeft={handleMoveColumnLeft}
-                  onMoveRight={handleMoveColumnRight}
+                  onMoveColumn={handleMoveColumn}
                   onClearCards={handleClearColumn}
                 />
               </div>

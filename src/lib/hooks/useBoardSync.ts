@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { RECONNECT_DELAY_MS } from '../constants';
 
 export function useBoardSync(boardUid: string) {
   const router = useRouter();
@@ -21,7 +22,7 @@ export function useBoardSync(boardUid: string) {
 
       esRef.current.onerror = () => {
         esRef.current?.close();
-        reconnectRef.current = setTimeout(connect, 3000);
+        reconnectRef.current = setTimeout(connect, RECONNECT_DELAY_MS);
       };
     };
 

@@ -41,7 +41,7 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
       return null;
     }
 
-    return payload as unknown as SessionPayload;
+    return { userId: payload.userId as string };
   } catch {
     return null;
   }

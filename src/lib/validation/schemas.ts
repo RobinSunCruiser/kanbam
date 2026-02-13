@@ -124,23 +124,3 @@ export const addMemberSchema = z.object({
   }),
 });
 
-export const removeMemberSchema = z.object({
-  email: z.string().email('Invalid email address'),
-});
-
-/**
- * Type inference from schemas
- */
-
-export type LoginInput = z.infer<typeof loginSchema>;
-export type SignupInput = z.infer<typeof signupSchema>;
-export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
-export type CreateBoardInput = z.infer<typeof createBoardSchema>;
-export type UpdateBoardInput = z.infer<typeof updateBoardSchema>;
-export type CreateColumnInput = z.infer<typeof createColumnSchema>;
-export type UpdateColumnInput = z.infer<typeof updateColumnSchema>;
-export type CreateCardInput = z.infer<typeof createCardSchema>;
-export type UpdateCardInput = z.infer<typeof updateCardSchema>;
-export type AddMemberInput = z.infer<typeof addMemberSchema>;
-export type RemoveMemberInput = z.infer<typeof removeMemberSchema>;

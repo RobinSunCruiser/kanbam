@@ -5,7 +5,8 @@ import { ChecklistItem } from '@/types/board';
 import { nanoid } from 'nanoid';
 import { PlusIcon, XIcon, CheckIcon, CircleIcon, GripVerticalIcon } from '@/components/ui/Icons';
 import { useTranslations } from 'next-intl';
-import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors, closestCenter } from '@dnd-kit/core';
+import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
+import { useDndSensors } from '@/lib/hooks/useDndSensors';
 import { SortableContext, verticalListSortingStrategy, useSortable, arrayMove } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 
@@ -67,10 +68,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
   const [newItemText, setNewItemText] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const sensors = useSensors(
-    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
-    useSensor(TouchSensor, { activationConstraint: { delay: 300, tolerance: 8 } })
-  );
+  const sensors = useDndSensors();
 
   useEffect(() => {
     if (isAdding && inputRef.current) inputRef.current.focus();
