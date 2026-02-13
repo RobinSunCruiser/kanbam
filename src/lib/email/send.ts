@@ -67,7 +67,7 @@ async function sendEmail(to: string, subject: string, text: string, html: string
 }
 
 /** Check if verification email can be sent (rate limit: 10 min) */
-function canSendVerification(user: User): boolean {
+export function canSendVerification(user: User): boolean {
   if (!user.lastVerificationSent) return true;
   const diffMs = Date.now() - new Date(user.lastVerificationSent).getTime();
   return diffMs >= 10 * 60 * 1000;

@@ -12,7 +12,7 @@ const REMINDER_TRIGGERS: Record<ReminderOption, string> = {
 };
 
 /** Escape text for iCal format (RFC 5545 section 3.3.11) */
-function escapeText(text: string): string {
+export function escapeText(text: string): string {
   return text
     .replace(/\\/g, '\\\\')
     .replace(/;/g, '\\;')
@@ -21,7 +21,7 @@ function escapeText(text: string): string {
 }
 
 /** Format deadline string as iCal DATE value (YYYYMMDD) */
-function formatDate(deadline: string): string {
+export function formatDate(deadline: string): string {
   // YYYY-MM-DD: just strip dashes — no Date constructor, no timezone issues
   if (!deadline.includes('T')) return deadline.replace(/-/g, '');
   // Legacy ISO: round to nearest date (+12h trick handles any original timezone)
@@ -31,12 +31,12 @@ function formatDate(deadline: string): string {
 }
 
 /** Format ISO date string as iCal DATETIME value (YYYYMMDDTHHMMSSZ) */
-function formatDateTime(isoDate: string): string {
+export function formatDateTime(isoDate: string): string {
   return new Date(isoDate).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
 }
 
 /** Get next day as iCal DATE (for all-day event DTEND, which is exclusive) */
-function nextDay(deadline: string): string {
+export function nextDay(deadline: string): string {
   let y: number, m: number, d: number;
   if (!deadline.includes('T')) {
     [y, m, d] = deadline.split('-').map(Number);
@@ -81,7 +81,7 @@ function buildDescription(
 }
 
 /** Fold long lines per RFC 5545 (max 75 octets per line) */
-function foldLine(line: string): string {
+export function foldLine(line: string): string {
   const encoder = new TextEncoder();
   if (encoder.encode(line).length <= 75) return line;
 
