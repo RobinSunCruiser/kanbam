@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isValidColumnId, COLUMN_TITLE_MAX_LENGTH } from '../constants';
+import { isValidColumnId, COLUMN_TITLE_MAX_LENGTH, REMINDER_OPTIONS } from '../constants';
 
 /**
  * Authentication validation schemas
@@ -109,6 +109,7 @@ export const updateCardSchema = z.object({
   checklist: z.array(checklistItemSchema).optional(),
   links: z.array(cardLinkSchema).optional(),
   deadline: z.string().nullable().optional(),
+  reminder: z.enum(REMINDER_OPTIONS).nullable().optional(),
   activity: z.array(activityNoteSchema).optional(),
 });
 

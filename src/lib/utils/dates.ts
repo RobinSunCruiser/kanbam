@@ -8,7 +8,8 @@
  * @returns Text like "Overdue", "Today", "Tomorrow", or "X days"
  */
 export function getDeadlineText(deadline: string): string {
-  const date = new Date(deadline);
+  // Parse YYYY-MM-DD as local midnight; legacy ISO strings pass through unchanged
+  const date = new Date(deadline.includes('T') ? deadline : deadline + 'T00:00:00');
   const now = new Date();
 
   // Reset time to start of day for accurate day comparison
@@ -30,7 +31,7 @@ export function getDeadlineText(deadline: string): string {
  * @returns true if deadline is in the past
  */
 export function isOverdue(deadline: string): boolean {
-  const date = new Date(deadline);
+  const date = new Date(deadline.includes('T') ? deadline : deadline + 'T00:00:00');
   const now = new Date();
 
   date.setHours(0, 0, 0, 0);

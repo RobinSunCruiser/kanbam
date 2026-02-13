@@ -1,3 +1,5 @@
+export type ReminderOption = '0d' | '1d' | '2d' | '3d' | '1w' | '2w';
+
 export interface ChecklistItem {
   id: string;
   text: string;
@@ -28,6 +30,7 @@ export interface Card {
   checklist?: ChecklistItem[];
   links?: CardLink[];
   deadline?: string | null;
+  reminder?: ReminderOption | null;
   activity?: ActivityNote[];
 }
 

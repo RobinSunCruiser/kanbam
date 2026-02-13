@@ -79,7 +79,6 @@ export function useInlineEdit<T extends HTMLInputElement | HTMLTextAreaElement =
   // saveAndClose (keeps new value) and cancelEditing (reverts to snapshot).
   useEffect(() => {
     if (!isEditing) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
       setValue(initialValue);
       snapshotRef.current = initialValue;
     }

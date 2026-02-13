@@ -31,6 +31,11 @@ export async function verifyToken(token: string): Promise<SessionPayload | null>
   try {
     const { payload } = await jwtVerify(token, JWT_SECRET);
 
+    // Reject non-session tokens (e.g. calendar tokens carry a `purpose` claim)
+    if (payload.purpose) {
+      return null;
+    }
+
     // Validate that userId exists
     if (!payload.userId || typeof payload.userId !== 'string') {
       return null;

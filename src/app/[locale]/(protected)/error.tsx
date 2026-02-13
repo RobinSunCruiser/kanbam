@@ -29,10 +29,10 @@ export default function ProtectedError({
         <div className="text-center">
           <div className="text-red-600 dark:text-red-400 text-5xl mb-4">⚠️</div>
           <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
-            {t('protectedError.title')}
+            {t('protectedErrorTitle')}
           </h2>
           <p className="text-gray-600 dark:text-gray-400 mb-6">
-            {error.message || t('protectedError.description')}
+            {error.message || t('protectedErrorDefault')}
           </p>
           <div className="flex gap-3 justify-center">
             <Button
@@ -45,7 +45,7 @@ export default function ProtectedError({
               onClick={() => (window.location.href = '/dashboard')}
               variant="secondary"
             >
-              {tCommon('goToDashboard')}
+              {t('goToDashboard')}
             </Button>
           </div>
         </div>

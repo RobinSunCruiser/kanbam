@@ -1,4 +1,4 @@
-import { Board, Card, Column, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
+import { Board, Card, Column, ChecklistItem, CardLink, ActivityNote, type ReminderOption } from '@/types/board';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
@@ -242,6 +242,7 @@ export async function addCard(
     links: [],
     activity: [],
     deadline: null,
+    reminder: null,
   };
 
   board.cards[card.id] = card;
@@ -265,6 +266,7 @@ export async function updateCard(
     checklist?: ChecklistItem[];
     links?: CardLink[];
     deadline?: string | null;
+    reminder?: ReminderOption | null;
     activity?: ActivityNote[];
   }
 ): Promise<Card> {
@@ -314,6 +316,7 @@ export async function updateCard(
   if (updates.checklist !== undefined) card.checklist = updates.checklist;
   if (updates.links !== undefined) card.links = updates.links;
   if (updates.deadline !== undefined) card.deadline = updates.deadline;
+  if (updates.reminder !== undefined) card.reminder = updates.reminder;
   if (updates.activity !== undefined) card.activity = updates.activity;
 
   card.updatedAt = now;

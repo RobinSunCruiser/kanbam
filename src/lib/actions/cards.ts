@@ -74,6 +74,7 @@ export async function updateCardAction(
     checklist?: Array<{ id: string; text: string; checked: boolean }>;
     links?: Array<{ id: string; name: string; url: string }>;
     deadline?: string | null;
+    reminder?: string | null;
     activity?: Array<{ id: string; text: string; createdBy: string; createdAt: string }>;
   }
 ) {

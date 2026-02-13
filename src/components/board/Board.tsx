@@ -13,7 +13,7 @@ import {
   useSensors,
   pointerWithin,
 } from '@dnd-kit/core';
-import { Board as BoardType, Card as CardType } from '@/types/board';
+import { Board as BoardType, Card as CardType, type ReminderOption } from '@/types/board';
 import { createCardAction, updateCardAction, deleteCardAction } from '@/lib/actions/cards';
 import {
   createColumnAction,
@@ -141,6 +141,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       description?: string;
       assignee?: string;
       deadline?: string | null;
+      reminder?: ReminderOption | null;
       checklist?: CardType['checklist'];
       links?: CardType['links'];
       activity?: CardType['activity'];

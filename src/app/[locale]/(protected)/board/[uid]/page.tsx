@@ -4,6 +4,7 @@ import { loadBoard } from '@/lib/storage/boards';
 import BoardMembers from '@/components/board/BoardMembers';
 import BoardWrapper from '@/components/board/BoardWrapper';
 import BoardHeader from '@/components/board/BoardHeader';
+import CalendarFeed from '@/components/board/CalendarFeed';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
 interface BoardPageProps {
@@ -46,11 +47,14 @@ export default async function BoardPage({ params }: BoardPageProps) {
           )}
         </div>
 
-        <BoardMembers
-          board={board}
-          userEmail={user.email}
-          userPrivilege={privilege}
-        />
+        <div className="flex items-center gap-2">
+          <CalendarFeed boardUid={board.uid} />
+          <BoardMembers
+            board={board}
+            userEmail={user.email}
+            userPrivilege={privilege}
+          />
+        </div>
       </div>
 
       <div className="flex-1 min-h-0">

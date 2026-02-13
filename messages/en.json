@@ -176,7 +176,14 @@
     "overdue": "Overdue",
     "today": "Today",
     "tomorrow": "Tomorrow",
-    "days": "{count} days"
+    "days": "{count} days",
+    "noReminder": "Without reminder",
+    "0d": "On the day",
+    "1d": "1 day before",
+    "2d": "2 days before",
+    "3d": "3 days before",
+    "1w": "1 week before",
+    "2w": "2 weeks before"
   },
   "assignee": {
     "title": "Assignee",
@@ -215,6 +222,17 @@
     "inviting": "Inviting...",
     "sendInvite": "Send Invite",
     "genericError": "An error occurred. Please try again."
+  },
+  "calendar": {
+    "title": "Calendar Subscription",
+    "subscribe": "Subscribe to calendar",
+    "description": "Subscribe to this board's deadlines in your calendar app (Google Calendar, Apple Calendar, Outlook).",
+    "subscribeAction": "Subscribe",
+    "copy": "Copy",
+    "copied": "Copied!",
+    "copyHint": "Use \"Copy\" to manually paste the URL into your calendar app if \"Subscribe\" doesn't open it automatically.",
+    "securityWarning": "This URL contains a personal access token. Do not share it with others.",
+    "failedToGenerate": "Failed to generate calendar URL. Please try again."
   },
   "notFound": {
     "title": "404",

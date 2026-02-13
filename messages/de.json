@@ -176,7 +176,14 @@
     "overdue": "Überfällig",
     "today": "Heute",
     "tomorrow": "Morgen",
-    "days": "{count} Tage"
+    "days": "{count} Tage",
+    "noReminder": "Ohne Erinnerung",
+    "0d": "Am selben Tag",
+    "1d": "1 Tag vorher",
+    "2d": "2 Tage vorher",
+    "3d": "3 Tage vorher",
+    "1w": "1 Woche vorher",
+    "2w": "2 Wochen vorher"
   },
   "assignee": {
     "title": "Zugewiesen",
@@ -215,6 +222,17 @@
     "inviting": "Einladen...",
     "sendInvite": "Einladung senden",
     "genericError": "Ein Fehler ist aufgetreten. Bitte versuche es erneut."
+  },
+  "calendar": {
+    "title": "Kalender-Abo",
+    "subscribe": "Kalender abonnieren",
+    "description": "Abonniere die Fristen dieses Boards in deiner Kalender-App (Google Kalender, Apple Kalender, Outlook).",
+    "subscribeAction": "Abonnieren",
+    "copy": "Kopieren",
+    "copied": "Kopiert!",
+    "copyHint": "Nutze \"Kopieren\", um die URL manuell in deine Kalender-App einzufügen, falls \"Abonnieren\" sie nicht automatisch öffnet.",
+    "securityWarning": "Diese URL enthält einen persönlichen Zugangstoken. Teile sie nicht mit anderen.",
+    "failedToGenerate": "Kalender-URL konnte nicht erstellt werden. Bitte versuche es erneut."
   },
   "notFound": {
     "title": "404",

@@ -1,22 +1,30 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
-import { PlusIcon, XIcon, CalendarIcon } from '@/components/ui/Icons';
+import { PlusIcon, XIcon, CalendarIcon, BellIcon } from '@/components/ui/Icons';
 import { Calendar } from '@/components/ui/Calendar';
 import { useTranslations } from 'next-intl';
+import { REMINDER_OPTIONS } from '@/lib/constants';
+import type { ReminderOption } from '@/types/board';
 
 interface CardDeadlineProps {
   deadline: string;
+  reminder: ReminderOption | '';
   isReadOnly: boolean;
   onChange: (deadline: string) => void;
+  onReminderChange: (reminder: ReminderOption | '') => void;
 }
 
-export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDeadlineProps) {
+export default function CardDeadline({ deadline, reminder, isReadOnly, onChange, onReminderChange }: CardDeadlineProps) {
   const t = useTranslations('deadline');
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const selectedDate = deadline ? new Date(deadline) : undefined;
+  // Parse as local date: YYYY-MM-DD gets 'T00:00:00' appended (local midnight per spec);
+  // legacy ISO strings (contain 'T') pass through unchanged
+  const selectedDate = deadline
+    ? new Date(deadline.includes('T') ? deadline : deadline + 'T00:00:00')
+    : undefined;
 
   // Close on click outside
   useEffect(() => {
@@ -45,9 +53,18 @@ export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDea
 
   const handleSelect = (date: Date | undefined) => {
     if (date) {
-      onChange(date.toISOString());
+      // Store as YYYY-MM-DD to avoid timezone shifts (local midnight → UTC can change the date)
+      const yyyy = date.getFullYear();
+      const mm = String(date.getMonth() + 1).padStart(2, '0');
+      const dd = String(date.getDate()).padStart(2, '0');
+      onChange(`${yyyy}-${mm}-${dd}`);
     }
     setOpen(false);
+  };
+
+  const handleClearDeadline = () => {
+    onChange('');
+    onReminderChange('');
   };
 
   const calendarDropdown = (align: 'left' | 'right' = 'left') => open && (
@@ -59,7 +76,9 @@ export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDea
     </div>
   );
 
-  const formattedDate = deadline ? format(new Date(deadline), 'PPP') : '';
+  const formattedDate = deadline
+    ? format(new Date(deadline.includes('T') ? deadline : deadline + 'T00:00:00'), 'PPP')
+    : '';
 
   const datePill = (
     <>
@@ -100,7 +119,7 @@ export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDea
               </button>
               {!isReadOnly && (
                 <button
-                  onClick={() => onChange('')}
+                  onClick={handleClearDeadline}
                   className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 -m-1 text-slate-400 hover:text-red-500 transition-all ml-1"
                   aria-label={t('removeDeadline')}
                 >
@@ -110,6 +129,28 @@ export default function CardDeadline({ deadline, isReadOnly, onChange }: CardDea
             </div>
             {calendarDropdown()}
           </div>
+
+          {!isReadOnly && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 dark:bg-slate-800/50 rounded-full">
+              <BellIcon className="w-3.5 h-3.5 text-slate-400" />
+              <select
+                value={reminder || ''}
+                onChange={(e) => onReminderChange(e.target.value as ReminderOption | '')}
+                className="appearance-none text-xs bg-transparent text-slate-500 dark:text-slate-400 border-none outline-none cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+              >
+                <option value="" className="text-black">{t('noReminder')}</option>
+                {REMINDER_OPTIONS.map((opt) => (
+                  <option key={opt} value={opt} className="text-black">{t(opt)}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {isReadOnly && reminder && (
+            <span className="text-xs text-slate-500 dark:text-slate-400">
+              {t(reminder)}
+            </span>
+          )}
         </div>
       )}
     </div>

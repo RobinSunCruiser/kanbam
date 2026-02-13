@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, BoardMember, ChecklistItem, CardLink, ActivityNote } from '@/types/board';
+import { Card, BoardMember, ChecklistItem, CardLink, ActivityNote, type ReminderOption } from '@/types/board';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
@@ -28,6 +28,7 @@ interface CardModalProps {
     description?: string;
     assignee?: string;
     deadline?: string | null;
+    reminder?: ReminderOption | null;
     checklist?: ChecklistItem[];
     links?: CardLink[];
     activity?: ActivityNote[];
@@ -67,6 +68,7 @@ export default function CardModal({
   const [description, setDescription] = useState('');
   const [assignee, setAssignee] = useState('');
   const [deadline, setDeadline] = useState('');
+  const [reminder, setReminder] = useState<ReminderOption | ''>('');
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [links, setLinks] = useState<CardLink[]>([]);
   const [activity, setActivity] = useState<ActivityNote[]>([]);
@@ -86,7 +88,7 @@ export default function CardModal({
   // distinguish our own optimistic updates from genuine external changes.
   const lastSavedRef = useRef<{
     title: string; description: string; assignee: string;
-    deadline: string; checklist: ChecklistItem[]; links: CardLink[];
+    deadline: string; reminder: ReminderOption | ''; checklist: ChecklistItem[]; links: CardLink[];
     activity: ActivityNote[];
   } | null>(null);
 
@@ -96,8 +98,8 @@ export default function CardModal({
   cardRef.current = card;
 
   // Ref to hold latest state for save function (avoids stale closures)
-  const stateRef = useRef({ title, description, assignee, deadline, checklist, links, activity });
-  stateRef.current = { title, description, assignee, deadline, checklist, links, activity };
+  const stateRef = useRef({ title, description, assignee, deadline, reminder, checklist, links, activity });
+  stateRef.current = { title, description, assignee, deadline, reminder, checklist, links, activity };
 
   // Initialize form when card changes or modal opens
   useEffect(() => {
@@ -114,6 +116,7 @@ export default function CardModal({
       setAssignee(currentCard.assignee || '');
       assigneeOnOpen.current = currentCard.assignee || '';
       setDeadline(currentCard.deadline || '');
+      setReminder(currentCard.reminder || '');
       setChecklist(currentCard.checklist || []);
       setLinks(currentCard.links || []);
       setActivity(currentCard.activity || []);
@@ -122,6 +125,7 @@ export default function CardModal({
         description: currentCard.description,
         assignee: currentCard.assignee || '',
         deadline: currentCard.deadline || '',
+        reminder: currentCard.reminder || '',
         checklist: currentCard.checklist || [],
         links: currentCard.links || [],
         activity: currentCard.activity || [],
@@ -133,12 +137,12 @@ export default function CardModal({
       setAssignee('');
       assigneeOnOpen.current = '';
       setDeadline('');
+      setReminder('');
       setChecklist([]);
       setLinks([]);
       setActivity([]);
       lastSavedRef.current = null;
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, card?.id]);
 
   // Sync external updates (from other users) into form state while modal is open.
@@ -155,6 +159,7 @@ export default function CardModal({
         card.description === saved.description &&
         (card.assignee || '') === saved.assignee &&
         (card.deadline || '') === saved.deadline &&
+        (card.reminder || '') === saved.reminder &&
         JSON.stringify(card.checklist || []) === JSON.stringify(saved.checklist) &&
         JSON.stringify(card.links || []) === JSON.stringify(saved.links) &&
         JSON.stringify(card.activity || []) === JSON.stringify(saved.activity);
@@ -166,6 +171,7 @@ export default function CardModal({
     setDescription(card.description);
     setAssignee(card.assignee || '');
     setDeadline(card.deadline || '');
+    setReminder(card.reminder || '');
     setChecklist(card.checklist || []);
     setLinks(card.links || []);
     setActivity(card.activity || []);
@@ -176,6 +182,7 @@ export default function CardModal({
       description: card.description,
       assignee: card.assignee || '',
       deadline: card.deadline || '',
+      reminder: card.reminder || '',
       checklist: card.checklist || [],
       links: card.links || [],
       activity: card.activity || [],
@@ -219,6 +226,7 @@ export default function CardModal({
       description: state.description.trim(),
       assignee: state.assignee,
       deadline: state.deadline || '',
+      reminder: state.reminder || '',
       checklist: state.checklist,
       links: state.links,
       activity: state.activity,
@@ -230,6 +238,7 @@ export default function CardModal({
         description: state.description.trim(),
         assignee: state.assignee, // Send empty string, not undefined
         deadline: state.deadline || null,
+        reminder: state.reminder || null,
         checklist: state.checklist,
         links: state.links,
         activity: state.activity,
@@ -263,14 +272,15 @@ export default function CardModal({
     if (currentCard) {
       const sameAssignee = assignee === (currentCard.assignee || '');
       const sameDeadline = deadline === (currentCard.deadline || '');
+      const sameReminder = reminder === (currentCard.reminder || '');
       const sameChecklist = JSON.stringify(checklist) === JSON.stringify(currentCard.checklist || []);
       const sameLinks = JSON.stringify(links) === JSON.stringify(currentCard.links || []);
       const sameActivity = JSON.stringify(activity) === JSON.stringify(currentCard.activity || []);
-      if (sameAssignee && sameDeadline && sameChecklist && sameLinks && sameActivity) return;
+      if (sameAssignee && sameDeadline && sameReminder && sameChecklist && sameLinks && sameActivity) return;
     }
 
     saveCard();
-  }, [assignee, deadline, checklist, links, activity, isCreateMode, isReadOnly, saveCard]);
+  }, [assignee, deadline, reminder, checklist, links, activity, isCreateMode, isReadOnly, saveCard]);
 
   // Handle create mode submission
   const handleCreate = async () => {
@@ -369,7 +379,7 @@ export default function CardModal({
             <div className="space-y-0">
               <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
               <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
-              <CardDeadline deadline={deadline} isReadOnly={isReadOnly} onChange={setDeadline} />
+              <CardDeadline deadline={deadline} reminder={reminder} isReadOnly={isReadOnly} onChange={setDeadline} onReminderChange={setReminder} />
               <CardAssignee assignee={assignee} boardMembers={boardMembers} isReadOnly={isReadOnly} onChange={setAssignee} />
             </div>
 
