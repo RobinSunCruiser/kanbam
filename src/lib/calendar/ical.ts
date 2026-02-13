@@ -1,4 +1,5 @@
 import { Board, Column, type ReminderOption } from '@/types/board';
+import { getAppUrl } from '@/lib/utils/url';
 
 /** Map reminder values to iCal TRIGGER durations */
 const REMINDER_TRIGGERS: Record<ReminderOption, string> = {
@@ -51,8 +52,9 @@ function nextDay(deadline: string): string {
 
 /** Build DESCRIPTION from card data */
 function buildDescription(
-  card: { description: string; assignee?: string; checklist?: { checked: boolean }[]; links?: { name: string; url: string }[] },
-  column: Column | undefined
+  card: { description: string; assignee?: string; checklist?: { text: string; checked: boolean }[]; links?: { name: string; url: string }[] },
+  column: Column | undefined,
+  boardUrl: string
 ): string {
   const parts: string[] = [];
 
@@ -61,14 +63,19 @@ function buildDescription(
   if (card.description) parts.push(`\n${card.description}`);
   if (card.checklist && card.checklist.length > 0) {
     const done = card.checklist.filter(i => i.checked).length;
-    parts.push(`\nChecklist: ${done}/${card.checklist.length} done`);
+    parts.push(`\nChecklist (${done}/${card.checklist.length}):`);
+    for (const item of card.checklist) {
+      parts.push(`${item.checked ? '☑' : '☐'} ${item.text}`);
+    }
   }
   if (card.links && card.links.length > 0) {
     parts.push('\nLinks:');
     for (const link of card.links) {
-      parts.push(`- ${link.name}: ${link.url}`);
+      parts.push(`• ${link.name}: ${link.url}`);
     }
   }
+
+  parts.push(`\nBoard: ${boardUrl}`);
 
   return parts.join('\n');
 }
@@ -103,7 +110,9 @@ function foldLine(line: string): string {
 }
 
 /** Generate iCal feed string for a board */
-export function generateIcalFeed(board: Board): string {
+export async function generateIcalFeed(board: Board, locale: string = 'en'): Promise<string> {
+  const boardUrl = `${await getAppUrl()}/${locale}/board/${board.uid}`;
+
   const lines: string[] = [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -126,7 +135,7 @@ export function generateIcalFeed(board: Board): string {
     if (!card.deadline) continue;
 
     const column = columnMap.get(card.columnId);
-    const description = buildDescription(card, column);
+    const description = buildDescription(card, column, boardUrl);
 
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${cardId}@${board.uid}.kanbam`);

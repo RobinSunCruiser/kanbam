@@ -5,7 +5,7 @@ import { CalendarIcon } from '../ui/Icons';
 import Button from '../ui/Button';
 import Modal from '../ui/Modal';
 import { generateCalendarUrlAction } from '@/lib/actions/calendar';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface CalendarFeedProps {
   boardUid: string;
@@ -14,6 +14,7 @@ interface CalendarFeedProps {
 export default function CalendarFeed({ boardUid }: CalendarFeedProps) {
   const t = useTranslations('calendar');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const [showModal, setShowModal] = useState(false);
   const [calendarUrl, setCalendarUrl] = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +29,7 @@ export default function CalendarFeed({ boardUid }: CalendarFeedProps) {
     setError('');
 
     try {
-      const result = await generateCalendarUrlAction(boardUid);
+      const result = await generateCalendarUrlAction(boardUid, locale);
       if (result.success) {
         setCalendarUrl(result.url);
       } else {

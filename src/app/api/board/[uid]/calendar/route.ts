@@ -44,7 +44,7 @@ export async function GET(
     return new Response('Board not found', { status: 404 });
   }
 
-  const icalContent = generateIcalFeed(board);
+  const icalContent = await generateIcalFeed(board, payload.locale);
 
   return new Response(icalContent, {
     status: 200,

@@ -2,10 +2,10 @@
  * Email sending with Resend
  */
 import { Resend } from 'resend';
-import { headers } from 'next/headers';
 import { createEmailToken } from './tokens';
 import { User } from '@/types/user';
 import { updateUserField } from '../storage/db';
+import { getAppUrl } from '@/lib/utils/url';
 
 /** Lazily initialized Resend client */
 let resend: Resend | null = null;
@@ -21,27 +21,6 @@ function getResend(): Resend {
   return resend;
 }
 
-async function getAppUrl(): Promise<string> {
-  if (process.env.APP_URL) {
-    return process.env.APP_URL;
-  }
-
-  if (process.env.VERCEL_URL) {
-    return `https://${process.env.VERCEL_URL}`;
-  }
-
-  try {
-    const host = (await headers()).get('host');
-    if (host) {
-      const protocol = host.includes('localhost') ? 'http' : 'https';
-      return `${protocol}://${host}`;
-    }
-  } catch {
-    // headers() throws outside request context
-  }
-
-  return 'http://localhost:3000';
-}
 
 /** Wrap content in email template */
 function emailHtml(title: string, body: string): string {
