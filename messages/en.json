@@ -197,6 +197,12 @@
     "notePlaceholder": "Add a note...",
     "noActivity": "No activity yet"
   },
+  "labels": {
+    "title": "Labels",
+    "addLabel": "Add label",
+    "searchOrCreate": "Search or create label...",
+    "removeLabel": "Remove {name}"
+  },
   "members": {
     "title": "Members",
     "boardMembers": "Board Members",
@@ -293,7 +299,8 @@
     "failedToDeleteCard": "Failed to delete card",
     "boardNotFound": "Board not found",
     "cannotRemoveOwner": "Cannot remove board owner. The owner must leave the board themselves.",
-    "failedToSendEmail": "Failed to send email"
+    "failedToSendEmail": "Failed to send email",
+    "failedToAddLabel": "Failed to add label"
   },
   "email": {
     "verifySubject": "Verify your KanBam account",

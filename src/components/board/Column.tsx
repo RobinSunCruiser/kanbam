@@ -3,7 +3,7 @@
 import { memo, useState, useCallback } from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Column as ColumnType, Card as CardType } from '@/types/board';
+import { Column as ColumnType, Card as CardType, BoardLabel } from '@/types/board';
 import { useInlineEdit } from '@/lib/hooks/useInlineEdit';
 import Card from './Card';
 import { PlusIcon } from '../ui/Icons';
@@ -14,6 +14,7 @@ import { useTranslations } from 'next-intl';
 interface ColumnProps {
   column: ColumnType;
   cards: CardType[];
+  boardLabels: BoardLabel[];
   isReadOnly: boolean;
   canDelete: boolean;
   canMoveLeft: boolean;
@@ -34,6 +35,7 @@ interface ColumnProps {
 const Column = memo(function Column({
   column,
   cards,
+  boardLabels,
   isReadOnly,
   canDelete,
   canMoveLeft,
@@ -139,7 +141,7 @@ const Column = memo(function Column({
       <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>
         <div className="space-y-3 flex-1 overflow-y-auto">
           {cards.map((card) => (
-            <Card key={card.id} card={card} onClick={() => onCardClick(card)} isReadOnly={isReadOnly} />
+            <Card key={card.id} card={card} boardLabels={boardLabels} onClick={() => onCardClick(card)} isReadOnly={isReadOnly} />
           ))}
 
           {cards.length === 0 && (

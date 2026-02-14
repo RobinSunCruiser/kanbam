@@ -3,13 +3,18 @@
 import { memo } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Card as CardType } from '@/types/board';
+import { Card as CardType, BoardLabel } from '@/types/board';
 import { getDeadlineText, isOverdue } from '@/lib/utils/dates';
 import { CheckIcon, UserIcon, ClockIcon } from '../ui/Icons';
 import { useTranslations } from 'next-intl';
 
+function hexToRgb(hex: string) {
+  return `${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)}`;
+}
+
 interface CardProps {
   card: CardType;
+  boardLabels: BoardLabel[];
   onClick: () => void;
   isReadOnly: boolean;
 }
@@ -20,7 +25,7 @@ interface CardProps {
  * Memoized to prevent unnecessary re-renders when parent board state changes
  * but this specific card's data remains the same.
  */
-const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
+const Card = memo(function Card({ card, boardLabels, onClick, isReadOnly }: CardProps) {
   const tDeadline = useTranslations('deadline');
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: card.id,
@@ -35,7 +40,9 @@ const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
 
   const checkedItems = card.checklist?.filter(item => item.checked).length || 0;
   const totalItems = card.checklist?.length || 0;
-  const hasMetadata = totalItems > 0 || card.assignee || card.deadline;
+  const resolvedLabels = (card.labelIds || [])
+    .map(id => boardLabels.find(l => l.id === id))
+    .filter((l): l is BoardLabel => l !== undefined);
 
   return (
     <div
@@ -58,8 +65,18 @@ const Card = memo(function Card({ card, onClick, isReadOnly }: CardProps) {
         </p>
       )}
 
-      {hasMetadata && (
+      {(resolvedLabels.length > 0 || totalItems > 0 || card.assignee || card.deadline) && (
         <div className="flex flex-wrap items-center gap-2 mt-3 pt-3 border-t border-slate-100/50 dark:border-slate-700/30">
+          {resolvedLabels.map((label) => (
+            <span
+              key={label.id}
+              className="px-2 py-0.5 rounded-full text-[11px] font-semibold"
+              style={{ backgroundColor: `rgba(${hexToRgb(label.color)},0.15)`, color: label.color }}
+            >
+              {label.name}
+            </span>
+          ))}
+
           {totalItems > 0 && (
             <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs ${
               checkedItems === totalItems

@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { isValidColumnId, COLUMN_TITLE_MAX_LENGTH, REMINDER_OPTIONS } from '../constants';
+import { isValidColumnId, COLUMN_TITLE_MAX_LENGTH, REMINDER_OPTIONS, LABEL_NAME_MAX_LENGTH, LABEL_COLORS } from '../constants';
 
 /**
  * Authentication validation schemas
@@ -63,6 +63,15 @@ export const updateColumnSchema = z.object({
 });
 
 /**
+ * Board label validation schemas
+ */
+
+export const createBoardLabelSchema = z.object({
+  name: z.string().min(1, 'Label name is required').max(LABEL_NAME_MAX_LENGTH, 'Label name is too long'),
+  color: z.enum(LABEL_COLORS as unknown as [string, ...string[]]),
+});
+
+/**
  * Card validation schemas
  */
 
@@ -111,6 +120,7 @@ export const updateCardSchema = z.object({
   deadline: z.string().nullable().optional(),
   reminder: z.enum(REMINDER_OPTIONS).nullable().optional(),
   activity: z.array(activityNoteSchema).optional(),
+  labelIds: z.array(z.string()).optional(),
 });
 
 /**

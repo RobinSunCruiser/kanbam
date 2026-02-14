@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { Card, BoardMember, ChecklistItem, CardLink, ActivityNote, type ReminderOption } from '@/types/board';
+import { Card, BoardLabel, BoardMember, ChecklistItem, CardLink, ActivityNote, type ReminderOption } from '@/types/board';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/Input';
 import Textarea from '@/components/ui/Textarea';
@@ -12,6 +12,7 @@ import CardLinks from './CardLinks';
 import CardDeadline from './CardDeadline';
 import CardAssignee from './CardAssignee';
 import CardActivity from './CardActivity';
+import CardLabels from './CardLabels';
 import { sendAssignmentEmailAction, sendCommentEmailAction } from '@/lib/actions/cards';
 import { AUTOSAVE_DEBOUNCE_MS } from '@/lib/constants';
 import { useTranslations, useLocale } from 'next-intl';
@@ -19,6 +20,7 @@ import { useTranslations, useLocale } from 'next-intl';
 interface CardModalProps {
   card: Card | null;
   boardMembers: BoardMember[];
+  boardLabels: BoardLabel[];
   boardUid: string;
   isOpen: boolean;
   isReadOnly: boolean;
@@ -33,8 +35,10 @@ interface CardModalProps {
     checklist?: ChecklistItem[];
     links?: CardLink[];
     activity?: ActivityNote[];
+    labelIds?: string[];
   }) => Promise<void>;
   onDelete: (cardId: string) => Promise<void>;
+  onBoardLabelsChange: (labels: BoardLabel[]) => void;
   onCreate?: (data: { title: string; description: string; columnId: string }) => Promise<void>;
   columnId?: string;
 }
@@ -50,6 +54,7 @@ interface CardModalProps {
 export default function CardModal({
   card,
   boardMembers,
+  boardLabels,
   boardUid,
   isOpen,
   isReadOnly,
@@ -57,6 +62,7 @@ export default function CardModal({
   onClose,
   onUpdate,
   onDelete,
+  onBoardLabelsChange,
   onCreate,
   columnId,
 }: CardModalProps) {
@@ -74,6 +80,7 @@ export default function CardModal({
   const [checklist, setChecklist] = useState<ChecklistItem[]>([]);
   const [links, setLinks] = useState<CardLink[]>([]);
   const [activity, setActivity] = useState<ActivityNote[]>([]);
+  const [labelIds, setLabelIds] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -91,7 +98,7 @@ export default function CardModal({
   const lastSavedRef = useRef<{
     title: string; description: string; assignee: string;
     deadline: string; reminder: ReminderOption | ''; checklist: ChecklistItem[]; links: CardLink[];
-    activity: ActivityNote[];
+    activity: ActivityNote[]; labelIds: string[];
   } | null>(null);
 
   // Keep refs in sync without causing re-renders
@@ -100,8 +107,8 @@ export default function CardModal({
   cardRef.current = card;
 
   // Ref to hold latest state for save function (avoids stale closures)
-  const stateRef = useRef({ title, description, assignee, deadline, reminder, checklist, links, activity });
-  stateRef.current = { title, description, assignee, deadline, reminder, checklist, links, activity };
+  const stateRef = useRef({ title, description, assignee, deadline, reminder, checklist, links, activity, labelIds });
+  stateRef.current = { title, description, assignee, deadline, reminder, checklist, links, activity, labelIds };
 
   // Initialize form when card changes or modal opens
   useEffect(() => {
@@ -122,6 +129,7 @@ export default function CardModal({
       setChecklist(currentCard.checklist || []);
       setLinks(currentCard.links || []);
       setActivity(currentCard.activity || []);
+      setLabelIds(currentCard.labelIds || []);
       lastSavedRef.current = {
         title: currentCard.title,
         description: currentCard.description,
@@ -131,6 +139,7 @@ export default function CardModal({
         checklist: currentCard.checklist || [],
         links: currentCard.links || [],
         activity: currentCard.activity || [],
+        labelIds: currentCard.labelIds || [],
       };
     } else {
       // Create mode or no card - reset to empty
@@ -143,6 +152,7 @@ export default function CardModal({
       setChecklist([]);
       setLinks([]);
       setActivity([]);
+      setLabelIds([]);
       lastSavedRef.current = null;
     }
   }, [isOpen, card?.id]);
@@ -164,7 +174,8 @@ export default function CardModal({
         (card.reminder || '') === saved.reminder &&
         JSON.stringify(card.checklist || []) === JSON.stringify(saved.checklist) &&
         JSON.stringify(card.links || []) === JSON.stringify(saved.links) &&
-        JSON.stringify(card.activity || []) === JSON.stringify(saved.activity);
+        JSON.stringify(card.activity || []) === JSON.stringify(saved.activity) &&
+        JSON.stringify(card.labelIds || []) === JSON.stringify(saved.labelIds);
 
       if (isOwnUpdate) return;
     }
@@ -177,6 +188,7 @@ export default function CardModal({
     setChecklist(card.checklist || []);
     setLinks(card.links || []);
     setActivity(card.activity || []);
+    setLabelIds(card.labelIds || []);
 
     // Update baseline so the next comparison is against this external state
     lastSavedRef.current = {
@@ -188,6 +200,7 @@ export default function CardModal({
       checklist: card.checklist || [],
       links: card.links || [],
       activity: card.activity || [],
+      labelIds: card.labelIds || [],
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [card?.updatedAt]);
@@ -232,6 +245,7 @@ export default function CardModal({
       checklist: state.checklist,
       links: state.links,
       activity: state.activity,
+      labelIds: state.labelIds,
     };
 
     try {
@@ -244,6 +258,7 @@ export default function CardModal({
         checklist: state.checklist,
         links: state.links,
         activity: state.activity,
+        labelIds: state.labelIds,
       });
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save changes';
@@ -288,11 +303,12 @@ export default function CardModal({
       const sameChecklist = JSON.stringify(checklist) === JSON.stringify(currentCard.checklist || []);
       const sameLinks = JSON.stringify(links) === JSON.stringify(currentCard.links || []);
       const sameActivity = JSON.stringify(activity) === JSON.stringify(currentCard.activity || []);
-      if (sameAssignee && sameDeadline && sameReminder && sameChecklist && sameLinks && sameActivity) return;
+      const sameLabelIds = JSON.stringify(labelIds) === JSON.stringify(currentCard.labelIds || []);
+      if (sameAssignee && sameDeadline && sameReminder && sameChecklist && sameLinks && sameActivity && sameLabelIds) return;
     }
 
     saveCard();
-  }, [assignee, deadline, reminder, checklist, links, activity, isCreateMode, isReadOnly, saveCard]);
+  }, [assignee, deadline, reminder, checklist, links, activity, labelIds, isCreateMode, isReadOnly, saveCard]);
 
   // Handle create mode submission
   const handleCreate = async () => {
@@ -391,6 +407,7 @@ export default function CardModal({
             <div className="space-y-0">
               <CardChecklist items={checklist} isReadOnly={isReadOnly} onChange={setChecklist} />
               <CardLinks links={links} isReadOnly={isReadOnly} onChange={setLinks} />
+              <CardLabels labelIds={labelIds} boardLabels={boardLabels} boardUid={boardUid} isReadOnly={isReadOnly} onChange={setLabelIds} onBoardLabelsChange={onBoardLabelsChange} />
               <CardDeadline deadline={deadline} reminder={reminder} isReadOnly={isReadOnly} onChange={setDeadline} onReminderChange={setReminder} />
               <CardAssignee assignee={assignee} boardMembers={boardMembers} isReadOnly={isReadOnly} onChange={setAssignee} />
             </div>

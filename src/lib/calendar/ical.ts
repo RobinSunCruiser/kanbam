@@ -1,4 +1,4 @@
-import { Board, Column, type ReminderOption } from '@/types/board';
+import { Board, BoardLabel, Column, type ReminderOption } from '@/types/board';
 import { getAppUrl } from '@/lib/utils/url';
 
 /** Map reminder values to iCal TRIGGER durations */
@@ -52,14 +52,23 @@ export function nextDay(deadline: string): string {
 
 /** Build DESCRIPTION from card data */
 function buildDescription(
-  card: { description: string; assignee?: string; checklist?: { text: string; checked: boolean }[]; links?: { name: string; url: string }[] },
+  card: { description: string; assignee?: string; checklist?: { text: string; checked: boolean }[]; links?: { name: string; url: string }[]; labelIds?: string[] },
   column: Column | undefined,
-  boardUrl: string
+  boardUrl: string,
+  boardLabels: BoardLabel[]
 ): string {
   const parts: string[] = [];
 
   if (column) parts.push(`Column: ${column.title}`);
   if (card.assignee) parts.push(`Assignee: ${card.assignee}`);
+  if (card.labelIds && card.labelIds.length > 0) {
+    const labelNames = card.labelIds
+      .map(id => boardLabels.find(l => l.id === id)?.name)
+      .filter(Boolean);
+    if (labelNames.length > 0) {
+      parts.push(`Labels: ${labelNames.join(', ')}`);
+    }
+  }
   if (card.description) parts.push(`\n${card.description}`);
   if (card.checklist && card.checklist.length > 0) {
     const done = card.checklist.filter(i => i.checked).length;
@@ -135,7 +144,7 @@ export async function generateIcalFeed(board: Board, locale: string = 'en'): Pro
     if (!card.deadline) continue;
 
     const column = columnMap.get(card.columnId);
-    const description = buildDescription(card, column, boardUrl);
+    const description = buildDescription(card, column, boardUrl, board.labels);
 
     lines.push('BEGIN:VEVENT');
     lines.push(`UID:${cardId}@${board.uid}.kanbam`);

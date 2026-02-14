@@ -19,6 +19,12 @@ export interface ActivityNote {
   createdAt: string;
 }
 
+export interface BoardLabel {
+  id: string;
+  name: string;
+  color: string;
+}
+
 export interface Card {
   id: string;
   title: string;
@@ -32,6 +38,7 @@ export interface Card {
   deadline?: string | null;
   reminder?: ReminderOption | null;
   activity?: ActivityNote[];
+  labelIds?: string[];
 }
 
 export interface Column {
@@ -55,6 +62,7 @@ export interface Board {
   members: BoardMember[];
   columns: Column[];
   cards: Record<string, Card>;
+  labels: BoardLabel[];
 }
 
 export interface BoardMetadata {

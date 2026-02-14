@@ -1,8 +1,14 @@
-import { Board, Card, Column, ChecklistItem, CardLink, ActivityNote, type ReminderOption } from '@/types/board';
+import { Board, BoardLabel, Card, Column, ChecklistItem, CardLink, ActivityNote, type ReminderOption } from '@/types/board';
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
 import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid } from './db';
+
+/** Remove board labels not referenced by any card */
+function pruneOrphanedLabels(board: Board): void {
+  const usedIds = new Set(Object.values(board.cards).flatMap(c => c.labelIds || []));
+  board.labels = board.labels.filter(l => usedIds.has(l.id));
+}
 
 // ============================================================================
 // BOARD CRUD OPERATIONS
@@ -27,6 +33,7 @@ export async function loadBoard(uid: string): Promise<Board | null> {
     members: boardData.members || [],
     columns: boardData.columns || [],
     cards: boardData.cards || {},
+    labels: boardData.labels || [],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -43,6 +50,7 @@ export async function saveBoard(board: Board): Promise<void> {
     members: board.members,
     columns: board.columns,
     cards: board.cards,
+    labels: board.labels,
   };
 
   await upsertBoard(board.uid, board.title, board.ownerId, data, board.createdAt, board.updatedAt);
@@ -72,6 +80,7 @@ export async function listBoardsByEmail(email: string): Promise<Board[]> {
     members: row.data.members || [],
     columns: row.data.columns || [],
     cards: row.data.cards || {},
+    labels: row.data.labels || [],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   }));
@@ -83,7 +92,7 @@ export async function listBoardsByEmail(email: string): Promise<Board[]> {
 
 /** Create new board with default columns and owner as member */
 export async function createBoard(
-  data: Omit<Board, 'uid' | 'createdAt' | 'updatedAt' | 'columns' | 'cards' | 'members'>,
+  data: Omit<Board, 'uid' | 'createdAt' | 'updatedAt' | 'columns' | 'cards' | 'members' | 'labels'>,
   ownerEmail: string
 ): Promise<Board> {
   const uid = generateUid();
@@ -101,6 +110,7 @@ export async function createBoard(
       { id: generateUid(), title: 'Done', cardIds: [] },
     ],
     cards: {},
+    labels: [],
   };
 
   await saveBoard(board);
@@ -234,6 +244,7 @@ export async function addCard(
     activity: [],
     deadline: null,
     reminder: null,
+    labelIds: [],
   };
 
   board.cards[card.id] = card;
@@ -259,6 +270,7 @@ export async function updateCard(
     deadline?: string | null;
     reminder?: ReminderOption | null;
     activity?: ActivityNote[];
+    labelIds?: string[];
   }
 ): Promise<Card> {
   const board = await loadBoard(boardUid);
@@ -309,6 +321,10 @@ export async function updateCard(
   if (updates.deadline !== undefined) card.deadline = updates.deadline;
   if (updates.reminder !== undefined) card.reminder = updates.reminder;
   if (updates.activity !== undefined) card.activity = updates.activity;
+  if (updates.labelIds !== undefined) {
+    card.labelIds = updates.labelIds;
+    pruneOrphanedLabels(board);
+  }
 
   card.updatedAt = now;
   board.updatedAt = now;
@@ -336,9 +352,38 @@ export async function deleteCard(boardUid: string, cardId: string): Promise<void
   }
 
   delete board.cards[cardId];
+  pruneOrphanedLabels(board);
+
   board.updatedAt = new Date().toISOString();
 
   await saveBoard(board);
+}
+
+// ============================================================================
+// BOARD LABEL OPERATIONS
+// ============================================================================
+
+/** Add a new label to the board */
+export async function addBoardLabel(
+  boardUid: string,
+  data: { name: string; color: string }
+): Promise<BoardLabel> {
+  const board = await loadBoard(boardUid);
+  if (!board) {
+    throw new NotFoundError('Board not found');
+  }
+
+  const label: BoardLabel = {
+    id: generateUid(),
+    name: data.name,
+    color: data.color,
+  };
+
+  board.labels.push(label);
+  board.updatedAt = new Date().toISOString();
+
+  await saveBoard(board);
+  return label;
 }
 
 // ============================================================================

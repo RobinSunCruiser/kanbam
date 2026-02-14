@@ -9,7 +9,7 @@ import {
   DragStartEvent,
   pointerWithin,
 } from '@dnd-kit/core';
-import { Board as BoardType, Card as CardType, type ReminderOption } from '@/types/board';
+import { Board as BoardType, BoardLabel, Card as CardType, type ReminderOption } from '@/types/board';
 import { createCardAction, updateCardAction, deleteCardAction } from '@/lib/actions/cards';
 import {
   createColumnAction,
@@ -118,6 +118,14 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     }
   };
 
+  const handleBoardLabelsChange = (labels: BoardLabel[]) => {
+    setBoard((prevBoard) => ({
+      ...prevBoard,
+      labels,
+      updatedAt: new Date().toISOString(),
+    }));
+  };
+
   const handleUpdateCard = async (
     cardId: string,
     updates: {
@@ -129,6 +137,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       checklist?: CardType['checklist'];
       links?: CardType['links'];
       activity?: CardType['activity'];
+      labelIds?: string[];
     }
   ) => {
     // Optimistic update
@@ -547,6 +556,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
                 <Column
                   column={column}
                   cards={getCardsForColumn(column.id)}
+                  boardLabels={board.labels}
                   isReadOnly={isReadOnly}
                   canDelete={board.columns.length > 1}
                   canMoveLeft={index > 0}
@@ -582,6 +592,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       <CardModal
         card={selectedCard}
         boardMembers={board.members}
+        boardLabels={board.labels}
         boardUid={board.uid}
         isOpen={isModalOpen}
         isReadOnly={isReadOnly}
@@ -589,6 +600,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
         onClose={handleCloseModal}
         onUpdate={handleUpdateCard}
         onDelete={handleDeleteCard}
+        onBoardLabelsChange={handleBoardLabelsChange}
         onCreate={createColumnId ? handleCreateCard : undefined}
         columnId={createColumnId || undefined}
       />

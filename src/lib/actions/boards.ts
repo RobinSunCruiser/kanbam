@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 import { getLocale, getTranslations } from 'next-intl/server';
-import { createBoardSchema, updateBoardSchema, addMemberSchema } from '../validation/schemas';
+import { createBoardSchema, updateBoardSchema, addMemberSchema, createBoardLabelSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import {
   createBoard,
@@ -11,6 +11,7 @@ import {
   addBoardMember,
   removeBoardMember,
   loadBoard,
+  addBoardLabel,
 } from '../storage/boards';
 import { getUserById } from '../storage/users';
 import { boardEvents } from '../realtime/events';
@@ -239,3 +240,40 @@ export async function removeBoardMemberAction(boardUid: string, email: string) {
     };
   }
 }
+
+/**
+ * Server Action: Add Board Label
+ * Creates a new label on the board
+ */
+export async function addBoardLabelAction(
+  boardUid: string,
+  data: { name: string; color: string }
+) {
+  const locale = await getLocale();
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
+  const validation = createBoardLabelSchema.safeParse(data);
+  if (!validation.success) {
+    return {
+      success: false,
+      error: validation.error.issues[0]?.message || t('invalidInput'),
+    };
+  }
+
+  try {
+    const user = await requireAuth();
+    await requireBoardAccess(user, boardUid, 'write');
+
+    const label = await addBoardLabel(boardUid, validation.data);
+
+    revalidatePath(`/board/${boardUid}`);
+    boardEvents.emit({ boardUid, actorId: user.id });
+
+    return { success: true, label };
+  } catch (error) {
+    console.error('Add board label error:', error);
+    const errorMessage = error instanceof Error ? error.message : t('failedToAddLabel');
+    return { success: false, error: errorMessage };
+  }
+}
+

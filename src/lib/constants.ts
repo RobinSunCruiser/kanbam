@@ -19,6 +19,22 @@ export function isValidColumnId(value: unknown): value is string {
 export const REMINDER_OPTIONS = ['0d', '1d', '2d', '3d', '1w', '2w'] as const satisfies readonly ReminderOption[];
 
 /**
+ * Label constraints
+ */
+export const LABEL_NAME_MAX_LENGTH = 30;
+
+export const LABEL_COLORS = [
+  '#ef4444', // red
+  '#f97316', // orange
+  '#eab308', // yellow
+  '#22c55e', // green
+  '#06b6d4', // cyan
+  '#3b82f6', // blue
+  '#8b5cf6', // violet
+  '#ec4899', // pink
+] as const;
+
+/**
  * Timing constants
  */
 export const RECONNECT_DELAY_MS = 3000;

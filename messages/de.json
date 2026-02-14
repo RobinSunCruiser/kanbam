@@ -197,6 +197,12 @@
     "notePlaceholder": "Notiz hinzufügen...",
     "noActivity": "Noch keine Aktivität"
   },
+  "labels": {
+    "title": "Labels",
+    "addLabel": "Label hinzufügen",
+    "searchOrCreate": "Label suchen oder erstellen...",
+    "removeLabel": "{name} entfernen"
+  },
   "members": {
     "title": "Mitglieder",
     "boardMembers": "Board-Mitglieder",
@@ -293,7 +299,8 @@
     "failedToDeleteCard": "Karte konnte nicht gelöscht werden",
     "boardNotFound": "Board nicht gefunden",
     "cannotRemoveOwner": "Board-Besitzer kann nicht entfernt werden. Der Besitzer muss das Board selbst verlassen.",
-    "failedToSendEmail": "E-Mail konnte nicht gesendet werden"
+    "failedToSendEmail": "E-Mail konnte nicht gesendet werden",
+    "failedToAddLabel": "Label konnte nicht hinzugefügt werden"
   },
   "email": {
     "verifySubject": "Bestätige dein KanBam-Konto",
