@@ -21,8 +21,9 @@ import confetti from 'canvas-confetti';
 import Column from './Column';
 import CardModal from './CardModal/index';
 import ColumnDialog from './ColumnDialog';
+import LabelFilter from './LabelFilter';
 import AlertDialog from '../ui/AlertDialog';
-import { PlusIcon } from '../ui/Icons';
+import { PlusIcon, FilterIcon } from '../ui/Icons';
 import { useBoardSync } from '@/lib/hooks/useBoardSync';
 import { useDndSensors } from '@/lib/hooks/useDndSensors';
 import { useTranslations } from 'next-intl';
@@ -43,6 +44,8 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const [activeCard, setActiveCard] = useState<CardType | null>(null);
   const [errorAlert, setErrorAlert] = useState<{ title: string; message: string } | null>(null);
   const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
+  const [activeLabelFilters, setActiveLabelFilters] = useState<string[]>([]);
+  const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   // Sync board state when server data changes (e.g., from router.refresh())
   // eslint-disable-next-line react-hooks/set-state-in-effect, react-hooks/exhaustive-deps
@@ -124,6 +127,22 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       labels,
       updatedAt: new Date().toISOString(),
     }));
+  };
+
+  // Derive valid label filter IDs (auto-prunes stale IDs when labels change)
+  const validLabelIds = new Set(board.labels.map(l => l.id));
+  const effectiveLabelFilters = activeLabelFilters.filter(id => validLabelIds.has(id));
+
+  const handleToggleLabelFilter = (labelId: string) => {
+    setActiveLabelFilters(prev =>
+      prev.includes(labelId)
+        ? prev.filter(id => id !== labelId)
+        : [...prev, labelId]
+    );
+  };
+
+  const handleClearLabelFilters = () => {
+    setActiveLabelFilters([]);
   };
 
   const handleUpdateCard = async (
@@ -428,7 +447,11 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
     return column.cardIds
       .map((id) => board.cards[id])
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter((card) => {
+        if (effectiveLabelFilters.length === 0) return true;
+        return (card.labelIds || []).some(id => effectiveLabelFilters.includes(id));
+      });
   };
 
   // Column operation handlers
@@ -531,17 +554,45 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
   return (
     <div className="h-full flex flex-col" suppressHydrationWarning>
-      {!isReadOnly && (
-        <div className="flex justify-end mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+      <div className="flex items-center justify-end gap-1.5 mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 overflow-x-auto">
+        {isFilterVisible && board.labels.length > 0 && (
+          <LabelFilter
+            labels={board.labels}
+            activeLabelIds={effectiveLabelFilters}
+            onToggleLabel={handleToggleLabelFilter}
+            onClearAll={handleClearLabelFilters}
+          />
+        )}
+
+        {board.labels.length > 0 && (
+          <button
+            onClick={() => setIsFilterVisible(v => !v)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 ${
+              effectiveLabelFilters.length > 0
+                ? 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+                : 'text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
+            }`}
+          >
+            <FilterIcon className="w-3.5 h-3.5" />
+            {t('filterLabels')}
+            {effectiveLabelFilters.length > 0 && (
+              <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
+                {effectiveLabelFilters.length}
+              </span>
+            )}
+          </button>
+        )}
+
+        {!isReadOnly && (
           <button
             onClick={handleAddColumnClick}
-            className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98]"
+            className="flex items-center gap-1 px-3 py-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0"
           >
             <PlusIcon className="w-3.5 h-3.5" />
             {t('addColumn')}
           </button>
-        </div>
-      )}
+        )}
+      </div>
 
       <DndContext
         sensors={sensors}

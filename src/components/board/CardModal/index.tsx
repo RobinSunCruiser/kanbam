@@ -217,7 +217,7 @@ export default function CardModal({
       sendAssignmentEmailAction(uid, cardTitle, newAssignee, locale);
       pendingEmailRef.current = null;
     }
-  }, [isOpen]);
+  }, [isOpen, locale]);
 
   // Track assignee changes for email notification
   useEffect(() => {

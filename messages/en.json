@@ -137,7 +137,10 @@
     "deleteFailed": "Delete Failed",
     "createFailed": "Create Failed",
     "reorderFailed": "Reorder Failed",
-    "creating": "Creating..."
+    "creating": "Creating...",
+    "filterLabels": "Filter",
+    "clearFilters": "Clear",
+    "noMatchingCards": "No cards match filters"
   },
   "card": {
     "createCard": "Create Card",

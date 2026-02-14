@@ -137,7 +137,10 @@
     "deleteFailed": "Löschen fehlgeschlagen",
     "createFailed": "Erstellen fehlgeschlagen",
     "reorderFailed": "Neuordnung fehlgeschlagen",
-    "creating": "Wird erstellt..."
+    "creating": "Wird erstellt...",
+    "filterLabels": "Filter",
+    "clearFilters": "Zurücksetzen",
+    "noMatchingCards": "Keine Karten entsprechen den Filtern"
   },
   "card": {
     "createCard": "Karte erstellen",

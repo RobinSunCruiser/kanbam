@@ -4,12 +4,9 @@ import { useState, useRef, useEffect } from 'react';
 import { BoardLabel } from '@/types/board';
 import { PlusIcon, XIcon, CheckIcon } from '@/components/ui/Icons';
 import { LABEL_COLORS } from '@/lib/constants';
+import { hexToRgb } from '@/lib/utils/colors';
 import { addBoardLabelAction } from '@/lib/actions/boards';
 import { useTranslations } from 'next-intl';
-
-function hexToRgb(hex: string) {
-  return `${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)}`;
-}
 
 interface CardLabelsProps {
   labelIds: string[];

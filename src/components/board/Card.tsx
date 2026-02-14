@@ -5,12 +5,9 @@ import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Card as CardType, BoardLabel } from '@/types/board';
 import { getDeadlineText, isOverdue } from '@/lib/utils/dates';
+import { hexToRgb } from '@/lib/utils/colors';
 import { CheckIcon, UserIcon, ClockIcon } from '../ui/Icons';
 import { useTranslations } from 'next-intl';
-
-function hexToRgb(hex: string) {
-  return `${parseInt(hex.slice(1, 3), 16)},${parseInt(hex.slice(3, 5), 16)},${parseInt(hex.slice(5, 7), 16)}`;
-}
 
 interface CardProps {
   card: CardType;
