@@ -22,6 +22,7 @@ import Column from './Column';
 import CardModal from './CardModal/index';
 import ColumnDialog from './ColumnDialog';
 import LabelFilter from './LabelFilter';
+import MemberFilter from './MemberFilter';
 import AlertDialog from '../ui/AlertDialog';
 import { PlusIcon, FilterIcon } from '../ui/Icons';
 import { useBoardSync } from '@/lib/hooks/useBoardSync';
@@ -45,6 +46,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   const [errorAlert, setErrorAlert] = useState<{ title: string; message: string } | null>(null);
   const [isColumnDialogOpen, setIsColumnDialogOpen] = useState(false);
   const [activeLabelFilters, setActiveLabelFilters] = useState<string[]>([]);
+  const [activeMemberFilters, setActiveMemberFilters] = useState<string[]>([]);
   const [isFilterVisible, setIsFilterVisible] = useState(false);
 
   // Sync board state when server data changes (e.g., from router.refresh())
@@ -141,8 +143,24 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
     );
   };
 
-  const handleClearLabelFilters = () => {
+  // Derive valid member filter emails (auto-prunes stale emails when members change)
+  const validMemberEmails = new Set(board.members.map(m => m.email));
+  const effectiveMemberFilters = activeMemberFilters.filter(e => validMemberEmails.has(e));
+
+  const totalActiveFilters = effectiveLabelFilters.length + effectiveMemberFilters.length;
+  const hasFilterableContent = board.labels.length > 0 || board.members.length > 1;
+
+  const handleToggleMemberFilter = (email: string) => {
+    setActiveMemberFilters(prev =>
+      prev.includes(email)
+        ? prev.filter(e => e !== email)
+        : [...prev, email]
+    );
+  };
+
+  const handleClearAllFilters = () => {
     setActiveLabelFilters([]);
+    setActiveMemberFilters([]);
   };
 
   const handleUpdateCard = async (
@@ -449,8 +467,11 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
       .map((id) => board.cards[id])
       .filter(Boolean)
       .filter((card) => {
-        if (effectiveLabelFilters.length === 0) return true;
-        return (card.labelIds || []).some(id => effectiveLabelFilters.includes(id));
+        const matchesLabels = effectiveLabelFilters.length === 0 ||
+          (card.labelIds || []).some(id => effectiveLabelFilters.includes(id));
+        const matchesMembers = effectiveMemberFilters.length === 0 ||
+          (card.assignee != null && effectiveMemberFilters.includes(card.assignee));
+        return matchesLabels && matchesMembers;
       });
   };
 
@@ -554,30 +575,46 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
 
   return (
     <div className="h-full flex flex-col" suppressHydrationWarning>
-      <div className="flex items-center justify-end gap-1.5 mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 overflow-x-auto">
-        {isFilterVisible && board.labels.length > 0 && (
-          <LabelFilter
-            labels={board.labels}
-            activeLabelIds={effectiveLabelFilters}
-            onToggleLabel={handleToggleLabelFilter}
-            onClearAll={handleClearLabelFilters}
-          />
+      <div className="flex items-center justify-end gap-1.5 flex-wrap mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        {isFilterVisible && hasFilterableContent && (
+          <>
+            {board.members.length > 1 && (
+              <MemberFilter
+                members={board.members}
+                activeMemberEmails={effectiveMemberFilters}
+                currentUserEmail={userEmail}
+                onToggleMember={handleToggleMemberFilter}
+              />
+            )}
+            {board.labels.length > 0 && board.members.length > 1 && (
+              <span className="text-slate-300 dark:text-slate-600 text-sm select-none">|</span>
+            )}
+            {board.labels.length > 0 && (
+              <LabelFilter
+                labels={board.labels}
+                activeLabelIds={effectiveLabelFilters}
+                hasAnyActiveFilters={totalActiveFilters > 0}
+                onToggleLabel={handleToggleLabelFilter}
+                onClearAll={handleClearAllFilters}
+              />
+            )}
+          </>
         )}
 
-        {board.labels.length > 0 && (
+        {hasFilterableContent && (
           <button
             onClick={() => setIsFilterVisible(v => !v)}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs rounded-lg transition-all transform hover:scale-[1.02] active:scale-[0.98] shrink-0 ${
-              effectiveLabelFilters.length > 0
+              totalActiveFilters > 0
                 ? 'text-orange-500 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
                 : 'text-slate-500 dark:text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20'
             }`}
           >
             <FilterIcon className="w-3.5 h-3.5" />
             {t('filterLabels')}
-            {effectiveLabelFilters.length > 0 && (
+            {totalActiveFilters > 0 && (
               <span className="bg-orange-500 text-white text-[10px] w-4 h-4 rounded-full flex items-center justify-center font-semibold">
-                {effectiveLabelFilters.length}
+                {totalActiveFilters}
               </span>
             )}
           </button>

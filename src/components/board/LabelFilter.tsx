@@ -8,6 +8,7 @@ import { useTranslations } from 'next-intl';
 interface LabelFilterProps {
   labels: BoardLabel[];
   activeLabelIds: string[];
+  hasAnyActiveFilters: boolean;
   onToggleLabel: (labelId: string) => void;
   onClearAll: () => void;
 }
@@ -15,6 +16,7 @@ interface LabelFilterProps {
 export default function LabelFilter({
   labels,
   activeLabelIds,
+  hasAnyActiveFilters,
   onToggleLabel,
   onClearAll,
 }: LabelFilterProps) {
@@ -51,7 +53,7 @@ export default function LabelFilter({
         );
       })}
 
-      {activeLabelIds.length > 0 && (
+      {hasAnyActiveFilters && (
         <button
           onClick={onClearAll}
           className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[11px] text-slate-400 hover:text-orange-500 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-all duration-200 whitespace-nowrap"
