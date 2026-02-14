@@ -111,7 +111,7 @@ const Column = memo(function Column({
               {titleValue}
             </h3>
           )}
-          <span className="text-xs text-slate-400 bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded-full flex-shrink-0">
+          <span className="text-xs text-slate-400 bg-slate-200/50 dark:bg-slate-700/50 px-2 py-0.5 rounded-full shrink-0">
             {cards.length}
           </span>
         </div>
