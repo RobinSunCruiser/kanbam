@@ -5,7 +5,7 @@ import { getLocale, getTranslations } from 'next-intl/server';
 import { createCardSchema, updateCardSchema } from '../validation/schemas';
 import { requireAuth, requireBoardAccess } from '../auth/middleware';
 import { addCard, updateCard, deleteCard, loadBoard } from '../storage/boards';
-import { sendCardAssignmentEmail } from '../email/send';
+import { sendCardAssignmentEmail, sendCommentNotificationEmail } from '../email/send';
 import { boardEvents } from '../realtime/events';
 
 /**
@@ -152,9 +152,9 @@ export async function deleteCardAction(boardUid: string, cardId: string) {
 export async function sendAssignmentEmailAction(
   boardUid: string,
   cardTitle: string,
-  assigneeEmail: string
+  assigneeEmail: string,
+  locale: string
 ) {
-  const locale = await getLocale();
   const t = await getTranslations({ locale, namespace: 'errors' });
 
   try {
@@ -174,6 +174,40 @@ export async function sendAssignmentEmailAction(
     return { success: true };
   } catch (error) {
     console.error('Send assignment email error:', error);
+    return { success: false, error: t('failedToSendEmail') };
+  }
+}
+
+/**
+ * Server Action: Send comment notification email to the card assignee
+ */
+export async function sendCommentEmailAction(
+  boardUid: string,
+  cardTitle: string,
+  assigneeEmail: string,
+  commentText: string,
+  locale: string
+) {
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
+  try {
+    const user = await requireAuth();
+    const board = await loadBoard(boardUid);
+    if (!board) return { success: false, error: t('boardNotFound') };
+
+    await sendCommentNotificationEmail(
+      assigneeEmail,
+      user.name,
+      commentText,
+      cardTitle,
+      board.title,
+      boardUid,
+      locale
+    );
+
+    return { success: true };
+  } catch (error) {
+    console.error('Send comment email error:', error);
     return { success: false, error: t('failedToSendEmail') };
   }
 }

@@ -6,6 +6,23 @@ import { createEmailToken } from './tokens';
 import { User } from '@/types/user';
 import { updateUserField } from '../storage/db';
 import { getAppUrl } from '@/lib/utils/url';
+import en from '../../../messages/en.json';
+import de from '../../../messages/de.json';
+
+type EmailMessages = typeof en;
+const messages: Record<string, EmailMessages> = { en, de };
+
+/** Resolve an email translation key with variable interpolation */
+function t(locale: string, key: string, vars?: Record<string, string>): string {
+  const email = (messages[locale] ?? messages.en).email as Record<string, string>;
+  let value = email[key] ?? (messages.en.email as Record<string, string>)[key] ?? key;
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      value = value.replaceAll(`{${k}}`, v);
+    }
+  }
+  return value;
+}
 
 /** Lazily initialized Resend client */
 let resend: Resend | null = null;
@@ -80,14 +97,14 @@ export async function trySendVerificationEmail(user: User, locale: string = 'en'
   const url = `${await getAppUrl()}/${locale}/verify?token=${await createEmailToken(user.id, 'verify')}`;
   await sendEmail(
     user.email,
-    'Verify your KanBam account',
-    `Hi ${user.name},\n\nVerify your email: ${url}\n\nExpires in 24 hours.`,
-    emailHtml('Welcome to KanBam!', `
-      <p>Hi ${user.name},</p>
-      <p>Please verify your email address:</p>
-      ${button(url, 'Verify Email')}
-      ${muted('This link expires in 24 hours.')}
-      ${muted("If you didn't create an account, ignore this email.")}
+    t(locale, 'verifySubject'),
+    t(locale, 'verifyText', { name: user.name, url }),
+    emailHtml(t(locale, 'verifyTitle'), `
+      <p>${t(locale, 'verifyGreeting', { name: user.name })}</p>
+      <p>${t(locale, 'verifyBody')}</p>
+      ${button(url, t(locale, 'verifyButton'))}
+      ${muted(t(locale, 'verifyExpiry'))}
+      ${muted(t(locale, 'verifyIgnore'))}
     `)
   );
 
@@ -100,33 +117,14 @@ export async function sendPasswordResetEmail(email: string, userId: string, user
   const url = `${await getAppUrl()}/${locale}/reset-password?token=${await createEmailToken(userId, 'reset')}`;
   await sendEmail(
     email,
-    'Reset your KanBam password',
-    `Hi ${userName},\n\nReset your password: ${url}\n\nExpires in 1 hour.`,
-    emailHtml('Reset your password', `
-      <p>Hi ${userName},</p>
-      <p>You requested to reset your password:</p>
-      ${button(url, 'Reset Password')}
-      ${muted('This link expires in 1 hour.')}
-      ${muted("If you didn't request this, ignore this email.")}
-    `)
-  );
-}
-
-/** Send board invitation email */
-export async function sendBoardInviteEmail(
-  email: string,
-  inviterName: string,
-  boardTitle: string,
-  boardUrl: string
-) {
-  await sendEmail(
-    email,
-    `You've been invited to "${boardTitle}" on KanBam`,
-    `${inviterName} invited you to "${boardTitle}". View: ${boardUrl}`,
-    emailHtml("You've been invited!", `
-      <p><strong>${inviterName}</strong> invited you to:</p>
-      <p style="font-size: 18px; color: #1f2937;">"${boardTitle}"</p>
-      ${button(boardUrl, 'View Board')}
+    t(locale, 'resetSubject'),
+    t(locale, 'resetText', { name: userName, url }),
+    emailHtml(t(locale, 'resetTitle'), `
+      <p>${t(locale, 'resetGreeting', { name: userName })}</p>
+      <p>${t(locale, 'resetBody')}</p>
+      ${button(url, t(locale, 'resetButton'))}
+      ${muted(t(locale, 'resetExpiry'))}
+      ${muted(t(locale, 'resetIgnore'))}
     `)
   );
 }
@@ -143,13 +141,38 @@ export async function sendCardAssignmentEmail(
   const boardUrl = `${await getAppUrl()}/${locale}/board/${boardUid}`;
   await sendEmail(
     assigneeEmail,
-    `You've been assigned to "${cardTitle}" on KanBam`,
-    `${assignerName} assigned you to "${cardTitle}" in board "${boardTitle}". View: ${boardUrl}`,
-    emailHtml("You've been assigned!", `
-      <p><strong>${assignerName}</strong> assigned you to a card:</p>
+    t(locale, 'assignSubject', { cardTitle }),
+    t(locale, 'assignText', { assignerName, cardTitle, boardTitle, boardUrl }),
+    emailHtml(t(locale, 'assignTitle'), `
+      <p><strong>${t(locale, 'assignBody', { assignerName })}</strong></p>
       <p style="font-size: 18px; color: #1f2937;">"${cardTitle}"</p>
-      <p style="color: #6b7280;">in board "${boardTitle}"</p>
-      ${button(boardUrl, 'View Board')}
+      <p style="color: #6b7280;">${t(locale, 'assignBoardContext', { boardTitle })}</p>
+      ${button(boardUrl, t(locale, 'assignButton'))}
+    `)
+  );
+}
+
+/** Send comment notification email to the card assignee */
+export async function sendCommentNotificationEmail(
+  assigneeEmail: string,
+  commenterName: string,
+  commentText: string,
+  cardTitle: string,
+  boardTitle: string,
+  boardUid: string,
+  locale: string = 'en'
+) {
+  const boardUrl = `${await getAppUrl()}/${locale}/board/${boardUid}`;
+  await sendEmail(
+    assigneeEmail,
+    t(locale, 'commentSubject', { cardTitle }),
+    t(locale, 'commentText', { commenterName, cardTitle, boardTitle, commentText, boardUrl }),
+    emailHtml(t(locale, 'commentTitle'), `
+      <p><strong>${t(locale, 'commentBody', { commenterName })}</strong></p>
+      <p style="font-size: 18px; color: #1f2937;">"${cardTitle}"</p>
+      <p style="color: #6b7280;">${t(locale, 'commentBoardContext', { boardTitle })}</p>
+      <blockquote style="border-left: 3px solid #e5e7eb; padding-left: 12px; color: #4b5563; margin: 16px 0;">${commentText}</blockquote>
+      ${button(boardUrl, t(locale, 'commentButton'))}
     `)
   );
 }

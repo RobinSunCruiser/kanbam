@@ -10,10 +10,11 @@ interface CardActivityProps{
   notes: ActivityNote[];
   isReadOnly: boolean;
   onChange: (notes: ActivityNote[]) => void;
+  onCommentAdded?: (commentText: string) => void;
   currentUserEmail: string;
 }
 
-export default function CardActivity({ notes, isReadOnly, onChange, currentUserEmail }: CardActivityProps) {
+export default function CardActivity({ notes, isReadOnly, onChange, onCommentAdded, currentUserEmail }: CardActivityProps) {
   const t = useTranslations('activity');
   const tCommon = useTranslations('common');
   const [isAdding, setIsAdding] = useState(false);
@@ -26,12 +27,14 @@ export default function CardActivity({ notes, isReadOnly, onChange, currentUserE
 
   const handleAdd = () => {
     if (!newNote.trim()) return;
+    const trimmedNote = newNote.trim();
     onChange([...notes, {
       id: nanoid(),
-      text: newNote.trim(),
+      text: trimmedNote,
       createdBy: currentUserEmail,
       createdAt: new Date().toISOString(),
     }]);
+    onCommentAdded?.(trimmedNote);
     setNewNote('');
     setIsAdding(false);
   };

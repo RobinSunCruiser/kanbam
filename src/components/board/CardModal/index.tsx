@@ -12,9 +12,9 @@ import CardLinks from './CardLinks';
 import CardDeadline from './CardDeadline';
 import CardAssignee from './CardAssignee';
 import CardActivity from './CardActivity';
-import { sendAssignmentEmailAction } from '@/lib/actions/cards';
+import { sendAssignmentEmailAction, sendCommentEmailAction } from '@/lib/actions/cards';
 import { AUTOSAVE_DEBOUNCE_MS } from '@/lib/constants';
-import { useTranslations } from 'next-intl';
+import { useTranslations, useLocale } from 'next-intl';
 
 interface CardModalProps {
   card: Card | null;
@@ -62,6 +62,7 @@ export default function CardModal({
 }: CardModalProps) {
   const t = useTranslations('card');
   const tCommon = useTranslations('common');
+  const locale = useLocale();
   const isCreateMode = !card && onCreate && columnId;
 
   // Form state
@@ -200,7 +201,7 @@ export default function CardModal({
     // Send assignment email if assignee changed during this session
     if (pendingEmailRef.current) {
       const { boardUid: uid, title: cardTitle, assignee: newAssignee } = pendingEmailRef.current;
-      sendAssignmentEmailAction(uid, cardTitle, newAssignee);
+      sendAssignmentEmailAction(uid, cardTitle, newAssignee, locale);
       pendingEmailRef.current = null;
     }
   }, [isOpen]);
@@ -249,6 +250,13 @@ export default function CardModal({
       setError(errorMessage);
     }
   }, [isReadOnly]);
+
+  // Notify card assignee when a comment is added (fire-and-forget)
+  const handleCommentAdded = useCallback((commentText: string) => {
+    if (assignee && assignee !== currentUserEmail) {
+      sendCommentEmailAction(boardUid, title, assignee, commentText, locale);
+    }
+  }, [assignee, currentUserEmail, boardUid, title, locale]);
 
   // Debounced auto-save for text fields (title, description)
   useEffect(() => {
@@ -387,7 +395,7 @@ export default function CardModal({
             {/* Divider */}
             <div className="border-t border-slate-200 dark:border-slate-700" />
 
-            <CardActivity notes={activity} isReadOnly={isReadOnly} currentUserEmail={currentUserEmail} onChange={setActivity} />
+            <CardActivity notes={activity} isReadOnly={isReadOnly} currentUserEmail={currentUserEmail} onChange={setActivity} onCommentAdded={handleCommentAdded} />
           </>
         )}
 
