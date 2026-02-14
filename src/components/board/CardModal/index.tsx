@@ -251,12 +251,15 @@ export default function CardModal({
     }
   }, [isReadOnly]);
 
-  // Notify card assignee when a comment is added (fire-and-forget)
+  // Notify all participants (previous commenters + assignee) when a comment is added
   const handleCommentAdded = useCallback((commentText: string) => {
-    if (assignee && assignee !== currentUserEmail) {
-      sendCommentEmailAction(boardUid, title, assignee, commentText, locale);
+    const commenters = activity.map(n => n.createdBy);
+    if (assignee) commenters.push(assignee);
+    const recipients = [...new Set(commenters)].filter(e => e !== currentUserEmail);
+    if (recipients.length > 0) {
+      sendCommentEmailAction(boardUid, title, recipients, commentText, locale);
     }
-  }, [assignee, currentUserEmail, boardUid, title, locale]);
+  }, [assignee, currentUserEmail, boardUid, title, locale, activity]);
 
   // Debounced auto-save for text fields (title, description)
   useEffect(() => {

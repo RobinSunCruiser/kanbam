@@ -184,7 +184,7 @@ export async function sendAssignmentEmailAction(
 export async function sendCommentEmailAction(
   boardUid: string,
   cardTitle: string,
-  assigneeEmail: string,
+  recipientEmails: string[],
   commentText: string,
   locale: string
 ) {
@@ -195,15 +195,9 @@ export async function sendCommentEmailAction(
     const board = await loadBoard(boardUid);
     if (!board) return { success: false, error: t('boardNotFound') };
 
-    await sendCommentNotificationEmail(
-      assigneeEmail,
-      user.name,
-      commentText,
-      cardTitle,
-      board.title,
-      boardUid,
-      locale
-    );
+    await Promise.all(recipientEmails.map(email =>
+      sendCommentNotificationEmail(email, user.name, commentText, cardTitle, board.title, boardUid, locale)
+    ));
 
     return { success: true };
   } catch (error) {
