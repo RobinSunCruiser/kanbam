@@ -65,7 +65,7 @@ export default function CardActivity({ notes, isReadOnly, onChange, onCommentAdd
             onKeyDown={(e) => { if (e.key === 'Escape') { setIsAdding(false); setNewNote(''); } }}
             placeholder={t('notePlaceholder')}
             rows={2}
-            className="w-full px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+            className="w-full px-3 py-2 text-base bg-slate-50 dark:bg-slate-800/50 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-orange-500/50"
           />
           <div className="flex gap-2 justify-end">
             <button onClick={() => { setIsAdding(false); setNewNote(''); }} className="px-3 py-1 text-sm text-slate-500">{tCommon('cancel')}</button>

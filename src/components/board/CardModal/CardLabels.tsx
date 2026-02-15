@@ -107,7 +107,7 @@ export default function CardLabels({ labelIds, boardLabels, boardUid, isReadOnly
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder={t('searchOrCreate')}
-            className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50"
+            className="w-full px-3 py-1.5 text-base bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50"
             maxLength={30}
           />
 

@@ -262,6 +262,15 @@ body {
   }
 }
 
+/* Prevent mobile browser auto-zoom on input focus */
+@media (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: max(1rem, 1em);
+  }
+}
+
 /* Custom checkbox styling */
 input[type="checkbox"] {
   accent-color: var(--primary);

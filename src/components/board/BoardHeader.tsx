@@ -127,7 +127,7 @@ export default function BoardHeader({
             onBlur={handleDescriptionBlur}
             onKeyDown={handleDescriptionKeyDown}
             disabled={isReadOnly || isPending}
-            className="flex-1 min-w-32 text-sm text-slate-500 dark:text-slate-400 bg-transparent border-none outline-none"
+            className="flex-1 min-w-32 text-base text-slate-500 dark:text-slate-400 bg-transparent border-none outline-none"
             placeholder={t('boardDescriptionPlaceholder')}
             aria-label="Board description"
           />

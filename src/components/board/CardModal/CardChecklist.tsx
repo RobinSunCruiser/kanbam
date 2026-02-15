@@ -130,7 +130,7 @@ export default function CardChecklist({ items, isReadOnly, onChange }: CardCheck
 
       {isAdding && (
         <div className="space-y-2 p-3 bg-slate-50 dark:bg-slate-800/30 rounded-xl">
-          <input ref={inputRef} type="text" value={newItemText} onChange={(e) => setNewItemText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') handleCancel(); }} placeholder={t('itemPlaceholder')} className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
+          <input ref={inputRef} type="text" value={newItemText} onChange={(e) => setNewItemText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') handleCancel(); }} placeholder={t('itemPlaceholder')} className="w-full px-3 py-1.5 text-base bg-white dark:bg-slate-800/50 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500/50" />
           <div className="flex gap-2 justify-end">
             <button onClick={handleCancel} className="px-3 py-1 text-sm text-slate-500 hover:text-slate-700">{tCommon('cancel')}</button>
             <button onClick={handleAdd} disabled={!newItemText.trim()} className="px-3 py-1 text-sm text-orange-500 hover:text-orange-600 font-medium disabled:opacity-50">{tCommon('add')}</button>

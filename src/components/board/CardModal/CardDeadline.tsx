@@ -136,7 +136,7 @@ export default function CardDeadline({ deadline, reminder, isReadOnly, onChange,
               <select
                 value={reminder || ''}
                 onChange={(e) => onReminderChange(e.target.value as ReminderOption | '')}
-                className="appearance-none text-xs bg-transparent text-slate-500 dark:text-slate-400 border-none outline-none cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
+                className="appearance-none text-base bg-transparent text-slate-500 dark:text-slate-400 border-none outline-none cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 transition-colors"
               >
                 <option value="" className="text-black">{t('noReminder')}</option>
                 {REMINDER_OPTIONS.map((opt) => (
