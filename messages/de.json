@@ -140,7 +140,8 @@
     "creating": "Wird erstellt...",
     "filterLabels": "Filter",
     "clearFilters": "Zurücksetzen",
-    "noMatchingCards": "Keine Karten entsprechen den Filtern"
+    "noMatchingCards": "Keine Karten entsprechen den Filtern",
+    "sleepMode": "Sync-Pausiert"
   },
   "card": {
     "createCard": "Karte erstellen",

@@ -39,6 +39,7 @@ export const LABEL_COLORS = [
  */
 export const RECONNECT_DELAY_MS = 3000;
 export const AUTOSAVE_DEBOUNCE_MS = 1000;
+export const SSE_ACTIVE_DURATION_MS = 5 * 60 * 1000; // 5 minutes inactivity timeout
 
 /**
  * DnD activation constraints

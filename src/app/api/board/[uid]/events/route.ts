@@ -4,6 +4,7 @@ import { requireAuth, requireBoardAccess } from '@/lib/auth/middleware';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
+export const maxDuration = 300; // 5 minutes (Vercel Fluid Compute)
 
 export async function GET(
   request: NextRequest,

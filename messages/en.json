@@ -140,7 +140,8 @@
     "creating": "Creating...",
     "filterLabels": "Filter",
     "clearFilters": "Clear",
-    "noMatchingCards": "No cards match filters"
+    "noMatchingCards": "No cards match filters",
+    "sleepMode": "Sleeping"
   },
   "card": {
     "createCard": "Create Card",

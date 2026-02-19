@@ -24,7 +24,7 @@ import ColumnDialog from './ColumnDialog';
 import LabelFilter from './LabelFilter';
 import MemberFilter from './MemberFilter';
 import AlertDialog from '../ui/AlertDialog';
-import { PlusIcon, FilterIcon } from '../ui/Icons';
+import { PlusIcon, FilterIcon, MoonIcon } from '../ui/Icons';
 import { useBoardSync } from '@/lib/hooks/useBoardSync';
 import { useDndSensors } from '@/lib/hooks/useDndSensors';
 import { useTranslations } from 'next-intl';
@@ -54,7 +54,7 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   useEffect(() => setBoard(initialBoard), [initialBoard.updatedAt]);
 
   // Subscribe to real-time updates from other users
-  useBoardSync(board.uid);
+  const { syncMode } = useBoardSync(board.uid);
 
   const isReadOnly = userPrivilege === 'read';
 
@@ -576,6 +576,11 @@ export default function Board({ initialBoard, userPrivilege, userEmail }: BoardP
   return (
     <div className="h-full flex flex-col" suppressHydrationWarning>
       <div className="flex items-center justify-end gap-1.5 flex-wrap mb-2 shrink-0 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8">
+        {syncMode === 'sleep' && (
+          <span className="px-1.5 py-1.5 text-slate-300 dark:text-slate-600" title={t('sleepMode')}>
+            <MoonIcon className="w-3.5 h-3.5" />
+          </span>
+        )}
         {isFilterVisible && hasFilterableContent && (
           <>
             {board.members.length > 1 && (
