@@ -93,11 +93,13 @@ export function useBoardSync(boardUid: string): { syncMode: SyncMode } {
     document.addEventListener('click', handleActivity);
     document.addEventListener('keydown', handleActivity);
     document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleActivity);
 
     return () => {
       document.removeEventListener('click', handleActivity);
       document.removeEventListener('keydown', handleActivity);
       document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleActivity);
       closeConnection();
       clearTimeout(sleepTimerRef.current);
       sleepTimerRef.current = undefined;
