@@ -2,7 +2,7 @@ import { Board, BoardLabel, Card, Column, ChecklistItem, CardLink, ActivityNote,
 import { NotFoundError, ValidationError } from '../utils/errors';
 import { generateUid, isValidUid } from '../utils/uid';
 import { getUserByEmail } from './users';
-import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid } from './db';
+import { queryBoardByUid, queryBoardsByMemberEmail, upsertBoard, deleteBoardByUid, updateBoardOwner } from './db';
 
 /** Remove board labels not referenced by any card */
 function pruneOrphanedLabels(board: Board): void {
@@ -209,6 +209,44 @@ export async function removeBoardMember(
 
   board.updatedAt = new Date().toISOString();
   await saveBoard(board);
+}
+
+/** Clear assignee from all cards on a board where the assignee matches the given email */
+export async function clearAssigneeFromBoard(
+  boardUid: string,
+  email: string
+): Promise<void> {
+  const board = await loadBoard(boardUid);
+  if (!board) return;
+
+  const lowerEmail = email.toLowerCase();
+  let changed = false;
+
+  for (const card of Object.values(board.cards)) {
+    if (card.assignee && card.assignee.toLowerCase() === lowerEmail) {
+      card.assignee = undefined;
+      card.updatedAt = new Date().toISOString();
+      changed = true;
+    }
+  }
+
+  if (changed) {
+    board.updatedAt = new Date().toISOString();
+    await saveBoard(board);
+  }
+}
+
+/** Transfer board ownership to another member */
+export async function transferBoardOwnership(
+  boardUid: string,
+  newOwnerEmail: string
+): Promise<void> {
+  const newOwner = await getUserByEmail(newOwnerEmail);
+  if (!newOwner) {
+    throw new ValidationError('New owner must be a registered user');
+  }
+
+  await updateBoardOwner(boardUid, newOwner.id);
 }
 
 // ============================================================================

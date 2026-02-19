@@ -181,6 +181,11 @@ export async function upsertBoard(
   `;
 }
 
+/** Update board owner - transfers ownership to a new user */
+export async function updateBoardOwner(uid: string, newOwnerId: string): Promise<void> {
+  await sql`UPDATE boards SET owner_id = ${newOwnerId} WHERE uid = ${uid}`;
+}
+
 /** Delete board by UID - returns true if deleted, false if not found */
 export async function deleteBoardByUid(uid: string): Promise<boolean> {
   const result = await sql`

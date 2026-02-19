@@ -56,6 +56,7 @@
     "checkEmailTitle": "Check your email",
     "checkEmailDescription": "We've sent you a verification link. Please check your inbox and click the link to verify your account.",
     "checkEmailSpam": "Didn't receive the email? Check your spam folder or try logging in to resend the verification email.",
+    "resendVerificationDescription": "Didn't receive the email? Enter your email address to receive a new verification link.",
     "goToLogin": "Go to login",
     "emailVerifiedTitle": "Email Verified!",
     "emailVerifiedDescription": "Your email has been verified. You can now log in to your account.",
@@ -85,7 +86,10 @@
     "sendResetLink": "Send reset link",
     "resetting": "Resetting...",
     "resetPassword": "Reset password",
-    "resetLinkSent": "If an account exists with that email, we've sent a password reset link."
+    "resetLinkSent": "If an account exists with that email, we've sent a password reset link.",
+    "resendVerificationLink": "Resend verification link",
+    "resending": "Sending...",
+    "verificationResent": "If an unverified account exists with that email, we've sent a new verification link."
   },
   "dashboard": {
     "title": "My Boards",
@@ -304,7 +308,8 @@
     "boardNotFound": "Board not found",
     "cannotRemoveOwner": "Cannot remove board owner. The owner must leave the board themselves.",
     "failedToSendEmail": "Failed to send email",
-    "failedToAddLabel": "Failed to add label"
+    "failedToAddLabel": "Failed to add label",
+    "verificationResent": "If an unverified account exists, a new verification link has been sent."
   },
   "email": {
     "verifySubject": "Verify your KanBam account",

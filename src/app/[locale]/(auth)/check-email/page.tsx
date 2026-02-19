@@ -1,6 +1,7 @@
 import { Link } from '@/i18n/navigation';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 import Footer from '@/components/ui/Footer';
+import ResendVerificationForm from '@/components/auth/ResendVerificationForm';
 
 interface CheckEmailPageProps {
   params: Promise<{ locale: string }>;
@@ -25,16 +26,19 @@ export default async function CheckEmailPage({ params }: CheckEmailPageProps) {
             </p>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 py-8 px-6 shadow rounded-xl text-center">
-            <p className="text-sm text-slate-500 dark:text-slate-400 mb-4">
-              {t('checkEmailSpam')}
+          <div className="bg-white dark:bg-slate-800 py-8 px-6 shadow rounded-xl">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 text-center">
+              {t('resendVerificationDescription')}
             </p>
-            <Link
-              href="/login"
-              className="font-medium text-orange-600 hover:text-orange-500 dark:text-orange-400"
-            >
-              {t('goToLogin')}
-            </Link>
+            <ResendVerificationForm />
+            <div className="mt-4 text-center">
+              <Link
+                href="/login"
+                className="font-medium text-orange-600 hover:text-orange-500 dark:text-orange-400"
+              >
+                {t('goToLogin')}
+              </Link>
+            </div>
           </div>
         </div>
       </div>

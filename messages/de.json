@@ -56,6 +56,7 @@
     "checkEmailTitle": "E-Mail überprüfen",
     "checkEmailDescription": "Wir haben dir einen Bestätigungslink gesendet. Bitte überprüfe deinen Posteingang und klicke auf den Link, um dein Konto zu verifizieren.",
     "checkEmailSpam": "Keine E-Mail erhalten? Überprüfe deinen Spam-Ordner oder melde dich erneut an, um die Bestätigungs-E-Mail erneut zu senden.",
+    "resendVerificationDescription": "Keine E-Mail erhalten? Gib deine E-Mail-Adresse ein, um einen neuen Bestätigungslink zu erhalten.",
     "goToLogin": "Zur Anmeldung",
     "emailVerifiedTitle": "E-Mail bestätigt!",
     "emailVerifiedDescription": "Deine E-Mail wurde bestätigt. Du kannst dich jetzt bei deinem Konto anmelden.",
@@ -85,7 +86,10 @@
     "sendResetLink": "Link senden",
     "resetting": "Zurücksetzen...",
     "resetPassword": "Passwort zurücksetzen",
-    "resetLinkSent": "Falls ein Konto mit dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet."
+    "resetLinkSent": "Falls ein Konto mit dieser E-Mail existiert, haben wir einen Link zum Zurücksetzen gesendet.",
+    "resendVerificationLink": "Bestätigungslink erneut senden",
+    "resending": "Senden...",
+    "verificationResent": "Falls ein unbestätigtes Konto mit dieser E-Mail existiert, haben wir einen neuen Bestätigungslink gesendet."
   },
   "dashboard": {
     "title": "Meine Boards",
@@ -304,7 +308,8 @@
     "boardNotFound": "Board nicht gefunden",
     "cannotRemoveOwner": "Board-Besitzer kann nicht entfernt werden. Der Besitzer muss das Board selbst verlassen.",
     "failedToSendEmail": "E-Mail konnte nicht gesendet werden",
-    "failedToAddLabel": "Label konnte nicht hinzugefügt werden"
+    "failedToAddLabel": "Label konnte nicht hinzugefügt werden",
+    "verificationResent": "Falls ein unbestätigtes Konto existiert, wurde ein neuer Bestätigungslink gesendet."
   },
   "email": {
     "verifySubject": "Bestätige dein KanBam-Konto",

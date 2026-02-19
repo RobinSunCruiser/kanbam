@@ -7,7 +7,7 @@ import { loginSchema, signupSchema, forgotPasswordSchema, resetPasswordSchema } 
 import { verifyPassword, hashPassword } from '../auth/password';
 import { setTokenCookie, clearTokenCookie } from '../auth/session';
 import { getUserByEmail, getUserById, createUser, updateUser, deleteUser } from '../storage/users';
-import { listBoardsByEmail, removeBoardMember } from '../storage/boards';
+import { listBoardsByEmail, removeBoardMember, clearAssigneeFromBoard, transferBoardOwnership } from '../storage/boards';
 import { requireAuth } from '../auth/middleware';
 import { trySendVerificationEmail, sendPasswordResetEmail } from '../email/send';
 import { verifyEmailToken } from '../email/tokens';
@@ -109,18 +109,32 @@ export async function signupAction(formData: FormData) {
     // Check if user already exists
     const existingUser = await getUserByEmail(email);
     if (existingUser) {
-      return {
-        success: false,
-        error: t('emailAlreadyRegistered'),
-      };
+      // If user exists but is NOT verified, resend verification and
+      // fall through to redirect (recovers from stuck state where signup email failed)
+      if (!existingUser.emailVerified) {
+        try {
+          await trySendVerificationEmail(existingUser, locale);
+        } catch (emailError) {
+          console.error('Failed to resend verification email during signup:', emailError);
+        }
+      } else {
+        return {
+          success: false,
+          error: t('emailAlreadyRegistered'),
+        };
+      }
+    } else {
+      // Hash password and create user
+      const passwordHash = await hashPassword(password);
+      const user = await createUser({ email, name, passwordHash });
+
+      // Send verification email (non-blocking — user can resend from check-email page)
+      try {
+        await trySendVerificationEmail(user, locale);
+      } catch (emailError) {
+        console.error('Failed to send verification email after signup:', emailError);
+      }
     }
-
-    // Hash password and create user
-    const passwordHash = await hashPassword(password);
-    const user = await createUser({ email, name, passwordHash });
-
-    // Send verification email
-    await trySendVerificationEmail(user, locale);
   } catch (error) {
     console.error('Signup error:', error);
     return {
@@ -129,7 +143,7 @@ export async function signupAction(formData: FormData) {
     };
   }
 
-  // Redirect to check email page
+  // Redirect to check email page (outside try-catch so redirect() is not caught)
   redirect({ href: '/check-email', locale });
 }
 
@@ -314,6 +328,23 @@ export async function deleteAccountAction() {
     // Remove user from all boards
     const boards = await listBoardsByEmail(user.email);
     for (const board of boards) {
+      // Clear card assignee references before removing membership
+      await clearAssigneeFromBoard(board.uid, user.email);
+
+      // Transfer ownership if this user is the board owner and other members exist
+      if (board.ownerId === user.id) {
+        const remainingMembers = board.members.filter(
+          m => m.email.toLowerCase() !== user.email.toLowerCase()
+        );
+        if (remainingMembers.length > 0) {
+          const writeMembers = remainingMembers.filter(m => m.privilege === 'write');
+          const newOwnerEmail = writeMembers.length > 0
+            ? writeMembers[0].email
+            : remainingMembers[0].email;
+          await transferBoardOwnership(board.uid, newOwnerEmail);
+        }
+      }
+
       await removeBoardMember(board.uid, user.email);
     }
 
@@ -332,4 +363,49 @@ export async function deleteAccountAction() {
   }
 
   redirect({ href: '/', locale });
+}
+
+/**
+ * Server Action: Resend Verification Email
+ * Sends a new verification email if the user exists and is unverified.
+ * Always returns success to prevent user enumeration.
+ */
+export async function resendVerificationAction(formData: FormData) {
+  const locale = (formData.get('locale') as string) || (await getLocale());
+  const t = await getTranslations({ locale, namespace: 'errors' });
+
+  const rawData = {
+    email: formData.get('email'),
+  };
+
+  const validation = forgotPasswordSchema.safeParse(rawData);
+  if (!validation.success) {
+    return {
+      success: false,
+      error: validation.error.issues[0]?.message || t('genericError'),
+    };
+  }
+
+  const { email } = validation.data;
+
+  try {
+    const user = await getUserByEmail(email);
+
+    // Only send if user exists and is not yet verified
+    if (user && !user.emailVerified) {
+      await trySendVerificationEmail(user, locale);
+    }
+
+    // Always return success to prevent user enumeration
+    return {
+      success: true,
+      message: t('verificationResent'),
+    };
+  } catch (error) {
+    console.error('Resend verification error:', error);
+    return {
+      success: false,
+      error: t('genericError'),
+    };
+  }
 }
