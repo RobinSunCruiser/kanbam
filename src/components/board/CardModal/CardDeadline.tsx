@@ -1,9 +1,11 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { format } from 'date-fns';
+import { de as dateFnsDe } from 'date-fns/locale';
 import { PlusIcon, XIcon, CalendarIcon, BellIcon } from '@/components/ui/Icons';
 import { Calendar } from '@/components/ui/Calendar';
-import { useTranslations } from 'next-intl';
+import { de, enUS } from 'react-day-picker/locale';
+import { useTranslations, useLocale } from 'next-intl';
 import { REMINDER_OPTIONS } from '@/lib/constants';
 import type { ReminderOption } from '@/types/board';
 
@@ -17,6 +19,7 @@ interface CardDeadlineProps {
 
 export default function CardDeadline({ deadline, reminder, isReadOnly, onChange, onReminderChange }: CardDeadlineProps) {
   const t = useTranslations('deadline');
+  const locale = useLocale();
   const [open, setOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -72,12 +75,12 @@ export default function CardDeadline({ deadline, reminder, isReadOnly, onChange,
       ? 'absolute right-0 top-full z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800'
       : 'absolute left-0 top-full z-50 mt-1 rounded-xl border border-slate-200 bg-white shadow-lg dark:border-slate-700 dark:bg-slate-800'
     }>
-      <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} />
+      <Calendar mode="single" selected={selectedDate} onSelect={handleSelect} locale={locale === 'de' ? de : enUS} />
     </div>
   );
 
   const formattedDate = deadline
-    ? format(new Date(deadline.includes('T') ? deadline : deadline + 'T00:00:00'), 'PPP')
+    ? format(new Date(deadline.includes('T') ? deadline : deadline + 'T00:00:00'), 'PPP', { locale: locale === 'de' ? dateFnsDe : undefined })
     : '';
 
   const datePill = (
